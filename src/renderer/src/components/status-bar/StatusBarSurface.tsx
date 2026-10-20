@@ -19,7 +19,6 @@ import { StatusBarUsageChangeNotices } from './StatusBarUsageChangeNotices'
 import { UpdateStatusSegment } from './UpdateStatusSegment'
 import { SkillUpdateStatusSegment } from './SkillUpdateStatusSegment'
 import { NativeChatResumeStatusSegment } from './NativeChatResumeStatusSegment'
-import { CaffeinateStatusSegment } from './CaffeinateStatusSegment'
 import { RemoteServerUpdateStatusSegment } from './RemoteServerUpdateStatusSegment'
 import { ClaudeSwitcherMenu } from './ClaudeSwitcherMenu'
 import { CodexSwitcherMenu } from './CodexSwitcherMenu'
@@ -34,11 +33,7 @@ import {
 import { useStatusBarController } from './use-status-bar-controller'
 import { isOwnerNotSetUpPlaceholder } from './owner-usage-rate-limits'
 import { StatusBarVisibilityMenu } from './StatusBarVisibilityMenu'
-import { isPairedWebClientWindow } from '@/lib/desktop-window-chrome'
 
-const PetStatusSegment = lazyWithRetry(() =>
-  import('./PetStatusSegment').then((module) => ({ default: module.PetStatusSegment }))
-)
 const PortsStatusSegment = lazyWithRetry(() =>
   import('./PortsStatusSegment').then((module) => ({ default: module.PortsStatusSegment }))
 )
@@ -76,7 +71,6 @@ export function StatusBarSurface({
     isEmptyUsageState,
     isRefreshing,
     overflowing,
-    petEnabled,
     remoteOwner,
     rosterProviders,
     segmentsIconOnly,
@@ -282,15 +276,11 @@ export function StatusBarSurface({
         data-overflowing={overflowing}
       >
         <div ref={segmentsRef} className="flex w-max items-center gap-3">
-          {!isPairedWebClientWindow() ? (
-            <CaffeinateStatusSegment iconOnly={segmentsIconOnly} />
-          ) : null}
           <RemoteServerUpdateStatusSegment iconOnly={segmentsIconOnly} />
           <SkillUpdateStatusSegment iconOnly={segmentsIconOnly} />
           <NativeChatResumeStatusSegment iconOnly={segmentsIconOnly} />
           <UpdateStatusSegment compact={compact} iconOnly={segmentsIconOnly} />
           <React.Suspense fallback={null}>
-            {petEnabled ? <PetStatusSegment /> : null}
             {showPorts ? (
               <PortsStatusSegment compact={compact} iconOnly={segmentsIconOnly} />
             ) : null}

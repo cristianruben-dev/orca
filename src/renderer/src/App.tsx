@@ -34,7 +34,6 @@ import { useOnboardingAndFeatureTips } from './app-shell/use-onboarding-and-feat
 import { usePersistedUIWriter } from './app-shell/use-persisted-ui-writer'
 import { useRuntimeGraphSync } from './app-shell/use-runtime-graph-sync'
 import { useWindowVisibilityEffects } from './app-shell/use-window-visibility-effects'
-import { SpaceWindowStatePublisher } from './components/workspace-space/SpaceWindowStatePublisher'
 import { installActiveWorktreeRemovalSuccessor } from './lib/active-worktree-removal-successor'
 
 function App(): React.JSX.Element {
@@ -100,7 +99,6 @@ function App(): React.JSX.Element {
           <BrowserPagePrompts />
           <LinkRoutingPreferenceDialogProvider>
             <AppBackgroundServices />
-            <SpaceWindowStatePublisher />
             <AppWorkspaceShell layout={layout} floatingWorkspace={floatingWorkspace} />
             <AppRootSurfaces
               floatingWorkspace={floatingWorkspace}

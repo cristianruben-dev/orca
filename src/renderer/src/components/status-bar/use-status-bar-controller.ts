@@ -47,8 +47,6 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
   // Why: PATH detection describes this viewer, not the remote host whose bars are shown.
   const detectedAgentIds = remoteOwned ? null : localDetectedAgentIds
   const ensureDetectedAgents = useAppStore((s) => s.ensureDetectedAgents)
-  // Why: pet segment is driven purely by experimentalPet, not statusBarItems, to avoid double-toggling the surface (see design doc).
-  const petEnabled = useAppStore((s) => s.settings?.experimentalPet === true)
   const toggleStatusBarItem = useAppStore((s) => s.toggleStatusBarItem)
   const usageEmptyStateDismissed = useAppStore((s) => s.usageEmptyStateDismissed)
   const mountedRef = useRef(true)
@@ -288,7 +286,6 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     menuOpen,
     menuPoint,
     overflowing,
-    petEnabled,
     recordFeatureInteraction,
     remoteOwner,
     rosterProviders,

@@ -29,7 +29,6 @@ function renderActions() {
       setOpen: vi.fn(),
       setActiveView: vi.fn(),
       openModal: vi.fn(),
-      openSpacePage: vi.fn(),
       refreshSessions: vi.fn(async () => {}),
       removeSession: vi.fn(),
       removeSessions: vi.fn(),
