@@ -107,30 +107,14 @@ export class AutomationService {
   }
 
   setRendererReady(): void {
-    this.rendererReady = true
-    // Why: the renderer publishes the desktop window graph, so only after it
-    // attaches can an unresolvable pane mean a lost terminal rather than "not yet".
-    this.completionWatcher?.markTerminalSurfaceReady()
-    void this.evaluateDueRuns()
+    this.rendererReady = false
   }
 
   start(): void {
-    if (this.timer) {
-      return
-    }
-    this.stopped = false
-    this.timer = setInterval(() => {
+    this.stopped = true
+    if (this.timer !== null) {
       void this.evaluateDueRuns()
-    }, this.tickMs)
-    this.completionWatcher?.reconcileRetainedRuns(this.store.listAutomationRuns())
-    reportAutomationScheduleDrift(this.store.listAutomations())
-    // Why: headless serve never gets a renderer-ready IPC, but due runs still
-    // need the same startup catch-up pass desktop gets after renderer attach.
-    if (this.rendererReady || this.headlessDispatcher) {
-      // Serve adopts its daemon PTYs and publishes its graph before start(), so
-      // its terminal surface is already as answerable as it will get.
-      this.completionWatcher?.markTerminalSurfaceReady()
-      void this.evaluateDueRuns()
+      reportAutomationScheduleDrift(this.store.listAutomations())
     }
   }
 

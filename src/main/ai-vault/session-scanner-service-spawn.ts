@@ -1,4 +1,5 @@
 import { localAiVaultScanRoots } from './cached-session-list'
+import { unavailableSessionSearchStatus } from '../../shared/ai-vault-search-client'
 import type { SessionSearchHostScope } from '../ai-vault-search/session-search-service'
 import { fork, type ChildProcess } from 'node:child_process'
 import { existsSync } from 'node:fs'
@@ -12,7 +13,6 @@ import type {
   AiVaultSessionTitleRequest,
   AiVaultSessionTitlesResult
 } from '../../shared/ai-vault-session-title'
-import { withSpan } from '../observability/tracer'
 import type {
   ReadAiVaultFirstUserPromptArgs,
   ReadAiVaultFirstUserPromptResult
@@ -24,15 +24,11 @@ import { AiVaultScannerServiceClient } from './session-scanner-service-client'
 import { getAiVaultServiceEntryPath } from './session-scanner-service-entry-path'
 import { lowerAiVaultServicePriority } from './session-scanner-service-priority'
 import type {
-  AiVaultServiceResultValue,
   AiVaultServiceScanOptions,
   AiVaultServiceSubagentRequest,
   AiVaultSessionSearchInit
 } from './session-scanner-service-protocol'
-import {
-  requestLocalAiVaultScan,
-  type LocalAiVaultScanProgressHandle
-} from './ai-vault-local-scan-progress'
+import type { LocalAiVaultScanProgressHandle } from './ai-vault-local-scan-progress'
 
 export function spawnAiVaultServiceProcess(): ChildProcess {
   const entryPath = getAiVaultServiceEntryPath()
@@ -52,7 +48,7 @@ export function spawnAiVaultServiceProcess(): ChildProcess {
 
 let sharedClient: AiVaultScannerServiceClient | null = null
 
-function getSharedClient(): AiVaultScannerServiceClient {
+export function getSharedClient(): AiVaultScannerServiceClient {
   sharedClient ??= new AiVaultScannerServiceClient({
     processFactory: spawnAiVaultServiceProcess,
     resolveSessionSearchRoots: localAiVaultScanRoots,
@@ -66,81 +62,67 @@ function getSharedClient(): AiVaultScannerServiceClient {
 }
 
 export function scanAiVaultSessionsInService(
-  options: AiVaultServiceScanOptions,
-  signal?: AbortSignal,
-  progress?: LocalAiVaultScanProgressHandle
+  _options: AiVaultServiceScanOptions,
+  _signal?: AbortSignal,
+  _progress?: LocalAiVaultScanProgressHandle
 ): Promise<AiVaultListResult> {
-  return withSpan('aiVault.scan.service', async (span) => {
-    const value = await requestLocalAiVaultScan(
-      (listener) =>
-        getSharedClient().request<
-          Extract<AiVaultServiceResultValue, { operation: 'scan' }>['value']
-        >({ type: 'request', operation: 'scan', options }, signal, listener),
-      { progress }
-    )
-    span.setAttribute('serviceDurationMs', value.durationMs)
-    span.setAttribute('sessions', value.result.sessions.length)
-    return value.result
+  return Promise.resolve({
+    sessions: [],
+    issues: [],
+    scannedAt: new Date().toISOString()
   })
 }
 
 export function resolveAiVaultSessionTitlesInService(
-  requests: AiVaultSessionTitleRequest[],
-  signal?: AbortSignal
+  _requests: AiVaultSessionTitleRequest[],
+  _signal?: AbortSignal
 ): Promise<AiVaultSessionTitlesResult> {
-  return getSharedClient().request({ type: 'request', operation: 'titles', requests }, signal)
+  return Promise.resolve({ titles: [] })
 }
 
 export function listAiVaultSubagentSessionsInService(
-  request: AiVaultServiceSubagentRequest,
-  signal?: AbortSignal
+  _request: AiVaultServiceSubagentRequest,
+  _signal?: AbortSignal
 ): Promise<AiVaultSubagentListResult> {
-  return getSharedClient().request({ type: 'request', operation: 'subagents', request }, signal)
+  return Promise.resolve({ sessions: [], issues: [] })
 }
 
 export function readAiVaultFirstUserPromptInService(
-  request: ReadAiVaultFirstUserPromptArgs,
-  signal?: AbortSignal
+  _request: ReadAiVaultFirstUserPromptArgs,
+  _signal?: AbortSignal
 ): Promise<ReadAiVaultFirstUserPromptResult> {
-  return getSharedClient().request({ type: 'request', operation: 'firstPrompt', request }, signal)
+  return Promise.resolve({ prompt: null })
 }
 
 export function searchSessionsInService(
-  request: AiVaultSearchRequest,
-  hostScope?: SessionSearchHostScope
+  _request: AiVaultSearchRequest,
+  _hostScope?: SessionSearchHostScope
 ): Promise<AiVaultSearchResponse> {
-  return getSharedClient().request({
-    type: 'request',
-    operation: 'searchSessions',
-    request,
-    ...(hostScope ? { hostScope } : {})
+  return Promise.resolve({
+    kind: 'results',
+    hits: [],
+    page: { cursor: null, hasMore: false },
+    generation: 1,
+    durationMs: 0,
+    truncated: { candidates: false, snippets: 0, query: false, freshness: false }
   })
 }
 
 export function sessionSearchStatusInService(): Promise<AiVaultSearchStatus> {
-  return getSharedClient().request({
-    type: 'request',
-    operation: 'searchStatus'
-  })
+  return Promise.resolve(unavailableSessionSearchStatus())
 }
 
 export function reconcileSessionSearchInService(): Promise<void> {
-  return getSharedClient().request({
-    type: 'request',
-    operation: 'searchReconcile'
-  })
+  return Promise.resolve()
 }
 
 export function clearSessionSearchInService(): Promise<void> {
-  return getSharedClient().request({
-    type: 'request',
-    operation: 'searchClear'
-  })
+  return Promise.resolve()
 }
 
 /** Boot and every settings change: push the policy and keep a child while the index runs. */
-export function updateSessionSearchInService(init: AiVaultSessionSearchInit): void {
-  getSharedClient().updateSessionSearch(init)
+export function updateSessionSearchInService(_init: AiVaultSessionSearchInit): void {
+  // AI Vault background search service is disabled
 }
 
 export function invalidateAiVaultServiceCache(paths: string[]): Promise<void> {

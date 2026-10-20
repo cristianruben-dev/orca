@@ -83,7 +83,7 @@ export function SidebarHeaderActions({
   onWorkspaceBoardMenuOpenChange,
   agentsViewActive = false
 }: {
-  onWorkspaceBoardMenuOpenChange: (open: boolean) => void
+  onWorkspaceBoardMenuOpenChange?: (open: boolean) => void
   agentsViewActive?: boolean
 }): React.JSX.Element {
   return (

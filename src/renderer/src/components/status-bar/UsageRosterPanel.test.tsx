@@ -107,7 +107,7 @@ describe('UsageRow', () => {
     expect(markup).not.toContain('width:25%')
   })
 
-  it('uses one shared clock for live reset labels across the roster', () => {
+  it('uses one shared clock across the roster in compact mode', () => {
     const sessionReset = mocks.now + 2 * 60_000
     const weeklyReset = mocks.now + 7 * 24 * 60 * 60_000
     const markup = renderToStaticMarkup(
@@ -133,8 +133,6 @@ describe('UsageRow', () => {
             }
           ]}
           display="used"
-          statusBarUsageMode="verbose"
-          onStatusBarUsageModeChange={() => {}}
           isRefreshing={false}
           onRefresh={() => {}}
           onOpenProvider={() => {}}
@@ -148,11 +146,8 @@ describe('UsageRow', () => {
 
     expect(mocks.useResetCountdownClock).toHaveBeenCalledOnce()
     expect(mocks.useResetCountdownClock).toHaveBeenCalledWith([sessionReset, weeklyReset])
-    expect(markup).toContain('Resets in 2m')
-    expect(markup).toContain('5h')
+    expect(markup).toContain('Codex')
     expect(markup).toContain('25%')
-    expect(markup).toContain('wk')
-    expect(markup).toContain('10%')
   })
 
   it('keeps full Antigravity pool names in the click panel', () => {
@@ -330,7 +325,7 @@ describe('UsageRow', () => {
   })
 })
 
-describe('UsageRosterPanel density picker', () => {
+describe('UsageRosterPanel mode', () => {
   let container: HTMLDivElement
   let root: Root
 
@@ -348,18 +343,13 @@ describe('UsageRosterPanel density picker', () => {
     container.remove()
   })
 
-  function renderPanel(
-    statusBarUsageMode: 'verbose' | 'compact',
-    onStatusBarUsageModeChange: (mode: 'verbose' | 'compact') => void
-  ): void {
+  function renderPanel(): void {
     act(() => {
       root.render(
         <TooltipProvider>
           <UsageRosterPanel
             providers={[]}
             display="used"
-            statusBarUsageMode={statusBarUsageMode}
-            onStatusBarUsageModeChange={onStatusBarUsageModeChange}
             isRefreshing={false}
             onRefresh={() => {}}
             onOpenProvider={() => {}}
@@ -373,37 +363,9 @@ describe('UsageRosterPanel density picker', () => {
     })
   }
 
-  function segmentButton(label: string): HTMLButtonElement {
-    const button = [...container.querySelectorAll('button')].find(
-      (node) => node.textContent === label
-    )
-    if (!button) {
-      throw new Error(`missing "${label}" segment`)
-    }
-    return button as HTMLButtonElement
-  }
+  it('omits the Detailed/Compact tabs and renders compact mode only', () => {
+    renderPanel()
 
-  it('offers named Detailed/Compact segments and marks the active one', () => {
-    renderPanel('compact', () => {})
-
-    expect(container.textContent).toContain('Detailed')
-    expect(container.textContent).toContain('Compact')
-    expect(segmentButton('Compact').getAttribute('aria-checked')).toBe('true')
-    expect(segmentButton('Detailed').getAttribute('aria-checked')).toBe('false')
-  })
-
-  it('switches mode when a segment is chosen', () => {
-    const onStatusBarUsageModeChange = vi.fn()
-    renderPanel('compact', onStatusBarUsageModeChange)
-
-    act(() => {
-      segmentButton('Detailed').click()
-    })
-    expect(onStatusBarUsageModeChange).toHaveBeenLastCalledWith('verbose')
-
-    act(() => {
-      segmentButton('Compact').click()
-    })
-    expect(onStatusBarUsageModeChange).toHaveBeenLastCalledWith('compact')
+    expect(container.textContent).not.toContain('Detailed')
   })
 })

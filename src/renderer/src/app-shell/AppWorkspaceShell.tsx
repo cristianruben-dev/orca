@@ -4,7 +4,6 @@ import { translate } from '@/i18n/i18n'
 import Sidebar from '../components/Sidebar'
 import RightSidebar from '../components/right-sidebar'
 import { RecoverableRenderErrorBoundary } from '../components/error-boundaries/RecoverableRenderErrorBoundary'
-import { FloatingTerminalToggleButton } from '../components/floating-terminal/FloatingTerminalToggleButton'
 import { TerminalWorkbenchContainer } from '../components/TerminalWorkbenchContainer'
 import type { VirtualizedScrollAnchor } from '../hooks/useVirtualizedScrollAnchor'
 import { TitlebarLeftControls } from './TitlebarLeftControls'
@@ -17,12 +16,9 @@ const WorktreeCreationPanel = lazy(
   () => import('../components/worktree-creation/WorktreeCreationPanel')
 )
 const TaskPage = lazy(() => import('../components/task-page/TaskPage'))
-const AutomationsPage = lazy(() => import('../components/automations/AutomationsPage'))
 const ActivityPrototypePage = lazy(() => import('../components/activity/ActivityPrototypePage'))
 const Settings = lazy(() => import('../components/settings/Settings'))
 const SkillsPage = lazy(() => import('../components/skills/SkillsPage'))
-const ArtifactsPage = lazy(() => import('../components/artifacts/ArtifactsPage'))
-const WorkspaceSpacePage = lazy(() => import('../components/workspace-space/WorkspaceSpacePage'))
 const MobilePage = lazy(() => import('../components/mobile/MobilePage'))
 const Terminal = lazy(() => import('../components/Terminal'))
 
@@ -70,11 +66,8 @@ function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element 
     <>
       {activeView === 'settings' ? <Settings /> : null}
       {activeView === 'skills' ? <SkillsPage /> : null}
-      {activeView === 'artifacts' ? <ArtifactsPage /> : null}
       {activeView === 'tasks' ? <TaskPage /> : null}
-      {activeView === 'automations' ? <AutomationsPage /> : null}
       {activeView === 'activity' ? <ActivityPrototypePage /> : null}
-      {activeView === 'space' ? <WorkspaceSpacePage /> : null}
       {activeView === 'mobile' ? <MobilePage /> : null}
       {activeView === 'terminal' && creationLayoutActive && activePendingCreationId ? (
         <WorktreeCreationPanel
@@ -90,9 +83,9 @@ function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element 
 /** The left sidebar + titlebar + page/workbench content area + right sidebar. */
 export function AppWorkspaceShell(props: {
   layout: AppChromeLayout
-  floatingWorkspace: FloatingWorkspacePanelState
+  floatingWorkspace?: FloatingWorkspacePanelState
 }): React.JSX.Element {
-  const { layout, floatingWorkspace } = props
+  const { layout } = props
   const titlebarLeftControls = <TitlebarLeftControls layout={layout} />
   const titlebarMainStrip = <TitlebarMainStrip layout={layout} />
   // Why: keep virtualized scroll memory above the sidebar's workspace/landing remount so the left list doesn't restart at scrollTop 0.
@@ -155,10 +148,8 @@ export function AppWorkspaceShell(props: {
               )
             ) : null}
             <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden">
-              {/* Why: automations/artifacts own their page headers; the stacked titlebar would be an empty 36px stripe. */}
-              {layout.stackedSidebarOpen &&
-              layout.activeView !== 'automations' &&
-              layout.activeView !== 'artifacts' ? (
+              {/* Why: artifacts owns its page header; the stacked titlebar would be an empty 36px stripe. */}
+              {layout.stackedSidebarOpen && layout.activeView !== 'artifacts' ? (
                 <div className="titlebar">{titlebarMainStrip}</div>
               ) : null}
               <div className="relative flex flex-1 min-w-0 min-h-0 overflow-hidden">
@@ -214,12 +205,6 @@ export function AppWorkspaceShell(props: {
                     </RecoverableRenderErrorBoundary>
                   </Suspense>
                 </div>
-                {floatingWorkspace.showToggleButton ? (
-                  <FloatingTerminalToggleButton
-                    open={floatingWorkspace.open}
-                    onToggle={() => floatingWorkspace.setOpenWithFocus((open) => !open)}
-                  />
-                ) : null}
               </div>
             </div>
           </div>

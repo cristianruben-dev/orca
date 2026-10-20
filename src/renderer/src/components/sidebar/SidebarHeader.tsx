@@ -10,7 +10,7 @@ import { Sparkles, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type SidebarHeaderProps = {
-  onWorkspaceBoardMenuOpenChange: (open: boolean) => void
+  onWorkspaceBoardMenuOpenChange?: (open: boolean) => void
   activityOptionsTarget?: React.Ref<HTMLDivElement>
 }
 

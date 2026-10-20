@@ -15,7 +15,6 @@ import {
   renderResourceUsagePopoverFooter
 } from './resource-usage-popover-body'
 import { renderResourceUsageKillDialog } from './resource-usage-kill-dialog'
-import { WorkspaceSpaceCompactPanel } from './WorkspaceSpaceCompactPanel'
 
 export { SessionRow, WorktreeRow } from './resource-usage-session-rows'
 
@@ -69,8 +68,7 @@ export function ResourceUsageStatusSegment({
     handleOpenWorkspaceCleanup,
     handleKillSession,
     handleKillOrphans,
-    runKillConfirmed,
-    openSpaceResults
+    runKillConfirmed
   } = controller
 
   return (
@@ -145,7 +143,6 @@ export function ResourceUsageStatusSegment({
           orphanCount,
           handleKillOrphans
         })}
-        <WorkspaceSpaceCompactPanel onOpenFullPage={openSpaceResults} />
       </PopoverContent>
       {/* Why: hoisted to a sibling of PopoverContent — nested, the Dialog unmounts with the popover mid-interaction and the kill-confirm flow disappears. */}
       {renderResourceUsageKillDialog({

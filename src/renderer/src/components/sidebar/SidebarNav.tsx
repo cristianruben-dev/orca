@@ -1,5 +1,5 @@
 import React from 'react'
-import { BookOpen, CalendarClock, EyeOff, Files, Search, Smartphone } from 'lucide-react'
+import { BookOpen, EyeOff, Search, Smartphone } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store'
 import { cn } from '@/lib/utils'
@@ -13,7 +13,6 @@ import { SetupGuideSidebarEntry } from './SetupGuideSidebarEntry'
 import { SidebarTaskNavButton } from './SidebarTaskNavButton'
 import { HideSidebarMenu } from './sidebar-nav-controls'
 import { translate } from '@/i18n/i18n'
-import { lazyWithRetry } from '@/lib/lazy-with-retry'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 
 export function shouldShowMobileButton(
@@ -23,15 +22,15 @@ export function shouldShowMobileButton(
 }
 
 export function shouldShowAutomationsButton(
-  settings: Partial<Pick<GlobalSettings, 'showAutomationsButton'>> | null | undefined
+  _settings?: Partial<Pick<GlobalSettings, 'showAutomationsButton'>> | null | undefined
 ): boolean {
-  return settings?.showAutomationsButton !== false
+  return false
 }
 
 export function shouldShowArtifactsButton(
-  settings: Partial<Pick<GlobalSettings, 'showArtifactsButton'>> | null | undefined
+  _settings?: Partial<Pick<GlobalSettings, 'showArtifactsButton'>> | null | undefined
 ): boolean {
-  return settings?.showArtifactsButton === true
+  return false
 }
 
 export function shouldShowSkillsButton(
@@ -41,43 +40,28 @@ export function shouldShowSkillsButton(
 }
 
 export function shouldShowAgentDashboardButton(
-  settings: Partial<Pick<GlobalSettings, 'experimentalAgentDashboardPopout'>> | null | undefined
+  _settings?: Partial<Pick<GlobalSettings, 'experimentalAgentDashboardPopout'>> | null | undefined
 ): boolean {
-  return settings?.experimentalAgentDashboardPopout === true
+  return false
 }
-
-const AgentDashboardSidebarEntry = lazyWithRetry(() => import('./AgentDashboardSidebarEntry'))
 
 const SidebarNav = React.memo(function SidebarNav() {
   // Why: this memo boundary needs its own language subscription, while
   // translate() preserves Orca's pseudo-localization behavior.
   useTranslation()
   const worktreePaletteShortcutCombos = useShortcutKeyComboDetails('worktree.palette')
-  const openAutomationsPage = useAppStore((s) => s.openAutomationsPage)
   const openMobilePage = useAppStore((s) => s.openMobilePage)
-  const openArtifactsPage = useAppStore((s) => s.openArtifactsPage)
   const openSkillsPage = useAppStore((s) => s.openSkillsPage)
   const openModal = useAppStore((s) => s.openModal)
   const updateSettings = useAppStore((s) => s.updateSettings)
   const activeView = useAppStore((s) => s.activeView)
-  const showAgentDashboardButton = useAppStore((s) => shouldShowAgentDashboardButton(s.settings))
-  const showAutomationsButton = useAppStore((s) => shouldShowAutomationsButton(s.settings))
   const showMobileButton = useAppStore((s) => shouldShowMobileButton(s.settings))
-  const showArtifactsButton = useAppStore((s) => shouldShowArtifactsButton(s.settings))
   const showSkillsButton = useAppStore((s) => shouldShowSkillsButton(s.settings))
-  const automationsActive = activeView === 'automations'
   const mobileActive = activeView === 'mobile'
-  const artifactsActive = activeView === 'artifacts'
   const skillsActive = activeView === 'skills'
   const mobileOnboardingBadge = useMobileSidebarOnboardingBadge(showMobileButton)
-  const hideAutomationsButton = React.useCallback(() => {
-    void updateSettings({ showAutomationsButton: false })
-  }, [updateSettings])
   const hideMobileButton = React.useCallback(() => {
     void updateSettings({ showMobileButton: false })
-  }, [updateSettings])
-  const hideArtifactsButton = React.useCallback(() => {
-    void updateSettings({ showArtifactsButton: false })
   }, [updateSettings])
   const hideSkillsButton = React.useCallback(() => {
     void updateSettings({ showSkillsButton: false })
@@ -119,35 +103,6 @@ const SidebarNav = React.memo(function SidebarNav() {
       </button>
       <SetupGuideSidebarEntry />
       <SidebarTaskNavButton />
-      {showArtifactsButton ? (
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <button
-              type="button"
-              onClick={openArtifactsPage}
-              aria-current={artifactsActive ? 'page' : undefined}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
-                artifactsActive
-                  ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
-                  : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
-              )}
-            >
-              <Files
-                className={cn(
-                  'size-4 shrink-0',
-                  !artifactsActive && 'text-worktree-sidebar-foreground/30'
-                )}
-                strokeWidth={artifactsActive ? 2.25 : 1.75}
-              />
-              <span className="flex-1">
-                {translate('auto.components.sidebar.SidebarNav.artifacts', 'Artifacts')}
-              </span>
-            </button>
-          </ContextMenuTrigger>
-          <HideSidebarMenu onHide={hideArtifactsButton} />
-        </ContextMenu>
-      ) : null}
       {showSkillsButton ? (
         <ContextMenu>
           <ContextMenuTrigger asChild>
@@ -176,40 +131,6 @@ const SidebarNav = React.memo(function SidebarNav() {
           </ContextMenuTrigger>
           <HideSidebarMenu onHide={hideSkillsButton} />
         </ContextMenu>
-      ) : null}
-      {showAutomationsButton ? (
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <button
-              type="button"
-              onClick={openAutomationsPage}
-              aria-current={automationsActive ? 'page' : undefined}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
-                automationsActive
-                  ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
-                  : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
-              )}
-            >
-              <CalendarClock
-                className={cn(
-                  'size-4 shrink-0',
-                  !automationsActive && 'text-worktree-sidebar-foreground/30'
-                )}
-                strokeWidth={automationsActive ? 2.25 : 1.75}
-              />
-              <span className="flex-1">
-                {translate('auto.components.sidebar.SidebarNav.f323383e9a', 'Automations')}
-              </span>
-            </button>
-          </ContextMenuTrigger>
-          <HideSidebarMenu onHide={hideAutomationsButton} />
-        </ContextMenu>
-      ) : null}
-      {showAgentDashboardButton ? (
-        <React.Suspense fallback={null}>
-          <AgentDashboardSidebarEntry />
-        </React.Suspense>
       ) : null}
       {showMobileButton ? (
         <ContextMenu>

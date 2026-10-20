@@ -6,7 +6,6 @@ import {
 import { createFloatingWorkspaceTourInteractionSnapshot } from '@/lib/floating-workspace-tour-interaction-snapshot'
 import { persistFloatingTerminalPanelOpen } from '../components/floating-terminal/floating-terminal-panel-view-state'
 import { useAppStore } from '../store'
-import { selectFloatingVisibleTabCount } from '../store/selectors'
 
 export type FloatingWorkspacePanelState = ReturnType<typeof useFloatingWorkspacePanel>
 
@@ -28,11 +27,6 @@ export function useFloatingWorkspacePanel() {
   // false read at boot must not be treated as the user disabling the feature. The store
   // initializes `settings` to null (not undefined) - fetchSettings replaces it atomically.
   const settingsHydrated = useAppStore((s) => s.settings != null)
-  const triggerLocation = useAppStore(
-    (s) => s.settings?.floatingTerminalTriggerLocation ?? 'floating-button'
-  )
-  const statusBarVisible = useAppStore((s) => s.statusBarVisible)
-  const visibleTabCount = useAppStore(selectFloatingVisibleTabCount)
 
   // Why: floating workspace is a transient overlay; hotkey minimize returns focus to the surface the user came from.
   const returnFocusRef = useRef<HTMLElement | null>(null)
@@ -127,14 +121,13 @@ export function useFloatingWorkspacePanel() {
 
   return {
     cancelReturnFocusFrame,
-    enabled,
-    open,
+    enabled: false,
+    open: false,
     openMaximized,
     setOpenWithFocus,
-    // Why: once the floating workspace owns tabs, keep it mounted while closed so hidden terminal/browser/editor panes retain local state.
-    shouldMountPanel: enabled && (open || visibleTabCount > 0),
-    showToggleButton: enabled && (triggerLocation === 'floating-button' || !statusBarVisible),
+    shouldMountPanel: false,
+    showToggleButton: false,
     tourInteractionSnapshotRef,
-    visibleTabCount
+    visibleTabCount: 0
   }
 }

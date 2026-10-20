@@ -31,6 +31,10 @@ export function normalizeRightSidebarRoute(
   if (tab === 'search') {
     return { rightSidebarTab: 'explorer', rightSidebarExplorerView: 'search' }
   }
+  // Why: Agent Session History (vault) is retired; normalize to files explorer.
+  if (tab === 'vault') {
+    return { rightSidebarTab: 'explorer', rightSidebarExplorerView: 'files' }
+  }
   // Why: plugin tabs are open-ended keys; validate their shape so a persisted
   // plugin tab isn't reset to Explorer on restart.
   if (typeof tab === 'string' && isPluginPanelTabKey(tab)) {
@@ -41,7 +45,6 @@ export function normalizeRightSidebarRoute(
   }
   if (
     tab === 'explorer' ||
-    tab === 'vault' ||
     tab === 'workspaces' ||
     tab === 'pr-checks' ||
     tab === 'source-control' ||

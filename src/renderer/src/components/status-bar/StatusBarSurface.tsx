@@ -1,4 +1,4 @@
-import { PanelsTopLeft, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { lazyWithRetry } from '@/lib/lazy-with-retry'
@@ -19,10 +19,7 @@ import { StatusBarUsageChangeNotices } from './StatusBarUsageChangeNotices'
 import { UpdateStatusSegment } from './UpdateStatusSegment'
 import { SkillUpdateStatusSegment } from './SkillUpdateStatusSegment'
 import { NativeChatResumeStatusSegment } from './NativeChatResumeStatusSegment'
-import { CaffeinateStatusSegment } from './CaffeinateStatusSegment'
 import { RemoteServerUpdateStatusSegment } from './RemoteServerUpdateStatusSegment'
-import { TOGGLE_FLOATING_TERMINAL_EVENT } from '@/lib/floating-terminal'
-import { FloatingTerminalIconContextMenu } from '@/components/floating-terminal/FloatingTerminalIconContextMenu'
 import { ClaudeSwitcherMenu } from './ClaudeSwitcherMenu'
 import { CodexSwitcherMenu } from './CodexSwitcherMenu'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
@@ -36,16 +33,7 @@ import {
 import { useStatusBarController } from './use-status-bar-controller'
 import { isOwnerNotSetUpPlaceholder } from './owner-usage-rate-limits'
 import { StatusBarVisibilityMenu } from './StatusBarVisibilityMenu'
-import { isPairedWebClientWindow } from '@/lib/desktop-window-chrome'
 
-const PetStatusSegment = lazyWithRetry(() =>
-  import('./PetStatusSegment').then((module) => ({ default: module.PetStatusSegment }))
-)
-const ResourceUsageStatusSegment = lazyWithRetry(() =>
-  import('./ResourceUsageStatusSegment').then((module) => ({
-    default: module.ResourceUsageStatusSegment
-  }))
-)
 const PortsStatusSegment = lazyWithRetry(() =>
   import('./PortsStatusSegment').then((module) => ({ default: module.PortsStatusSegment }))
 )
@@ -74,8 +62,6 @@ export function StatusBarSurface({
     collapseUsage,
     collapsedUsageProviders,
     compact,
-    floatingTerminalActionLabel,
-    floatingTerminalShortcut,
     handleManageAccounts,
     handleOpenProviderAccounts,
     handleRefresh,
@@ -85,7 +71,6 @@ export function StatusBarSurface({
     isEmptyUsageState,
     isRefreshing,
     overflowing,
-    petEnabled,
     remoteOwner,
     rosterProviders,
     segmentsIconOnly,
@@ -94,10 +79,7 @@ export function StatusBarSurface({
     setMenuPoint,
     setStatusBarUsageMode,
     showEmptyUsageCta,
-    showFloatingTerminalToggle,
-    showFloatingWorkspaceAttentionDot,
     showPorts,
-    showResourceUsage,
     showSsh,
     statusBarUsageMode,
     usageMenuFocusHandoff,
@@ -294,60 +276,16 @@ export function StatusBarSurface({
         data-overflowing={overflowing}
       >
         <div ref={segmentsRef} className="flex w-max items-center gap-3">
-          {!isPairedWebClientWindow() ? (
-            <CaffeinateStatusSegment iconOnly={segmentsIconOnly} />
-          ) : null}
           <RemoteServerUpdateStatusSegment iconOnly={segmentsIconOnly} />
           <SkillUpdateStatusSegment iconOnly={segmentsIconOnly} />
           <NativeChatResumeStatusSegment iconOnly={segmentsIconOnly} />
           <UpdateStatusSegment compact={compact} iconOnly={segmentsIconOnly} />
           <React.Suspense fallback={null}>
-            {petEnabled ? <PetStatusSegment /> : null}
-            {showResourceUsage ? (
-              <ResourceUsageStatusSegment compact={compact} iconOnly={segmentsIconOnly} />
-            ) : null}
             {showPorts ? (
               <PortsStatusSegment compact={compact} iconOnly={segmentsIconOnly} />
             ) : null}
             {showSsh ? <SshStatusSegment compact={compact} iconOnly={segmentsIconOnly} /> : null}
           </React.Suspense>
-          {showFloatingTerminalToggle && (
-            <FloatingTerminalIconContextMenu currentLocation="status-bar" className="relative">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    className="relative inline-flex size-5 cursor-pointer items-center justify-center rounded border border-border bg-secondary text-secondary-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
-                    aria-label={
-                      showFloatingWorkspaceAttentionDot
-                        ? translate(
-                            'auto.components.status.bar.StatusBar.floatingTerminalNewActivity',
-                            '{{label}}, new activity',
-                            { label: floatingTerminalActionLabel }
-                          )
-                        : floatingTerminalActionLabel
-                    }
-                    onClick={() => {
-                      window.dispatchEvent(new CustomEvent(TOGGLE_FLOATING_TERMINAL_EVENT))
-                    }}
-                  >
-                    <PanelsTopLeft className="size-3.5" />
-                    {showFloatingWorkspaceAttentionDot ? (
-                      // Why: amber = Orca's "needs attention" convention; ring matches the fill so the dot reads on the icon.
-                      <span
-                        aria-hidden
-                        data-floating-terminal-attention
-                        className="pointer-events-none absolute right-0.5 top-0.5 size-1.5 rounded-full bg-amber-500 ring-1 ring-secondary"
-                      />
-                    ) : null}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top" sideOffset={6}>
-                  {floatingTerminalActionLabel} ({floatingTerminalShortcut})
-                </TooltipContent>
-              </Tooltip>
-            </FloatingTerminalIconContextMenu>
-          )}
         </div>
       </div>
 

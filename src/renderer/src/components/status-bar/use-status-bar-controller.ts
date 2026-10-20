@@ -47,8 +47,6 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
   // Why: PATH detection describes this viewer, not the remote host whose bars are shown.
   const detectedAgentIds = remoteOwned ? null : localDetectedAgentIds
   const ensureDetectedAgents = useAppStore((s) => s.ensureDetectedAgents)
-  // Why: pet segment is driven purely by experimentalPet, not statusBarItems, to avoid double-toggling the surface (see design doc).
-  const petEnabled = useAppStore((s) => s.settings?.experimentalPet === true)
   const toggleStatusBarItem = useAppStore((s) => s.toggleStatusBarItem)
   const usageEmptyStateDismissed = useAppStore((s) => s.usageEmptyStateDismissed)
   const mountedRef = useRef(true)
@@ -171,11 +169,10 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
   const visibleOpencodeGo = getVisibleUsageProvider('opencode-go', opencodeGo, usageSettings)
   const showOpencodeGo = visibleOpencodeGo !== null && statusBarItems.includes('opencode-go')
   const showSsh = statusBarItems.includes('ssh')
-  const showResourceUsage = statusBarItems.includes('resource-usage')
   const showPorts = statusBarItems.includes('ports')
   const showFloatingTerminalToggle =
     floatingTerminalEnabled && floatingTerminalTriggerLocation === 'status-bar'
-  // Why: meter-only children (excludes resource-usage) so the % display callout anchors to a real meter cluster.
+  // Why: meter-only children so the % display callout anchors to a real meter cluster.
   const hasVisibleUsageMeters =
     showClaude ||
     showCodex ||
@@ -187,7 +184,7 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     showGrok ||
     showCursor ||
     showZcode
-  const anyVisible = hasVisibleUsageMeters || showResourceUsage
+  const anyVisible = hasVisibleUsageMeters
   // Why: include Settings so durable managed accounts count — a configured user isn't shown the empty state while snapshots hydrate.
   const isEmptyUsageState = isUsageEmptyState(
     { claude, codex, gemini, opencodeGo, kimi, antigravity, minimax, grok, cursor, zcode },
@@ -289,7 +286,6 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     menuOpen,
     menuPoint,
     overflowing,
-    petEnabled,
     recordFeatureInteraction,
     remoteOwner,
     rosterProviders,
@@ -302,7 +298,6 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     showFloatingTerminalToggle,
     showFloatingWorkspaceAttentionDot,
     showPorts,
-    showResourceUsage,
     showSsh,
     statusBarItems,
     statusBarUsageMode,

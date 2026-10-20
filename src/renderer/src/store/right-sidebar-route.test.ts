@@ -14,6 +14,10 @@ describe('normalizeRightSidebarRoute', () => {
       rightSidebarTab: 'explorer',
       rightSidebarExplorerView: 'files'
     })
+    expect(normalizeRightSidebarRoute('vault')).toEqual({
+      rightSidebarTab: 'explorer',
+      rightSidebarExplorerView: 'files'
+    })
   })
 
   it('preserves well-formed plugin panel tabs', () => {

@@ -2,7 +2,6 @@
 
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { getDefaultSettings } from '../../../../shared/constants'
@@ -216,14 +215,7 @@ describe('SidebarNav', () => {
     setSidebarState()
   })
 
-  it('keeps the Agent Dashboard row unmounted while its experiment is off', async () => {
-    const container = await renderSidebarNav()
-
-    expect(queryButtonByText(container, 'Agent Dashboard')).toBeNull()
-    expect(mocks.getAgentBucketCounts).not.toHaveBeenCalled()
-  })
-
-  it('mounts the Agent Dashboard row only when its experiment is enabled', async () => {
+  it('keeps the Agent Dashboard row unmounted', async () => {
     setSidebarState({
       settings: {
         ...getDefaultSettings('/tmp'),
@@ -232,35 +224,8 @@ describe('SidebarNav', () => {
     })
     const container = await renderSidebarNav()
 
-    await waitFor(() => expect(queryButtonByText(container, 'Agent Dashboard')).not.toBeNull())
-    expect(mocks.getAgentBucketCounts).toHaveBeenCalledTimes(1)
-  })
-
-  it('uses a question glyph only for the Needs You count', async () => {
-    mocks.agentBucketCounts = { attention: 2, working: 3, done: 1, idle: 4 }
-    setSidebarState({
-      settings: {
-        ...getDefaultSettings('/tmp'),
-        experimentalAgentDashboardPopout: true,
-        experimentalAgentDashboardShowIdle: true
-      }
-    })
-    const container = await renderSidebarNav()
-
-    await waitFor(() =>
-      expect(container.querySelector('[aria-label="Needs You: 2"]')).not.toBeNull()
-    )
-    const attention = container.querySelector('[aria-label="Needs You: 2"]')
-    const working = container.querySelector('[aria-label="Working: 3"]')
-    const done = container.querySelector('[aria-label="Done: 1"]')
-    const idle = container.querySelector('[aria-label="Idle: 4"]')
-    expect(attention?.querySelector('.lucide-message-circle-question-mark')).not.toBeNull()
-    expect(working?.querySelector('.rounded-full')).not.toBeNull()
-    expect(done?.querySelector('.rounded-full')).not.toBeNull()
-    expect(idle?.querySelector('.rounded-full')).not.toBeNull()
-    expect(working?.querySelector('svg')).toBeNull()
-    expect(done?.querySelector('svg')).toBeNull()
-    expect(idle?.querySelector('svg')).toBeNull()
+    expect(queryButtonByText(container, 'Agent Dashboard')).toBeNull()
+    expect(mocks.getAgentBucketCounts).not.toHaveBeenCalled()
   })
 
   it('shows the Mobile entry by default for older settings', () => {
@@ -268,35 +233,11 @@ describe('SidebarNav', () => {
     expect(shouldShowMobileButton({})).toBe(true)
   })
 
-  it('hides the Artifacts entry by default for older settings', () => {
+  it('hides the Artifacts entry', () => {
     expect(shouldShowArtifactsButton(null)).toBe(false)
     expect(shouldShowArtifactsButton({})).toBe(false)
-    expect(shouldShowArtifactsButton({ showArtifactsButton: true })).toBe(true)
+    expect(shouldShowArtifactsButton({ showArtifactsButton: true })).toBe(false)
     expect(shouldShowArtifactsButton({ showArtifactsButton: false })).toBe(false)
-  })
-
-  it('opens Artifacts from the sidebar', async () => {
-    setSidebarState({
-      settings: { ...getDefaultSettings('/tmp'), showArtifactsButton: true }
-    })
-    const container = await renderSidebarNav()
-
-    await clickButton(getButtonByText(container, 'Artifacts'))
-
-    expect(mocks.openArtifactsPage).toHaveBeenCalledOnce()
-  })
-
-  it('hides Artifacts from its context menu', async () => {
-    setSidebarState({
-      settings: { ...getDefaultSettings('/tmp'), showArtifactsButton: true }
-    })
-    const container = await renderSidebarNav()
-    const row = getButtonByText(container, 'Artifacts')
-    const menu = row.closest('[data-testid="context-menu"]')
-
-    await clickButton(getHideButton(menu as Element))
-
-    expect(mocks.updateSettings).toHaveBeenCalledWith({ showArtifactsButton: false })
   })
 
   it('hides the Mobile entry when the sidebar setting is off', () => {
@@ -306,14 +247,12 @@ describe('SidebarNav', () => {
   it('updates localized labels when the language changes after mount', async () => {
     const container = await renderSidebarNav()
 
-    expect(queryButtonByText(container, 'Automations')).not.toBeNull()
     expect(queryButtonByText(container, 'Orca Mobile')).not.toBeNull()
 
     await act(async () => {
       await i18n.changeLanguage('zh')
     })
 
-    expect(queryButtonByText(container, '自动化')).not.toBeNull()
     expect(queryButtonByText(container, 'Orca 手机端')).not.toBeNull()
   })
 
@@ -324,7 +263,6 @@ describe('SidebarNav', () => {
       await i18n.changeLanguage(PSEUDO_LOCALIZATION_LOCALE)
     })
 
-    expect(queryButtonByText(container, '[Automations]')).not.toBeNull()
     expect(queryButtonByText(container, '[Orca Mobile]')).not.toBeNull()
   })
 
@@ -349,35 +287,15 @@ describe('SidebarNav', () => {
     expect(mocks.openMobilePage).not.toHaveBeenCalled()
   })
 
-  it('shows the Automations entry by default for older settings', () => {
-    expect(shouldShowAutomationsButton(null)).toBe(true)
-    expect(shouldShowAutomationsButton({})).toBe(true)
+  it('omits the Automations entry', () => {
+    expect(shouldShowAutomationsButton(null)).toBe(false)
+    expect(shouldShowAutomationsButton({})).toBe(false)
   })
 
-  it('omits the Automations row when the sidebar setting is off', async () => {
-    setSidebarState({
-      settings: {
-        ...getDefaultSettings('/tmp'),
-        showAutomationsButton: false
-      }
-    })
-
+  it('omits the Automations row by default', async () => {
     const container = await renderSidebarNav()
 
     expect(queryButtonByText(container, 'Automations')).toBeNull()
-  })
-
-  it('hides Automations from its sidebar context menu', async () => {
-    const container = await renderSidebarNav()
-
-    const automationsMenu = getButtonByText(container, 'Automations').closest(
-      '[data-testid="context-menu"]'
-    )
-    expect(automationsMenu).not.toBeNull()
-
-    await clickButton(getHideButton(automationsMenu as HTMLElement))
-
-    expect(mocks.updateSettings).toHaveBeenCalledWith({ showAutomationsButton: false })
   })
 
   it('hides Mobile from its sidebar context menu', async () => {
