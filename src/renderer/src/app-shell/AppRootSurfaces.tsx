@@ -17,6 +17,7 @@ import { ZoomOverlay } from '../components/ZoomOverlay'
 import { useAppStore } from '../store'
 import type { UpdateStatus } from '../../../shared/update-status-types'
 import { useLazyModalMounts } from './use-lazy-modal-mounts'
+import { usePreloadWorktreeJumpPalette, WorktreeJumpPalette } from './worktree-jump-palette-preload'
 import {
   selectAppRootSurfaceTelemetryOptedIn,
   selectAppRootSurfaceVoiceEnabled
@@ -25,7 +26,6 @@ import type { FloatingWorkspacePanelState } from './use-floating-workspace-panel
 import type { OnboardingGate } from './use-onboarding-and-feature-tips'
 
 const QuickOpen = lazy(() => import('../components/QuickOpen'))
-const WorktreeJumpPalette = lazy(() => import('../components/WorktreeJumpPalette'))
 const WorkspaceCleanupDialog = lazy(
   () => import('../components/workspace-cleanup/WorkspaceCleanupDialog')
 )
@@ -130,6 +130,7 @@ export function AppRootSurfaces(props: {
 }): React.JSX.Element {
   const { floatingWorkspace, onboardingGate } = props
   const { mountedLazyModalIds, shouldMountAddRepoDialog } = useLazyModalMounts()
+  usePreloadWorktreeJumpPalette()
   const activeView = useAppStore((s) => s.activeView)
   const activeModal = useAppStore((s) => s.activeModal)
   // Keep this always-mounted surface subscribed only to the settings fields it reads. A
