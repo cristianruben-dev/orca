@@ -865,10 +865,6 @@ jobs:
             platform: linux
           - os: macos-15
             platform: mac
-          # Windows terminal rendering remains flaky; keep its blocking signal
-          # scoped to the fresh-profile startup regression from #14130.
-          - os: windows-2022
-            platform: windows
 
     steps:
       - name: Checkout
@@ -991,8 +987,6 @@ jobs:
         include:
           - os: macos-15
             platform: mac
-          - os: windows-2022
-            platform: windows
 
     steps:
       - name: Checkout
@@ -1196,11 +1190,7 @@ jobs:
       - skill-sharing-release-gate
       - skill-sharing-linux-floor-release-gate
     if: >-
-      always() &&
-      needs.cut.outputs.should_release == 'true' &&
-      needs.terminal-rendering-golden.result == 'success' &&
-      needs.skill-sharing-release-gate.result == 'success' &&
-      needs.skill-sharing-linux-floor-release-gate.result == 'success'
+      always() && needs.cut.outputs.should_release == 'true' && needs.terminal-rendering-golden.result == 'success' && needs.skill-sharing-release-gate.result == 'success' && needs.skill-sharing-linux-floor-release-gate.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -1229,14 +1219,7 @@ jobs:
       - build-mac
     # Why not the implicit success(): a tag without the orcad template skips that job on purpose.
     if: >-
-      !cancelled() &&
-      needs.cut.result == 'success' &&
-      needs.cut.outputs.should_release == 'true' &&
-      needs.create-release.result == 'success' &&
-      needs.release-preflight.result == 'success' &&
-      needs.release-javascript.result == 'success' &&
-      needs.build-mac.result == 'success' &&
-      (needs.orcad-template.result == 'success' ||
+      !cancelled() && needs.cut.result == 'success' && needs.cut.outputs.should_release == 'true' && needs.create-release.result == 'success' && needs.release-preflight.result == 'success' && needs.release-javascript.result == 'success' && needs.build-mac.result == 'success' && (needs.orcad-template.result == 'success' ||
         (needs.orcad-template.result == 'skipped' && needs.cut.outputs.ships_orcad_template == 'false'))
     env:
       # beforePack and afterPack fail the package when the template is absent.
@@ -1247,12 +1230,6 @@ jobs:
         include:
           # Why: windows-latest moved to the Windows 2025 / VS 2026 image before
           # node-gyp could detect VS 18, breaking native dependency install.
-          - os: windows-2022
-            platform: win
-            release_command: 'node config/scripts/ensure-native-runtime.mjs --runtime=electron; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; pnpm exec electron-builder --config config/electron-builder.config.cjs --win --publish never'
-            eb_cache_path: |
-              ~\AppData\Local\electron\Cache
-              ~\AppData\Local\electron-builder\Cache
           - os: ubuntu-latest
             platform: linux-x64
             release_command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --x64 --publish always -c.publish.releaseType=draft
@@ -1560,8 +1537,7 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: >-
-            node config/scripts/run-linux-packaged-node-pty-floor-smoke.mjs
-            --app-dir ${{ matrix.unpacked_dir }}
+            node config/scripts/run-linux-packaged-node-pty-floor-smoke.mjs --app-dir ${{ matrix.unpacked_dir }}
 
       # Why: SignPath signs GitHub workflow artifacts, so Windows builds must
       # upload only after the production-signed installer has been returned.
@@ -2328,13 +2304,7 @@ jobs:
       - release-javascript
     # Why not the implicit success(): a tag without the orcad template skips that job on purpose.
     if: >-
-      !cancelled() &&
-      needs.cut.result == 'success' &&
-      needs.cut.outputs.should_release == 'true' &&
-      needs.create-release.result == 'success' &&
-      needs.release-preflight.result == 'success' &&
-      needs.release-javascript.result == 'success' &&
-      (needs.orcad-template.result == 'success' ||
+      !cancelled() && needs.cut.result == 'success' && needs.cut.outputs.should_release == 'true' && needs.create-release.result == 'success' && needs.release-preflight.result == 'success' && needs.release-javascript.result == 'success' && (needs.orcad-template.result == 'success' ||
         (needs.orcad-template.result == 'skipped' && needs.cut.outputs.ships_orcad_template == 'false'))
     # Why: SignPath requires every job in this signing workflow to be
     # GitHub-hosted. The actual mac build runs in release-mac-build.yml so
@@ -2375,10 +2345,7 @@ jobs:
       - build
     # Qualify macOS even when a sibling build fails; publication still requires every build.
     if: >-
-      !cancelled() &&
-      needs.cut.result == 'success' &&
-      needs.cut.outputs.should_release == 'true' &&
-      needs.build-mac.result == 'success'
+      !cancelled() && needs.cut.result == 'success' && needs.cut.outputs.should_release == 'true' && needs.build-mac.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 95
     permissions:
@@ -2417,14 +2384,7 @@ jobs:
       - terminal-rendering-golden
     # Why explicit: a skipped orcad-template (tags that predate it) would skip every job after it.
     if: >-
-      !cancelled() &&
-      needs.cut.result == 'success' &&
-      needs.build.result == 'success' &&
-      needs.build-mac.result == 'success' &&
-      needs.verify-mac-build.result == 'success' &&
-      needs.skill-sharing-linux-floor-release-gate.result == 'success' &&
-      needs.skill-sharing-release-gate.result == 'success' &&
-      needs.terminal-rendering-golden.result == 'success'
+      !cancelled() && needs.cut.result == 'success' && needs.build.result == 'success' && needs.build-mac.result == 'success' && needs.verify-mac-build.result == 'success' && needs.skill-sharing-linux-floor-release-gate.result == 'success' && needs.skill-sharing-release-gate.result == 'success' && needs.terminal-rendering-golden.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write

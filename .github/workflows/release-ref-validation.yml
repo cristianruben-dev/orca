@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, windows-2022]
+        os: [macos-15]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
@@ -34,6 +34,4 @@ jobs:
       - uses: ./.github/actions/install-node-dependencies
       - name: Verify case-twin refs and release trust boundary
         run: >-
-          pnpm exec vitest run --config config/vitest.config.ts
-          config/scripts/workflow-ref-reachability.test.mjs
-          config/scripts/workflow-ref-mirror-case-safety.test.mjs
+          pnpm exec vitest run --config config/vitest.config.ts config/scripts/workflow-ref-reachability.test.mjs config/scripts/workflow-ref-mirror-case-safety.test.mjs
