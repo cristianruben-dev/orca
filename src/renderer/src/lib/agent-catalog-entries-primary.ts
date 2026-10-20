@@ -4,9 +4,7 @@ import { getTuiAgentLaunchCommand, TUI_AGENT_CONFIG } from '../../../shared/tui-
 import { translate } from '@/i18n/i18n'
 import type { AgentCatalogEntry } from './agent-catalog'
 
-/** The agents Orca drives first-party. Split from the community tail so adding an agent
- *  does not push either module past its line budget; the two are concatenated in order
- *  by `buildAgentCatalogEntries`. */
+/** Agents with first-class rate limit and quota metric support in Orca. */
 export function primaryAgentCatalogEntries(): AgentCatalogEntry[] {
   return [
     {
@@ -37,109 +35,11 @@ export function primaryAgentCatalogEntries(): AgentCatalogEntry[] {
       homepageUrl: 'https://github.com/openai/codex'
     },
     {
-      id: 'grok',
-      label: translate('auto.lib.agent.catalog.0baad2d5d2', 'Grok'),
-      cmd: 'grok',
-      faviconDomain: 'x.ai',
-      homepageUrl: 'https://x.ai/cli'
-    },
-    {
-      id: 'copilot',
-      label: translate('auto.lib.agent.catalog.706b0fe68b', 'GitHub Copilot'),
-      cmd: 'copilot',
-      homepageUrl: 'https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli'
-    },
-    {
-      id: 'opencode2',
-      label: translate('auto.lib.agent.catalog.opencode2_label', 'OpenCode 2'),
-      cmd: 'opencode2',
-      homepageUrl: 'https://opencode.ai/v2/docs/'
-    },
-    {
-      id: 'opencode',
-      label: translate('auto.lib.agent.catalog.e7a4ca5103', 'OpenCode'),
-      cmd: 'opencode',
-      homepageUrl: 'https://opencode.ai/docs/cli/'
-    },
-    {
-      id: 'mimo-code',
-      label: translate('auto.lib.agent.catalog.mimo_code_label', 'MiMo Code'),
-      cmd: 'mimo',
-      faviconDomain: 'mimo.xiaomi.com',
-      homepageUrl: 'https://mimo.xiaomi.com/coder'
-    },
-    {
-      id: 'ante',
-      label: translate('auto.lib.agent.catalog.da41abbdd4', 'Ante'),
-      cmd: 'ante',
-      faviconDomain: 'antigma.ai',
-      homepageUrl: 'https://github.com/AntigmaLabs/ante-preview'
-    },
-    {
-      id: 'trae',
-      label: translate('auto.lib.agent.catalog.060d152fb5', 'Trae'),
-      // Why: matches TUI_AGENT_CONFIG.trae.detectCmd, not the ambiguous `trae-cli` — see the Why there.
-      cmd: 'traecli',
-      // Why: bare `trae.cn` 404s on Google's favicon service.
-      faviconDomain: 'www.trae.cn',
-      homepageUrl: 'https://docs.trae.cn/cli_get-started-with-trae-cli'
-    },
-    {
-      id: 'muse',
-      label: translate('auto.lib.agent.catalog.muse_label', 'Muse'),
-      cmd: 'muse',
-      faviconDomain: 'dev.meta.ai',
-      homepageUrl: 'https://dev.meta.ai/docs/muse-code'
-    },
-    {
-      id: 'dsh',
-      label: translate('auto.lib.agent.catalog.dsh_label', 'DeepSeek Harness'),
-      cmd: 'dsh-tui',
-      searchAliases: ['deepseek', 'dsh', 'dst', 'deepseek harness'],
-      homepageUrl: 'https://deepseek-harness.github.io/deepseek-harness/'
-    },
-    {
-      id: 'qoder',
-      label: translate('auto.lib.agent.catalog.qoder_label', 'Qoder CLI'),
-      cmd: 'qodercli',
-      faviconDomain: 'qoder.com',
-      homepageUrl: 'https://docs.qoder.com/cli/overview'
-    },
-    {
-      id: 'qoder-cn',
-      label: translate('auto.lib.agent.catalog.qoder_cn_label', 'Qoder CLI China'),
-      cmd: 'qoderclicn',
-      faviconDomain: 'qoder.cn',
-      homepageUrl: 'https://docs.qoder.cn/cli/overview'
-    },
-    {
-      id: 'zcode',
-      label: translate('auto.lib.agent.catalog.zcode_label', 'ZCode'),
-      cmd: 'zcode',
-      faviconDomain: 'zcode.z.ai',
-      homepageUrl: 'https://zcode.z.ai/en/docs'
-    },
-    {
-      id: 'pi',
-      label: translate('auto.lib.agent.catalog.302934c5d9', 'Pi'),
-      cmd: 'pi',
-      homepageUrl: 'https://pi.dev'
-    },
-    {
-      id: 'omp',
-      label: translate('auto.lib.agent.catalog.09973b4d84', 'OMP'),
-      cmd: 'omp',
-      searchAliases: ['oh-my-pi', 'oh my pi'],
-      // Why: no faviconDomain — omp renders the hand-authored OmpIcon glyph, so a
-      // favicon fallback would never be reached.
-      homepageUrl: 'https://omp.sh'
-    },
-    {
-      id: 'prime-agent',
-      label: translate('auto.lib.agent.catalog.d443a47995', 'Prime Agent'),
-      cmd: 'prime-agent',
-      faviconDomain: 'primeintellect.ai',
-      homepageUrl: 'https://github.com/PrimeIntellect-ai/prime-agent'
+      id: 'cursor',
+      label: translate('auto.lib.agent.catalog.667c104cff', 'Cursor'),
+      cmd: 'cursor-agent',
+      faviconDomain: 'cursor.com',
+      homepageUrl: 'https://cursor.com/cli'
     },
     {
       id: 'gemini',
@@ -154,6 +54,39 @@ export function primaryAgentCatalogEntries(): AgentCatalogEntry[] {
       cmd: 'agy',
       faviconDomain: 'antigravity.google',
       homepageUrl: 'https://antigravity.google/docs/cli-overview'
+    },
+    {
+      id: 'grok',
+      label: translate('auto.lib.agent.catalog.0baad2d5d2', 'Grok'),
+      cmd: 'grok',
+      faviconDomain: 'x.ai',
+      homepageUrl: 'https://x.ai/cli'
+    },
+    {
+      id: 'opencode2',
+      label: translate('auto.lib.agent.catalog.opencode2_label', 'OpenCode 2'),
+      cmd: 'opencode2',
+      homepageUrl: 'https://opencode.ai/v2/docs/'
+    },
+    {
+      id: 'opencode',
+      label: translate('auto.lib.agent.catalog.e7a4ca5103', 'OpenCode'),
+      cmd: 'opencode',
+      homepageUrl: 'https://opencode.ai/docs/cli/'
+    },
+    {
+      id: 'kimi',
+      label: translate('auto.lib.agent.catalog.28810273af', 'Kimi'),
+      cmd: 'kimi',
+      faviconDomain: 'moonshot.cn',
+      homepageUrl: 'https://www.kimi.com/code/docs/en/kimi-code-cli/getting-started.html'
+    },
+    {
+      id: 'zcode',
+      label: translate('auto.lib.agent.catalog.zcode_label', 'ZCode'),
+      cmd: 'zcode',
+      faviconDomain: 'zcode.z.ai',
+      homepageUrl: 'https://zcode.z.ai/en/docs'
     }
   ]
 }
