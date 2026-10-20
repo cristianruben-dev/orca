@@ -25,7 +25,6 @@ function shownKeys(overrides: Partial<WorkspaceViewOptionContext> = {}): Workspa
 describe('which Workspace options show', () => {
   it('shows the base controls for a single local project', () => {
     expect(shownKeys()).toEqual([
-      'groupBy',
       'sortBy',
       'cardLayout',
       'cardProperties',
@@ -38,8 +37,8 @@ describe('which Workspace options show', () => {
   })
 
   it('shows the Show section for remote hosts and for more than one project', () => {
-    expect(shownKeys({ hasRemoteHosts: true }).slice(0, 2)).toEqual(['hosts', 'groupBy'])
-    expect(shownKeys({ projectCount: 2 }).slice(0, 2)).toEqual(['projects', 'groupBy'])
+    expect(shownKeys({ hasRemoteHosts: true }).slice(0, 2)).toEqual(['hosts', 'sortBy'])
+    expect(shownKeys({ projectCount: 2 }).slice(0, 2)).toEqual(['projects', 'sortBy'])
   })
 
   it('shows Project order only while grouping by project', () => {
