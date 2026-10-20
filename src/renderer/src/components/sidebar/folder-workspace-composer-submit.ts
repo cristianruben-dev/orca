@@ -2,7 +2,7 @@ import { ensureAgentStartupInTerminal, type LinkedWorkItemSummary } from '@/lib/
 import { seedNativeChatLaunchDraftForAgentTab } from '@/lib/agent-launch-prompt-delivery'
 import { createBrowserUuid } from '@/lib/browser-uuid'
 import { buildAgentStartupPlan } from '@/lib/tui-agent-startup'
-import { tuiAgentToAgentKind } from '@/lib/telemetry'
+import { tuiAgentToAgentKind } from '../../../../shared/agent-kind'
 import { activateAndRevealFolderWorkspace } from '@/lib/worktree-activation'
 import { shouldApplyWorkspaceSourceAutoName } from '../../../../shared/new-workspace/workspace-source'
 import type { FolderWorkspace } from '../../../../shared/folder-workspace-types'

@@ -90,7 +90,6 @@ const AddProjectFromFolderDialog = React.memo(function AddProjectFromFolderDialo
       }
       await finishProjectAddWithDefaultCheckout({
         repoId: repo.id,
-        source: runtimeEnvironmentId ? 'runtime_server_path' : 'local_folder_picker',
         selectedPath: folderPath,
         executionHostId: ownerOptions.executionHostId,
         closeModal,

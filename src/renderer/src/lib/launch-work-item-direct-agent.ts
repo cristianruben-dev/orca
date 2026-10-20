@@ -1,5 +1,5 @@
 import { toast } from 'sonner'
-import { track, tuiAgentToAgentKind } from '@/lib/telemetry'
+import { tuiAgentToAgentKind } from '../../../shared/agent-kind'
 import {
   buildAgentDraftLaunchPlan,
   buildAgentStartupPlan,
@@ -143,7 +143,7 @@ export function buildDirectWorkItemStartupOpts(
 }
 
 /** Timeout notice for the post-launch paste; the workspace itself is ready. */
-export function notifyDirectWorkItemAgentStartTimeout(agent: TuiAgent, submit: boolean): void {
+export function notifyDirectWorkItemAgentStartTimeout(submit: boolean): void {
   toast.message(
     translate(
       'auto.lib.launch.work.item.direct.agent.ceeeb509b5',
@@ -153,5 +153,4 @@ export function notifyDirectWorkItemAgentStartTimeout(agent: TuiAgent, submit: b
   )
   // Why: process-startup timeout has no v1 enum slot; the `unknown` slice
   // on the dashboard is the trigger to add one.
-  track('agent_error', { error_class: 'unknown', agent_kind: tuiAgentToAgentKind(agent) })
 }

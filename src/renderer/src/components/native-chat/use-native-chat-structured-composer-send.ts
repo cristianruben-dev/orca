@@ -100,7 +100,7 @@ export function useNativeChatStructuredComposerSend({
           if (!accepted) {
             return
           }
-          completeNativeChatStructuredUserAction(agent, structuredTransport, revealsTranscript)
+          completeNativeChatStructuredUserAction(structuredTransport, revealsTranscript)
           // Why: the send settles after a round trip, while this or another composer of the same
           // conversation may have changed the draft; only what was sent leaves it.
           const left = nativeChatComposerDraftLeftAfterSend(

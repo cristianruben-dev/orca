@@ -21,7 +21,6 @@ import { translate } from './i18n/i18n'
 import { useAppStore } from './store'
 import type { GlobalSettings } from '../../shared/global-settings-types'
 import { getOrCreateRendererRoot } from './lib/react-renderer-root'
-import { setReactCommitCascadeRendererSurface } from './lib/react-commit-cascade-telemetry'
 import { installOsFileDropCancellationGuard } from './lib/os-file-drop-cancellation-guard'
 
 const disposeOsFileDropGuard = installOsFileDropCancellationGuard()
@@ -32,7 +31,6 @@ import.meta.hot?.dispose(disposeOsFileDropGuard)
 // window. It shares the preload/window.api but not the DOM or JS context.
 recordRendererCrashBreadcrumb('popout_bootstrap_started', { dev: import.meta.env.DEV })
 installRendererCrashDiagnostics('dashboard-popout')
-setReactCommitCascadeRendererSurface('dashboard-popout')
 
 function applyPopoutAppearance(settings: GlobalSettings | null): void {
   applyDocumentTheme(settings?.theme ?? 'system', { disableTransitions: false })

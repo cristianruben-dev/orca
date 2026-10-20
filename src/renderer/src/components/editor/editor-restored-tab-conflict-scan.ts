@@ -175,10 +175,7 @@ export function attachRestoredTabConflictScan(store: AppStoreApi): () => void {
         return
       }
       if (getDiskBaselineSignature(result.content) !== file.lastKnownDiskSignature) {
-        markFileChangedOnDisk(store.getState(), liveFile, {
-          connectionId: getConnectionIdForFile(file.worktreeId, file.filePath) ?? undefined,
-          origin: 'restore'
-        })
+        markFileChangedOnDisk(store.getState(), liveFile)
       }
     } catch {
       if (disposed) {
@@ -239,10 +236,7 @@ export function attachRestoredTabConflictScan(store: AppStoreApi): () => void {
     }
     store.getState().clearPendingDiskBaselineVerification(file.id)
     if (liveFile.isDirty && liveFile.externalMutation !== 'changed') {
-      markFileChangedOnDisk(store.getState(), liveFile, {
-        connectionId: getConnectionIdForFile(file.worktreeId, file.filePath) ?? undefined,
-        origin: 'restore'
-      })
+      markFileChangedOnDisk(store.getState(), liveFile)
     }
   }
 

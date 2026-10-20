@@ -252,9 +252,7 @@ export function FeatureWallBody(props: {
           previewVisualNode
         ) : (
           <aside className="flex flex-col gap-5">
-            {selected.relatedTileIds.length > 0 ? (
-              <RelatedFeatures workflow={selected} source={source} />
-            ) : null}
+            {selected.relatedTileIds.length > 0 ? <RelatedFeatures workflow={selected} /> : null}
           </aside>
         )}
       </div>

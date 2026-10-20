@@ -3,7 +3,6 @@ import type { ContextualTour, ContextualTourId } from '../../../../shared/contex
 import type { ContextualTourOutcome } from '../../../../shared/feature-education-telemetry'
 import { useAppStore } from '@/store'
 import {
-  getContextualTourOutcomeStepTotal,
   getContextualTourPanelHost,
   getContextualTourStepCopy,
   getContextualTourStepProgress,
@@ -25,7 +24,6 @@ export type ContextualTourOverlayMeasurementResult =
   | {
       kind: 'render'
       renderState: ActiveTourRenderState
-      telemetryTotalSteps: number
     }
 
 // Why: keyed by the step's stable id, not its position — inserting a step must
@@ -120,15 +118,10 @@ export function measureContextualTourOverlayRenderState(args: {
   activeStepIndex: number
   sidebarOpen: boolean
   keybindings: Parameters<typeof formatShortcutLabel>[1]
-  previousTelemetryTotalSteps: number
 }): ContextualTourOverlayMeasurementResult {
   const targetExists = (selector: string): boolean =>
     getMeasurableContextualTourTarget(selector) !== null
   const visibleStepIndexes = getVisibleContextualTourStepIndexes(args.tour, targetExists)
-  const telemetryTotalSteps = Math.max(
-    args.previousTelemetryTotalSteps,
-    getContextualTourOutcomeStepTotal(visibleStepIndexes)
-  )
   const activeStep = args.tour.steps[args.activeStepIndex]
   const target = activeStep ? getMeasurableContextualTourTarget(activeStep.targetSelector) : null
   const localizedCopy = activeStep?.id ? LOCALIZED_STEP_COPY[activeStep.id] : undefined
@@ -179,7 +172,6 @@ export function measureContextualTourOverlayRenderState(args: {
 
   return {
     kind: 'render',
-    telemetryTotalSteps,
     renderState: {
       rect: target.rect,
       targetElement: target.element,

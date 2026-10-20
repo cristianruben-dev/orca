@@ -31,11 +31,6 @@ import {
 } from './native-chat-composer-state'
 import { classifyPickerCommands } from '../../../../shared/native-chat-picker-items'
 import { useNativeChatSkills } from './use-native-chat-skills'
-import {
-  emitNativeChatPickerItemAccepted,
-  emitNativeChatPickerOpened,
-  emitNativeChatSendClassified
-} from '@/lib/native-chat-telemetry'
 
 export type NativeChatPickerState = {
   autocomplete: ComposerAutocomplete
@@ -148,7 +143,6 @@ export function useNativeChatPickerState(args: {
     const openKey = `${dismissalContext}:${autocomplete.triggerKey}`
     if (lastOpenKeyRef.current !== openKey) {
       lastOpenKeyRef.current = openKey
-      emitNativeChatPickerOpened({ agent, prefix: autocomplete.prefix })
     }
   }, [agent, autocomplete, dismissalContext])
 
@@ -177,7 +171,6 @@ export function useNativeChatPickerState(args: {
       }
       commitCompletion(result)
       skillOriginRef.current = item.kind === 'skill' ? result.insertedToken : null
-      emitNativeChatPickerItemAccepted({ agent, itemKind: item.kind })
     },
     [agent, autocomplete, caret, commitCompletion, draft, textareaRef]
   )
@@ -233,7 +226,6 @@ export function useNativeChatPickerState(args: {
         skillOriginRef.current,
         profile?.skillPrefix ?? null
       )
-      emitNativeChatSendClassified({ agent, outcome })
       return outcome
     },
     [agent, agentCommands, profile]

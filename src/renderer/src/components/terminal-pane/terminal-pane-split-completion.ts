@@ -1,4 +1,3 @@
-import { trackTerminalPaneSplit } from '@/lib/feature-education-telemetry'
 import { useAppStore } from '@/store'
 import type { TerminalPaneSplitSource } from '../../../../shared/feature-education-telemetry'
 
@@ -17,10 +16,6 @@ export function recordCreatedTerminalPaneSplit(
   }
   useAppStore.getState().recordFeatureInteraction('terminal-pane-split')
   if (!completion.telemetrySuppressed) {
-    trackTerminalPaneSplit({
-      source: completion.source,
-      direction: completion.direction
-    })
   }
   return true
 }

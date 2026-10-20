@@ -16,7 +16,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { TerminalTab } from '../../../../shared/terminal-tab-types'
 import {
-  recordParkVerdictFlips,
   selectParkVerdictPinnedTabIds,
   type ParkVerdictFlipRecord
 } from './terminal-park-verdict-flip-telemetry'
@@ -78,13 +77,6 @@ export function useTerminalParkVerdictPin(args: {
     const flipRecords = records.current
     const liveTabIds = new Set(terminalTabs.map((terminalTab) => terminalTab.id))
     const nowMs = Date.now()
-    recordParkVerdictFlips({
-      records: flipRecords,
-      liveTabIds,
-      nextParkedTabIds: parkedTabIds,
-      nowMs,
-      allowSustainedPin
-    })
     const { pinnedTabIds: nextPinnedTabIds, earliestPinExpiryMs } = selectParkVerdictPinnedTabIds({
       records: flipRecords,
       tabIds: liveTabIds,

@@ -1,10 +1,6 @@
 import { useAppStore } from '@/store'
 import { activateAndRevealWorktree } from '@/lib/worktree-activation'
-import { track } from '@/lib/telemetry'
-import type {
-  AddRepoDefaultCheckoutHandoffSource,
-  EventProps
-} from '../../../../shared/telemetry-events'
+import type { EventProps } from '../../../../shared/telemetry-events'
 import type { DetectedWorktreeListResult, Worktree } from '../../../../shared/worktree/types'
 import { relativePathInsideRoot } from '../../../../shared/cross-platform-path'
 import { markOnboardingProjectAdded } from '@/lib/onboarding-project-checklist'
@@ -178,13 +174,11 @@ function resolveInitialCwdForDefaultCheckout(
 
 export async function openProjectDefaultCheckout({
   repoId,
-  source,
   selectedPath,
   setHideDefaultBranchWorkspace,
   executionHostId
 }: {
   repoId: string
-  source: AddRepoDefaultCheckoutHandoffSource
   selectedPath?: string
   setHideDefaultBranchWorkspace: (value: boolean) => void
   executionHostId?: ExecutionHostId
@@ -195,11 +189,9 @@ export async function openProjectDefaultCheckout({
       executionHostId
     )
   )
-  let reason: DefaultCheckoutHandoffReason = 'loaded_default_checkout'
   if (!defaultCheckout) {
     const detectedDefaultCheckout = await findDetectedDefaultCheckout(repoId, executionHostId)
     defaultCheckout = detectedDefaultCheckout.worktree
-    reason = detectedDefaultCheckout.reason
   }
 
   if (defaultCheckout) {
@@ -208,11 +200,6 @@ export async function openProjectDefaultCheckout({
       executionHostId
     )
     if (revealLinkedFailureReason) {
-      track('add_repo_default_checkout_handoff', {
-        source,
-        result: 'revealed_project',
-        reason: revealLinkedFailureReason
-      })
       finalizeImportedRepoAfterSkip(useAppStore.getState(), repoId)
       return
     }
@@ -222,11 +209,6 @@ export async function openProjectDefaultCheckout({
     if (state.hideDefaultBranchWorkspace) {
       setHideDefaultBranchWorkspace(false)
     }
-    track('add_repo_default_checkout_handoff', {
-      source,
-      result: 'opened_default_checkout',
-      reason
-    })
     const initialCwd = resolveInitialCwdForDefaultCheckout(defaultCheckout, selectedPath)
     if (initialCwd || executionHostId) {
       activateAndRevealWorktree(defaultCheckout.id, {
@@ -239,24 +221,17 @@ export async function openProjectDefaultCheckout({
     return
   }
 
-  track('add_repo_default_checkout_handoff', {
-    source,
-    result: 'revealed_project',
-    reason
-  })
   finalizeImportedRepoAfterSkip(useAppStore.getState(), repoId)
 }
 
 export async function finishProjectAddWithDefaultCheckout({
   repoId,
-  source,
   selectedPath,
   closeModal,
   setHideDefaultBranchWorkspace,
   executionHostId
 }: {
   repoId: string
-  source: AddRepoDefaultCheckoutHandoffSource
   selectedPath?: string
   closeModal: () => void
   setHideDefaultBranchWorkspace: (value: boolean) => void
@@ -266,7 +241,6 @@ export async function finishProjectAddWithDefaultCheckout({
   closeModal()
   await openProjectDefaultCheckout({
     repoId,
-    source,
     selectedPath,
     executionHostId,
     setHideDefaultBranchWorkspace

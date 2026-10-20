@@ -3,8 +3,6 @@ import { toast } from 'sonner'
 import { getAgentCatalog } from '@/lib/agent-catalog'
 import { useAppStore } from '@/store'
 import { applyDocumentTheme } from '@/lib/document-theme'
-import { track } from '@/lib/telemetry'
-import { buildAgentPickedPayload } from './agent-picked-payload'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { OnboardingState } from '../../../../shared/onboarding-state-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
@@ -23,7 +21,6 @@ import {
 } from './onboarding-flow-state'
 
 import { useOnboardingFlowActions } from './use-onboarding-flow-actions'
-import { useOnboardingFlowTelemetry } from './use-onboarding-flow-telemetry'
 export { STEPS } from './use-onboarding-flow-types'
 export type { StepId, StepNumber } from './use-onboarding-flow-types'
 
@@ -41,10 +38,7 @@ export function useOnboardingFlow(
   const openModal = useAppStore((s) => s.openModal)
   const preflightStatus = useAppStore((s) => s.preflightStatus)
   const preflightStatusChecked = useAppStore((s) => s.preflightStatusChecked)
-  const preflightStatusLoading = useAppStore((s) => s.preflightStatusLoading)
   const refreshPreflightStatus = useAppStore((s) => s.refreshPreflightStatus)
-  const linearStatus = useAppStore((s) => s.linearStatus)
-  const linearStatusChecked = useAppStore((s) => s.linearStatusChecked)
   // Why: renderToStaticMarkup uses Zustand's initial snapshot; the sync read keeps tests and the first client render aligned.
   const effectivePreflightStatus = preflightStatus ?? useAppStore.getState().preflightStatus
 
@@ -113,30 +107,10 @@ export function useOnboardingFlow(
   isDetectingRef.current = isDetectingAgents
   pathSourceRef.current = pathSource
   pathFailureReasonRef.current = pathFailureReason
-  const setSelectedAgentInteractive = useCallback(
-    (value: TuiAgent | null, fromCollapsedSection = false) => {
-      agentInteractedRef.current = true
-      // Why: de-dup re-clicks on the current agent so telemetry counts mind-changes, not idle reselection.
-      const prev = selectedAgentRef.current
-      setSelectedAgent(value)
-      if (value === null || value === prev) {
-        return
-      }
-      // Why: emit at click time (not step completion) to capture mind-changes; payload builder extracted for coverage — see agent-picked-payload.test.ts.
-      track(
-        'onboarding_agent_picked',
-        buildAgentPickedPayload({
-          agent: value,
-          detectedAgentIds: detectedAgentIdsRef.current,
-          isDetecting: isDetectingRef.current,
-          fromCollapsedSection,
-          pathSource: pathSourceRef.current,
-          pathFailureReason: pathFailureReasonRef.current
-        })
-      )
-    },
-    []
-  )
+  const setSelectedAgentInteractive = useCallback((value: TuiAgent | null) => {
+    agentInteractedRef.current = true
+    setSelectedAgent(value)
+  }, [])
 
   const detectedSet = useMemo(() => new Set(detectedAgentIds ?? []), [detectedAgentIds])
   const currentStep = STEPS[stepIndex]
@@ -222,17 +196,6 @@ export function useOnboardingFlow(
     stepIndex
   ])
 
-  const { consumeStepDurationMs, setLifecycleRootRef, trackTaskSourcesSnapshot } =
-    useOnboardingFlowTelemetry({
-      remappedLastCompletedStep,
-      currentStep,
-      persistedThemeRef,
-      preflightStatus,
-      preflightStatusLoading,
-      linearStatus,
-      linearStatusChecked
-    })
-
   // Why: auto-pick only on first mount; otherwise re-running would clobber/race the user's own agent selection.
   const didAutoSelectRef = useRef(false)
   useEffect(() => {
@@ -274,8 +237,6 @@ export function useOnboardingFlow(
     setBusyLabel,
     setError,
     currentStep,
-    consumeStepDurationMs,
-    trackTaskSourcesSnapshot,
     settings,
     persistCurrentStep,
     closeWith,
@@ -311,7 +272,6 @@ export function useOnboardingFlow(
     skipToRepo,
     dismissOnboarding,
     back,
-    jumpToStep,
-    setLifecycleRootRef
+    jumpToStep
   }
 }

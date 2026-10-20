@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AgentType } from '../../../../shared/agent-status-types'
-import { emitNativeChatMessageSent } from '@/lib/native-chat-telemetry'
-import {
-  nativeChatComposerTargetIsRemote,
-  type NativeChatResolvedTarget
-} from './native-chat-composer-target'
+import type { NativeChatResolvedTarget } from './native-chat-composer-target'
 import { sendNativeChatMessageVerified, typeNativeChatCommand } from './native-chat-runtime-send'
 import { cancelNativeChatPtySends, waitForNativeChatPtyIdle } from './native-chat-pty-send-queue'
 import {
@@ -97,10 +93,6 @@ export function useNativeChatSessionOptionCommand(args: {
         // before the agent has responded.
         observer?.startDetection()
         onSlashCommand?.(command.trim())
-        emitNativeChatMessageSent({
-          agent,
-          runtime: nativeChatComposerTargetIsRemote(target.ptyId) ? 'remote' : 'local'
-        })
         const outcome = observer ? await observer.result : undefined
         return { outcome }
       } finally {

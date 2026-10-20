@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge } from 'electron'
 import type { PreloadApi } from './api-types'
 import { installBrowserFindListener } from './preload-runtime-support'
 import { appApi } from './api/app-bridge'
@@ -29,7 +29,6 @@ import { bitbucketApi } from './api/bitbucket-bridge'
 import { linearApi } from './api/linear-bridge'
 import { jiraApi } from './api/jira-bridge'
 import { starNagApi } from './api/star-nag-bridge'
-import { diagnosticsApi } from './api/diagnostics-bridge'
 import { settingsApi } from './api/settings-bridge'
 import { agentAwakeApi } from './api/agent-awake-bridge'
 import { localhostWorktreeLabelsApi } from './api/localhost-worktree-labels-bridge'
@@ -88,15 +87,6 @@ import { speechApi } from './api/speech-bridge'
 installBrowserFindListener()
 
 // Custom APIs for renderer. Each domain bridge owns its IPC contract.
-const telemetryTrackApi: PreloadApi['telemetryTrack'] = (name, props) =>
-  ipcRenderer.invoke('telemetry:track', name, props)
-const telemetrySetOptInApi: PreloadApi['telemetrySetOptIn'] = (optedIn) =>
-  ipcRenderer.invoke('telemetry:setOptIn', optedIn)
-const telemetryAcknowledgeBannerApi: PreloadApi['telemetryAcknowledgeBanner'] = () =>
-  ipcRenderer.invoke('telemetry:acknowledgeBanner')
-const telemetryGetConsentStateApi: PreloadApi['telemetryGetConsentState'] = () =>
-  ipcRenderer.invoke('telemetry:getConsentState')
-
 const api = {
   app: appApi,
   orcaProfiles: orcaProfilesApi,
@@ -126,11 +116,6 @@ const api = {
   linear: linearApi,
   jira: jiraApi,
   starNag: starNagApi,
-  telemetryTrack: telemetryTrackApi,
-  telemetrySetOptIn: telemetrySetOptInApi,
-  telemetryAcknowledgeBanner: telemetryAcknowledgeBannerApi,
-  telemetryGetConsentState: telemetryGetConsentStateApi,
-  diagnostics: diagnosticsApi,
   settings: settingsApi,
   agentAwake: agentAwakeApi,
   localhostWorktreeLabels: localhostWorktreeLabelsApi,

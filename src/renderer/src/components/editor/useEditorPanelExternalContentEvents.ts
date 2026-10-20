@@ -1,6 +1,5 @@
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
 import { useAppStore } from '@/store'
-import { getConnectionIdForFile } from '@/lib/connection-context'
 import type { OpenFile } from '@/store/slices/editor'
 import {
   getOpenFilesForExternalFileChange,
@@ -85,10 +84,7 @@ export function useEditorPanelExternalContentEvents({
       const state = useAppStore.getState()
       if (file.isDirty) {
         if (!hasRecentSelfWrite(file.filePath, file.runtimeEnvironmentId)) {
-          markFileChangedOnDisk(useAppStore.getState(), file, {
-            connectionId: getConnectionIdForFile(file.worktreeId, file.filePath) ?? undefined,
-            origin: 'live'
-          })
+          markFileChangedOnDisk(useAppStore.getState(), file)
         }
         return 'stale'
       }

@@ -118,13 +118,13 @@ function readFileForEchoVerification(args: {
   return slot.next
 }
 
-function markTabsChangedOnDisk(fileIds: string[], connectionId: string | undefined): void {
+function markTabsChangedOnDisk(fileIds: string[]): void {
   const state = useAppStore.getState()
   for (const fileId of fileIds) {
     const file = state.openFiles.find((candidate) => candidate.id === fileId)
     // Why: echo verification resolves async — the tab may have been closed since, so only mark files still open.
     if (file) {
-      markFileChangedOnDisk(state, file, { connectionId, origin: 'live' })
+      markFileChangedOnDisk(state, file)
     }
   }
 }
@@ -141,7 +141,7 @@ export function scheduleEditorChangedOnDiskMark(
   const recentSelfWrite = getRecentSelfWrite(absolutePath, target.runtimeEnvironmentId)
   // Why: the fs event may be the echo of Orca's own save — verify disk really differs from our last write before showing a "changed on disk" banner.
   if (!recentSelfWrite || recentSelfWrite.content === null) {
-    markTabsChangedOnDisk(fileIds, target.connectionId)
+    markTabsChangedOnDisk(fileIds)
     return
   }
   void readFileForEchoVerification({
@@ -153,12 +153,12 @@ export function scheduleEditorChangedOnDiskMark(
   })
     .then((result) => {
       if (result.isBinary || result.content !== recentSelfWrite.content) {
-        markTabsChangedOnDisk(fileIds, target.connectionId)
+        markTabsChangedOnDisk(fileIds)
       }
     })
     .catch(() => {
       // Why: unreadable disk state can't disprove an external change — keep the conflict visible rather than risk a silent overwrite.
-      markTabsChangedOnDisk(fileIds, target.connectionId)
+      markTabsChangedOnDisk(fileIds)
     })
 }
 
@@ -178,7 +178,6 @@ type LiveMoveVerifyCandidate = {
 function resolveLiveMoveVerification(
   candidate: LiveMoveVerifyCandidate,
   diskSignature: string | null,
-  connectionId: string | undefined,
   consumeProvenance: boolean
 ): void {
   const { fileId, baseline, generation, operationId } = candidate
@@ -204,7 +203,7 @@ function resolveLiveMoveVerification(
   }
   const isMoveEcho = baseline !== undefined && diskSignature === baseline
   if (!isMoveEcho) {
-    markFileChangedOnDisk(state, file, { connectionId, origin: 'live' })
+    markFileChangedOnDisk(state, file)
   }
 }
 
@@ -263,16 +262,9 @@ export function scheduleEditorSelfMoveEchoVerification(
     })
       .then((result) => {
         const diskSignature = result.isBinary ? null : getDiskBaselineSignature(result.content)
-        resolveLiveMoveVerification(
-          candidate,
-          diskSignature,
-          target.connectionId,
-          consumeProvenance
-        )
+        resolveLiveMoveVerification(candidate, diskSignature, consumeProvenance)
       })
-      .catch(() =>
-        resolveLiveMoveVerification(candidate, null, target.connectionId, consumeProvenance)
-      )
+      .catch(() => resolveLiveMoveVerification(candidate, null, consumeProvenance))
   }
 }
 
