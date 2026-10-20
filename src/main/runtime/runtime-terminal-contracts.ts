@@ -97,7 +97,6 @@ export type TerminalCreateOptions = {
   /** Main-internal placement anchor; removed before PTY dispatch. */
   afterTabId?: string
   startupCommandDelivery?: WorktreeStartupLaunch['startupCommandDelivery']
-  telemetry?: WorktreeStartupLaunch['telemetry']
   /** The surface that asked for this `startupAgent` launch; the runtime attributes every one it
    *  builds, as `unknown` when this is absent or unrecognized. Ignored without `startupAgent`. */
   launchSource?: string

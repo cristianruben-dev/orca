@@ -9,8 +9,6 @@ import {
 } from '../github/gh-account-binding-inventory'
 import { getRateLimit } from '../github/rate-limit'
 import type { Store } from '../persistence'
-import { getCohortAtEmit } from '../telemetry/cohort-classifier'
-import { track } from '../telemetry/client'
 import { assertRegisteredGitHubRepo, getGitHubLocalGitOptionArgs } from './github-repo-routing'
 
 export function registerGitHubAccountHandlers(store: Store): void {
@@ -20,10 +18,6 @@ export function registerGitHubAccountHandlers(store: Store): void {
     const sourceParse = appStarSourceSchema.safeParse(source)
     const starred = await starOrca()
     if (starred && sourceParse.success) {
-      track('app_starred_orca', {
-        source: sourceParse.data,
-        ...getCohortAtEmit()
-      })
     }
     return starred
   })

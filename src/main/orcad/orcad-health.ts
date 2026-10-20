@@ -21,7 +21,6 @@ import {
   getDaemonEndpointFacts,
   readDaemonPidRecord
 } from '../daemon/daemon-provider-state'
-import type { OrcadProfileStateAuthoritySelection } from './orcad-profile-state-telemetry'
 import { ORCAD_STOP_REQUESTS_CAPABILITY } from '../../shared/orcad-stop-request'
 import type { OrcadIdleStopRecord } from '../../shared/orcad-idle-exit'
 
@@ -74,8 +73,6 @@ export type OrcadHealth = {
   arch: string
   pid: number
   terminalDaemon: TerminalDaemonHealth
-  /** The low-cardinality profile-state authority selected during startup, when available. */
-  profileStateAuthority?: OrcadProfileStateAuthoritySelection
   /**
    * Present when this build consumes stop-request files and answers the managed-stop commands.
    * Absent on older builds, which a client must keep stopping with SIGTERM.
@@ -177,7 +174,6 @@ export async function collectTerminalDaemonHealth(): Promise<TerminalDaemonHealt
 
 export async function collectOrcadHealth(
   buildVersion: string,
-  profileStateAuthority?: OrcadProfileStateAuthoritySelection,
   previousIdleStop?: OrcadIdleStopRecord | null
 ): Promise<OrcadHealth> {
   return {
@@ -189,7 +185,6 @@ export async function collectOrcadHealth(
     arch: process.arch,
     pid: process.pid,
     terminalDaemon: await collectTerminalDaemonHealth(),
-    ...(profileStateAuthority ? { profileStateAuthority } : {}),
     stopRequests: ORCAD_STOP_REQUESTS_CAPABILITY,
     ...(previousIdleStop !== undefined ? { previousIdleStop } : {})
   }

@@ -1,4 +1,3 @@
-import { agentStartedTelemetry } from '../agent-launch/agent-started-telemetry'
 import type { AgentLaunchPreferences } from '../../shared/agent-session-host-authority'
 import type { Repo } from '../../shared/repo-types'
 import type { TuiAgent } from '../../shared/tui-agent'
@@ -23,11 +22,6 @@ import type { RuntimeManagedWorktreeCreateArgs } from './runtime-managed-worktre
 export type WorktreeStartupDraftPaste = { agent: TuiAgent; content: string }
 export type WorktreeStartupFollowup = { expectedProcess: string; prompt: string }
 
-/** A fresh agent the host builds always carries its `agent_started` record; dropping it fails to compile. */
-type AttributedWorktreeStartupLaunch = WorktreeStartupLaunch & {
-  telemetry: NonNullable<WorktreeStartupLaunch['telemetry']>
-}
-
 type StartupEnvironment = {
   repo: Repo
   settings: ReturnType<RuntimeStore['getSettings']>
@@ -38,8 +32,6 @@ type StartupEnvironment = {
   agentArgs?: string | null
   /** An automation's saved extras, merged over the launch's arguments. */
   extraAgentArgs?: string
-  /** Caller-supplied telemetry attribution, validated leniently at the host boundary. */
-  launchSource?: string
 }
 
 /** The agent a linked draft starts: the requested one, else the default, else one detected on the
@@ -75,7 +67,7 @@ export async function buildWorktreeStartupForDraft(
   environment: StartupEnvironment & { draft: string; requestedAgent?: TuiAgent }
 ): Promise<{
   agent: TuiAgent
-  startup: AttributedWorktreeStartupLaunch
+  startup: WorktreeStartupLaunch
   draftPaste?: WorktreeStartupDraftPaste
   launchRuntime: AgentLaunchRuntime | Error
 } | null> {
@@ -98,7 +90,6 @@ export async function buildWorktreeStartupForDraft(
     isRemote: repoIsRemote(repo),
     ...(environment.agentArgs !== undefined ? { agentArgs: environment.agentArgs } : {})
   })
-  const telemetry = agentStartedTelemetry(agent, environment.launchSource)
   const draftPlan = buildAgentDraftLaunchPlan({ ...launchArgs, draft: content })
   if (draftPlan) {
     return {
@@ -109,8 +100,7 @@ export async function buildWorktreeStartupForDraft(
         ...(draftPlan.startupCommandDelivery
           ? { startupCommandDelivery: draftPlan.startupCommandDelivery }
           : {}),
-        ...(draftPlan.env ? { env: draftPlan.env } : {}),
-        telemetry
+        ...(draftPlan.env ? { env: draftPlan.env } : {})
       },
       launchRuntime
     }
@@ -131,8 +121,7 @@ export async function buildWorktreeStartupForDraft(
       ...(startupPlan.startupCommandDelivery
         ? { startupCommandDelivery: startupPlan.startupCommandDelivery }
         : {}),
-      ...(startupPlan.env ? { env: startupPlan.env } : {}),
-      telemetry
+      ...(startupPlan.env ? { env: startupPlan.env } : {})
     },
     draftPaste: { agent, content },
     launchRuntime
@@ -153,7 +142,7 @@ export function buildWorktreeStartupForAgent(
   }
 ): {
   agent: TuiAgent
-  startup: AttributedWorktreeStartupLaunch
+  startup: WorktreeStartupLaunch
   followup?: WorktreeStartupFollowup
   launchRuntime: AgentLaunchRuntime | Error
 } {
@@ -205,8 +194,7 @@ export function buildWorktreeStartupForAgent(
       ...(startupPlan.startupCommandDelivery
         ? { startupCommandDelivery: startupPlan.startupCommandDelivery }
         : {}),
-      ...(startupPlan.env ? { env: startupPlan.env } : {}),
-      telemetry: agentStartedTelemetry(agent, environment.launchSource)
+      ...(startupPlan.env ? { env: startupPlan.env } : {})
     },
     launchRuntime,
     ...(startupPlan.followupPrompt

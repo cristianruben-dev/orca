@@ -1,8 +1,5 @@
 import type { PtySpawnResult } from '../../providers/pty-provider-contract'
 import type { OrcaRuntimeService } from '../../runtime/orca-runtime'
-import { classifyError } from '../../telemetry/classify-error'
-import { track } from '../../telemetry/client'
-import { getCohortAtEmit } from '../../telemetry/cohort-classifier'
 import { agentKindSchema } from '../../../shared/telemetry-events'
 import { normalizeNodePtySpawnError } from './provider/liveness'
 import { ptySizes } from './delivery/visibility-state'
@@ -80,11 +77,6 @@ export function failPtySpawnExecute(
       ? ('claude-code' as const)
       : null
   if (agentKind && !lane.joinedAnotherStart) {
-    track('agent_error', {
-      agent_kind: agentKind,
-      error_class: classifyError(spawnError).error_class,
-      ...getCohortAtEmit()
-    })
   }
   return spawnError
 }

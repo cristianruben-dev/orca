@@ -162,8 +162,7 @@ export const CALLER_LAUNCH_CASES: HostLaunchCase[] = [
         },
         launchAgent: 'codex',
         startupCommandDelivery: 'shell-ready',
-        surfaceOwner: false,
-        telemetry: NEW_WORKSPACE
+        surfaceOwner: false
       }
     },
     provider: {
