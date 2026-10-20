@@ -1218,7 +1218,6 @@ jobs:
     with:
       ref: refs/tags/${{ needs.cut.outputs.tag }}
     secrets:
-      ORCA_POSTHOG_WRITE_KEY: ${{ secrets.ORCA_POSTHOG_WRITE_KEY }}
 
   build:
     needs:
@@ -1484,8 +1483,6 @@ jobs:
           ORCA_BUILD_IDENTITY: ${{ steps.tag-classify.outputs.identity }}
           SHARED_JAVASCRIPT: ${{ needs.release-javascript.outputs.supported }}
           ORCA_RELEASE_JAVASCRIPT_SOURCE_SHA: ${{ needs.release-javascript.outputs.source_sha }}
-          ORCA_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
-          ORCA_POSTHOG_WRITE_KEY: ${{ secrets.ORCA_POSTHOG_WRITE_KEY }}
 
       # After the app build so nothing that cleans out/ can drop it; electron-builder ships it.
       - name: Download the orcad deployment template
@@ -2321,20 +2318,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.cut.outputs.tag }}
         run: node config/scripts/assert-github-release-is-draft.mjs "${{ needs.cut.outputs.tag }}"
-
-      # Why post-pack for Linux: electron-builder packs and uploads in one
-      # `--publish always` invocation. The previous step re-drafts if that
-      # upload flipped the GitHub release public; this telemetry check still
-      # blocks `publish-release` from undrafting a bad binary.
-      #
-      # Why this guards against: a misconfigured CI run where
-      # `ORCA_POSTHOG_WRITE_KEY` is unset or the tag fails to classify
-      # would otherwise produce a binary with `BUILD_IDENTITY = null` and
-      # `WRITE_KEY = null`, which silently disables transport
-      # (`IS_OFFICIAL_BUILD === false`) — the exact failure mode flagged
-      # in PR #1385's deferred follow-up.
-      - name: Verify telemetry constants present in app.asar
-        run: node config/scripts/verify-telemetry-constants.mjs
 
   build-mac:
     needs:

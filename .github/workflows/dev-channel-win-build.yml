@@ -264,7 +264,6 @@ jobs:
           # Why unset ORCA_BUILD_IDENTITY: telemetry's transport gate accepts only
           # 'stable' or 'rc', so leaving it unset keeps dev builds silent — which
           # is correct for unvetted artifacts. Same as the mac dev channels.
-          ORCA_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
 
       # After the app build so nothing that cleans out/ can drop it; electron-builder ships it.
       - name: Download the orcad deployment template

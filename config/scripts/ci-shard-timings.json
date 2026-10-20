@@ -312,7 +312,6 @@
       "config/scripts/static-module-specifiers.test.mjs": 175,
       "config/scripts/structured-agent-session-start-failure-row-render.test.mjs": 2891,
       "config/scripts/summarize-terminal-perf-report.test.mjs": 62,
-      "config/scripts/telemetry-bundle-constant-patterns.test.mjs": 36,
       "config/scripts/terminal-ime-engagement-receipt.test.mjs": 44,
       "config/scripts/terminal-partial-escape-native-continuation.test.mjs": 2393,
       "config/scripts/terminal-perf-dependency-preparation.test.mjs": 558,
