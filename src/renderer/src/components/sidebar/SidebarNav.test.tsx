@@ -306,14 +306,12 @@ describe('SidebarNav', () => {
   it('updates localized labels when the language changes after mount', async () => {
     const container = await renderSidebarNav()
 
-    expect(queryButtonByText(container, 'Automations')).not.toBeNull()
     expect(queryButtonByText(container, 'Orca Mobile')).not.toBeNull()
 
     await act(async () => {
       await i18n.changeLanguage('zh')
     })
 
-    expect(queryButtonByText(container, '自动化')).not.toBeNull()
     expect(queryButtonByText(container, 'Orca 手机端')).not.toBeNull()
   })
 
@@ -324,7 +322,6 @@ describe('SidebarNav', () => {
       await i18n.changeLanguage(PSEUDO_LOCALIZATION_LOCALE)
     })
 
-    expect(queryButtonByText(container, '[Automations]')).not.toBeNull()
     expect(queryButtonByText(container, '[Orca Mobile]')).not.toBeNull()
   })
 
@@ -349,35 +346,15 @@ describe('SidebarNav', () => {
     expect(mocks.openMobilePage).not.toHaveBeenCalled()
   })
 
-  it('shows the Automations entry by default for older settings', () => {
-    expect(shouldShowAutomationsButton(null)).toBe(true)
-    expect(shouldShowAutomationsButton({})).toBe(true)
+  it('omits the Automations entry', () => {
+    expect(shouldShowAutomationsButton(null)).toBe(false)
+    expect(shouldShowAutomationsButton({})).toBe(false)
   })
 
-  it('omits the Automations row when the sidebar setting is off', async () => {
-    setSidebarState({
-      settings: {
-        ...getDefaultSettings('/tmp'),
-        showAutomationsButton: false
-      }
-    })
-
+  it('omits the Automations row by default', async () => {
     const container = await renderSidebarNav()
 
     expect(queryButtonByText(container, 'Automations')).toBeNull()
-  })
-
-  it('hides Automations from its sidebar context menu', async () => {
-    const container = await renderSidebarNav()
-
-    const automationsMenu = getButtonByText(container, 'Automations').closest(
-      '[data-testid="context-menu"]'
-    )
-    expect(automationsMenu).not.toBeNull()
-
-    await clickButton(getHideButton(automationsMenu as HTMLElement))
-
-    expect(mocks.updateSettings).toHaveBeenCalledWith({ showAutomationsButton: false })
   })
 
   it('hides Mobile from its sidebar context menu', async () => {
