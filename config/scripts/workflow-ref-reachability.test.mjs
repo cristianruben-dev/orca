@@ -7,9 +7,6 @@ import { parse } from 'yaml'
 import { runProcess } from '@orca/process-host'
 
 const readWorkflow = (name) => parse(readFileSync(`.github/workflows/${name}.yml`, 'utf8'))
-const windowsVet = readWorkflow('dev-channel-win-build').jobs['build-win'].steps.find(
-  (step) => step.id === 'vetted'
-)
 const macSteps = readWorkflow('adhoc-mac-build').jobs['build-adhoc-mac'].steps
 const macVet = macSteps.find((step) => step.id === 'vetted')
 const macCheckout = macSteps.find((step) => step.name === 'Checkout the requested ref')
@@ -75,7 +72,7 @@ async function vet(step, ref) {
 describe('release ref trust with case-twin names', () => {
   it('accepts both branch tips, annotated tags, and their common ancestor', async () => {
     for (const sha of [upper, lower, ancestor]) {
-      const result = await vet(windowsVet, sha)
+      const result = await vet(macVet, sha)
       expect(result.code, result.stderr).toBe(0)
     }
     for (const ref of ['Fix', 'fix', 'Release', 'release', ancestor]) {
@@ -85,7 +82,7 @@ describe('release ref trust with case-twin names', () => {
   })
 
   it('rejects PR-only commits even when the server has their objects', async () => {
-    for (const step of [windowsVet, macVet]) {
+    for (const step of [macVet]) {
       const result = await vet(step, untrusted)
       expect(result.code).not.toBe(0)
       expect(result.stdout).toContain('not reachable from any branch or tag')

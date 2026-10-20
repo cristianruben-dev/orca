@@ -229,9 +229,7 @@ jobs:
     needs: [resolve-ref, orcad-template-support, orcad-template]
     # Why not the implicit success(): a ref without the orcad template skips that job on purpose.
     if: >-
-      !cancelled() && github.repository == 'stablyai/orca' &&
-      needs.orcad-template-support.result == 'success' &&
-      (needs.orcad-template.result == 'success' ||
+      !cancelled() && github.repository == 'stablyai/orca' && needs.orcad-template-support.result == 'success' && (needs.orcad-template.result == 'success' ||
         (needs.orcad-template.result == 'skipped' &&
           needs.orcad-template-support.outputs.ships == 'false'))
     # Why an environment: it gives the signing/notary/App secrets somewhere to
@@ -396,7 +394,7 @@ jobs:
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted branch artifacts.
 
-      # After the app build so nothing that cleans out/ can drop it; electron-builder ships it.
+          # After the app build so nothing that cleans out/ can drop it; electron-builder ships it.
       - name: Download the orcad deployment template
         if: needs.orcad-template-support.outputs.ships == 'true'
         uses: actions/download-artifact@v8
@@ -541,8 +539,7 @@ jobs:
       # mid-publish would strand the draft.
       - name: Discard the draft release on failure
         if: >-
-          (failure() || cancelled()) && steps.release.outputs.tag != '' &&
-          steps.publish_live.outcome != 'success'
+          (failure() || cancelled()) && steps.release.outputs.tag != '' && steps.publish_live.outcome != 'success'
         shell: bash
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
@@ -604,38 +601,3 @@ jobs:
             gh release delete "$tag" --repo "$ADHOC_REPO" --yes --cleanup-tag || \
               echo "::warning::Could not prune $tag"
           done <<<"$stale"
-
-  # Build unsigned Windows artifacts alongside Mac; publication waits below.
-  build-adhoc-win:
-    needs: [resolve-ref, orcad-template-support, orcad-template]
-    if: >-
-      !cancelled() && github.repository == 'stablyai/orca' &&
-      needs.orcad-template-support.result == 'success' &&
-      (needs.orcad-template.result == 'success' ||
-        (needs.orcad-template.result == 'skipped' &&
-          needs.orcad-template-support.outputs.ships == 'false'))
-    uses: ./.github/workflows/dev-channel-win-build.yml
-    secrets: inherit
-    with:
-      channel: adhoc
-      tag: v${{ needs.orcad-template-support.outputs.version }}
-      ref: ${{ needs.resolve-ref.outputs.sha }}
-      version: ${{ needs.orcad-template-support.outputs.version }}
-      orcad_template: ${{ needs.orcad-template-support.outputs.ships == 'true' }}
-      stage_only: true
-
-  # Upload only after Mac succeeds; an unsigned build may overlap its notarization.
-  publish-adhoc-win:
-    needs: [build-adhoc-mac, build-adhoc-win]
-    if: >-
-      !cancelled() && needs.build-adhoc-mac.result == 'success' &&
-      needs.build-adhoc-win.result == 'success' &&
-      needs.build-adhoc-mac.outputs.published == 'true'
-    permissions:
-      contents: read
-      actions: read
-    uses: ./.github/workflows/dev-channel-win-publish.yml
-    secrets: inherit
-    with:
-      channel: adhoc
-      tag: ${{ needs.build-adhoc-mac.outputs.tag }}

@@ -5,7 +5,6 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     paths:
       - '.github/workflows/adhoc-mac-build.yml'
-      - '.github/workflows/dev-channel-win-build.yml'
       - '.github/workflows/release-ref-validation.yml'
       - 'config/scripts/workflow-ref-reachability.test.mjs'
       - 'config/scripts/workflow-ref-mirror-case-safety.test.mjs'

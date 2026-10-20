@@ -302,7 +302,7 @@ jobs:
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted dev artifacts.
 
-      # After the app build so nothing that cleans out/ can drop it; electron-builder ships it.
+          # After the app build so nothing that cleans out/ can drop it; electron-builder ships it.
       - name: Download the orcad deployment template
         if: steps.freshness.outputs.should_build == 'true'
         uses: actions/download-artifact@v8
@@ -487,8 +487,7 @@ jobs:
       # so without it a manual cancel mid-publish would strand the draft.
       - name: Discard the draft release on failure
         if: >-
-          (failure() || cancelled()) && steps.release.outputs.tag != '' &&
-          steps.publish_live.outcome != 'success'
+          (failure() || cancelled()) && steps.release.outputs.tag != '' && steps.publish_live.outcome != 'success'
         shell: bash
         env:
           # Fall back to the publish token: if the re-mint itself is what failed,
@@ -583,28 +582,3 @@ jobs:
             [[ "$attempt" -eq 3 ]] || sleep "$((attempt * 5))"
           done
           echo "::warning::Failed to dispatch post-daily E2E for $SHA after 3 attempts."
-
-  # Why this runs after the mac leg rather than beside it: the tag and version
-  # are computed inside that job, so until it has run nothing else can name the
-  # release to upload into. The cost is small enough not to matter — the Windows
-  # leg measures ~7.5 min (install 2m45, build 35s, NSIS package 3m) against a
-  # ~9.5 min mac run, which keeps a daily run far inside its interval.
-  #
-  # Why `./` rather than a pinned `@main`: `uses:` resolves against the ref this
-  # file itself came from, which for an ordinary dispatch is main. Someone who
-  # deliberately points the Actions "Use workflow from" picker at a branch
-  # already gets that branch's copy of this entire file, so this follows the same
-  # rule instead of inventing a second one.
-  build-daily-win:
-    needs: build-daily-mac
-    # Only once the mac release is actually live: there is no release to upload
-    # into otherwise, and the Windows workflow refuses to create one.
-    if: needs.build-daily-mac.outputs.published == 'true'
-    uses: ./.github/workflows/dev-channel-win-build.yml
-    secrets: inherit
-    with:
-      channel: daily
-      tag: ${{ needs.build-daily-mac.outputs.tag }}
-      ref: ${{ needs.build-daily-mac.outputs.head_sha }}
-      version: ${{ needs.build-daily-mac.outputs.version }}
-      orcad_template: true
