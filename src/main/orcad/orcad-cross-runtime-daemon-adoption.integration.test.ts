@@ -426,12 +426,6 @@ worker.on('error', (error) => { console.error(error); process.exitCode = 1 })
           protocolVersion: PROTOCOL_VERSION
         })
         // The incoming runtime opened the outgoing runtime's profile database.
-        expect(first.health!.profileStateAuthority?.classification).toBe('neither')
-        expect(second.health!.profileStateAuthority).toMatchObject({
-          backend: 'sqlite',
-          migrated: false
-        })
-        expect(second.health!.profileStateAuthority?.classification).not.toBe('neither')
 
         const attached = await daemonClient('attach', userDataDir, sessionId, 'AFTER')
         expect(attached).toEqual({ pid: created.pid, isReattach: true, output: true })

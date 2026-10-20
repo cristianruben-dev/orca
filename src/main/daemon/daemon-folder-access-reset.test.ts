@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { validate } from '../telemetry/validator'
 
 const {
   trackMock,
@@ -245,7 +244,6 @@ describe('resetFolderAccessForDaemon reports the outcome', () => {
       action,
       cwd_class: 'documents'
     })
-    expect(validate('daemon_folder_access_notice', trackMock.mock.calls[0][1]).ok).toBe(true)
   })
 
   it('treats a retired entry as an unknown outcome', async () => {

@@ -67,10 +67,6 @@ vi.mock('../observability', () => ({
   getDiagnosticsStatus: getDiagnosticsStatusMock
 }))
 
-vi.mock('../observability/diagnostic-upload-endpoint', () => ({
-  resolveDiagnosticOrcaChannel: resolveDiagnosticOrcaChannelMock
-}))
-
 vi.mock('../observability/tracer', () => ({
   startSpan: startSpanMock
 }))

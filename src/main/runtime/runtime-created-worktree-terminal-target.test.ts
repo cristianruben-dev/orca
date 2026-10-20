@@ -8,7 +8,6 @@ import type { RemoteTrackingBase } from './runtime-remote-fetch-controller'
 import type { OrcaRuntimeWithNotifySshStateChanged } from './workspaces/workspace-host-notifications'
 import type { RuntimeManagedWorktreeCreateArgs } from './runtime-managed-worktree-create-types'
 import type { PreparationRearmHolder } from '../worktree-create-preparation'
-import type { RuntimeWorkspaceCreateEvents } from '../workspace-create-telemetry'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ExecutionHostId } from '../../shared/execution-host'
 import type { Repo } from '../../shared/repo-types'
@@ -505,10 +504,9 @@ describe('managed creation runtime entry', () => {
       value: async function (
         this: unknown,
         request: RuntimeManagedWorktreeCreateArgs,
-        rearm: PreparationRearmHolder,
-        events: RuntimeWorkspaceCreateEvents
+        rearm: PreparationRearmHolder
       ) {
-        calls.push({ receiver: this, args: [request, rearm, events] })
+        calls.push({ receiver: this, args: [request, rearm] })
         order.push('private entry')
         rearm.fire = () => order.push('rearm')
         throw failure

@@ -154,7 +154,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await finishProjectAddWithDefaultCheckout({
       repoId: 'repo-1',
-      source: 'clone_url',
       closeModal,
       setHideDefaultBranchWorkspace
     })
@@ -169,7 +168,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
       time_since_completed_ms: 0
     })
     expect(mocks.track).toHaveBeenCalledWith('add_repo_default_checkout_handoff', {
-      source: 'clone_url',
       result: 'opened_default_checkout',
       reason: 'loaded_default_checkout'
     })
@@ -211,7 +209,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'clone_url',
       executionHostId: 'runtime:env-1',
       setHideDefaultBranchWorkspace: vi.fn()
     })
@@ -231,7 +228,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'runtime_server_path',
       executionHostId: 'runtime:env-1',
       setHideDefaultBranchWorkspace: vi.fn()
     })
@@ -248,7 +244,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'local_folder_picker',
       selectedPath: '/repo/packages/web',
       setHideDefaultBranchWorkspace: vi.fn()
     })
@@ -265,7 +260,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'local_folder_picker',
       selectedPath: '/repo',
       setHideDefaultBranchWorkspace: vi.fn()
     })
@@ -299,7 +293,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'local_folder_picker',
       setHideDefaultBranchWorkspace: vi.fn()
     })
 
@@ -310,7 +303,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
       requireAuthoritative: true
     })
     expect(mocks.track).toHaveBeenCalledWith('add_repo_default_checkout_handoff', {
-      source: 'local_folder_picker',
       result: 'opened_default_checkout',
       reason: 'detected_default_checkout'
     })
@@ -328,7 +320,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'local_folder_picker',
       setHideDefaultBranchWorkspace: vi.fn()
     })
 
@@ -339,7 +330,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
       requireAuthoritative: true
     })
     expect(mocks.track).toHaveBeenCalledWith('add_repo_default_checkout_handoff', {
-      source: 'local_folder_picker',
       result: 'opened_default_checkout',
       reason: 'loaded_default_checkout'
     })
@@ -357,14 +347,12 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'local_folder_picker',
       setHideDefaultBranchWorkspace: vi.fn()
     })
 
     expect(mocks.state.updateRepo).not.toHaveBeenCalled()
     expect(mocks.state.fetchWorktrees).not.toHaveBeenCalled()
     expect(mocks.track).toHaveBeenCalledWith('add_repo_default_checkout_handoff', {
-      source: 'local_folder_picker',
       result: 'opened_default_checkout',
       reason: 'loaded_default_checkout'
     })
@@ -382,7 +370,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'local_folder_picker',
       setHideDefaultBranchWorkspace: vi.fn()
     })
 
@@ -419,7 +406,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'local_folder_picker',
       setHideDefaultBranchWorkspace: vi.fn()
     })
 
@@ -429,7 +415,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
     })
     expect(mocks.state.fetchWorktrees).toHaveBeenCalledTimes(1)
     expect(mocks.track).toHaveBeenCalledWith('add_repo_default_checkout_handoff', {
-      source: 'local_folder_picker',
       result: 'opened_default_checkout',
       reason: 'detected_default_checkout'
     })
@@ -448,12 +433,10 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'local_folder_picker',
       setHideDefaultBranchWorkspace: vi.fn()
     })
 
     expect(mocks.track).toHaveBeenCalledWith('add_repo_default_checkout_handoff', {
-      source: 'local_folder_picker',
       result: 'revealed_project',
       reason: 'show_detected_linked_failed'
     })
@@ -473,12 +456,10 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'local_folder_picker',
       setHideDefaultBranchWorkspace: vi.fn()
     })
 
     expect(mocks.track).toHaveBeenCalledWith('add_repo_default_checkout_handoff', {
-      source: 'local_folder_picker',
       result: 'revealed_project',
       reason: 'linked_external_refresh_failed'
     })
@@ -495,7 +476,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await finishProjectAddWithDefaultCheckout({
       repoId: 'repo-1',
-      source: 'ssh_remote_path',
       closeModal,
       setHideDefaultBranchWorkspace
     })
@@ -503,7 +483,6 @@ describe('finishProjectAddWithDefaultCheckout', () => {
     expect(closeModal).toHaveBeenCalledTimes(1)
     expect(mocks.activateAndRevealWorktree).not.toHaveBeenCalled()
     expect(mocks.track).toHaveBeenCalledWith('add_repo_default_checkout_handoff', {
-      source: 'ssh_remote_path',
       result: 'revealed_project',
       reason: 'no_authoritative_detection'
     })
@@ -518,13 +497,11 @@ describe('finishProjectAddWithDefaultCheckout', () => {
 
     await openProjectDefaultCheckout({
       repoId: 'repo-1',
-      source: 'project_added_compat',
       setHideDefaultBranchWorkspace: vi.fn()
     })
 
     expect(mocks.activateAndRevealWorktree).not.toHaveBeenCalled()
     expect(mocks.track).toHaveBeenCalledWith('add_repo_default_checkout_handoff', {
-      source: 'project_added_compat',
       result: 'revealed_project',
       reason: 'no_authoritative_detection'
     })

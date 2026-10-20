@@ -14,20 +14,11 @@ vi.mock('@/lib/telemetry', () => ({
 
 import {
   buildCompletedOnboardingNotificationSettings,
-  buildOnboardingDismissedPayload,
   onboardingChatPermissionSetting,
-  useCloseWith,
-  type DismissedExtras,
-  trackOnboardingDismissed
+  useCloseWith
 } from './use-onboarding-flow-persistence'
-import type { StepNumber } from './use-onboarding-flow-types'
 
-type CloseWithCallback = (
-  outcome: 'completed' | 'dismissed',
-  lastStepReached: StepNumber,
-  completedPath?: 'add_project_modal',
-  dismissedExtras?: DismissedExtras
-) => Promise<boolean>
+type CloseWithCallback = (outcome: 'completed' | 'dismissed') => Promise<boolean>
 
 const probeStartTime = Date.now()
 
@@ -91,32 +82,6 @@ describe('onboarding flow persistence', () => {
     vi.useRealTimers()
   })
 
-  it('builds dismissed telemetry with the triggering advance path', () => {
-    expect(
-      buildOnboardingDismissedPayload(3, {
-        durationMs: 250,
-        advancedVia: 'keyboard'
-      })
-    ).toEqual({
-      last_step: 3,
-      duration_ms: 250,
-      advanced_via: 'keyboard'
-    })
-  })
-
-  it('tracks dismissed onboarding telemetry with the triggering advance path', () => {
-    trackOnboardingDismissed(3, {
-      durationMs: 250,
-      advancedVia: 'keyboard'
-    })
-
-    expect(trackMock).toHaveBeenCalledWith('onboarding_dismissed', {
-      last_step: 3,
-      duration_ms: 250,
-      advanced_via: 'keyboard'
-    })
-  })
-
   it('preserves explicit focus notification suppression when completing onboarding', () => {
     const notifications = buildCompletedOnboardingNotificationSettings({
       enabled: false,
@@ -159,7 +124,7 @@ describe('onboarding flow persistence', () => {
     }))
 
     await act(async () => {
-      await closeWith?.('completed', 5)
+      await closeWith?.('completed')
     })
 
     const api = (

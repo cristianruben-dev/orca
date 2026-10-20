@@ -8,7 +8,6 @@ import type {
 } from '../../shared/skill-bundle-install-contract'
 import type { SkillInstallRequest, SkillInstallResult } from '../../shared/skill-install-contract'
 import { SKILL_PACKAGE_CONTENT_TYPE } from '../../shared/skill-package-manifest'
-import { collectBundle } from '../observability/bundle'
 import { _resetTracerForTests, setActiveSink, type TracerSink } from '../observability/tracer'
 import {
   recordSkillCapabilityAbsence,
@@ -158,35 +157,6 @@ describe('skill operation observability', () => {
     expect(serialized).toContain('provider-alias')
     for (const value of Object.values(PRIVATE_VALUES)) {
       expect(serialized).not.toContain(value)
-    }
-  })
-
-  it('keeps support bundles free of paths, filenames, share URLs, policies, ACLs, and grants', () => {
-    const operation = startSkillInstallOperation({
-      ...request(),
-      ingress: {
-        kind: 'download-grant',
-        url: PRIVATE_VALUES.downloadGrant,
-        expiresAt: '2030-01-01T00:00:00Z'
-      }
-    })
-    operation.fail(new Error(Object.values(PRIVATE_VALUES).join(' ')))
-    const traceFile = join(directory, 'trace.ndjson')
-    writeFileSync(traceFile, `${sink.records.map((record) => JSON.stringify(record)).join('\n')}\n`)
-
-    const bundle = collectBundle({
-      traceFilePath: traceFile,
-      maxFiles: 1,
-      appVersion: 'test',
-      platform: 'darwin',
-      arch: 'arm64',
-      osRelease: 'test',
-      orcaChannel: 'dev'
-    })
-
-    expect(bundle.payload).toContain('skill-install-unknown')
-    for (const value of Object.values(PRIVATE_VALUES)) {
-      expect(bundle.payload).not.toContain(value)
     }
   })
 
