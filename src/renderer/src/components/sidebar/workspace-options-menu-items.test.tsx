@@ -185,7 +185,11 @@ describe('Workspace options menu renders from the shared option list', () => {
         )
       )
     )
-    expect([...everShown].sort()).toEqual(WORKSPACE_VIEW_OPTIONS.map((o) => o.key).sort())
+    expect([...everShown].sort()).toEqual(
+      WORKSPACE_VIEW_OPTIONS.map((o) => o.key)
+        .filter((k) => k !== 'groupBy')
+        .sort()
+    )
   })
 
   it('keeps the other-client filter while the server catalog is still loading', () => {

@@ -7,13 +7,11 @@ import SidebarNav from './SidebarNav'
 import SetupScriptPromptCard from './SetupScriptPromptCard'
 import WorktreeList from './WorktreeList'
 import SidebarToolbar from './SidebarToolbar'
-import WorkspaceKanbanDrawer from './WorkspaceKanbanDrawer'
 import type { VirtualizedScrollAnchor } from '@/hooks/useVirtualizedScrollAnchor'
 import { cn } from '@/lib/utils'
 import { FolderPlus, Loader2 } from 'lucide-react'
 import { ActivityThreadCollapseContext } from '@/components/activity/activity-thread-collapse-context'
 import { useSidebarProjectDrop } from './useSidebarProjectDrop'
-import { useWorkspaceBoardPanel } from './useWorkspaceBoardPanel'
 import { useWorkspaceRevealBodyRedirect } from './use-workspace-reveal-body-redirect'
 import { resolveLeftSidebarStyleVariables } from '@/lib/left-sidebar-appearance'
 import { useSystemPrefersDark } from '@/components/terminal-pane/use-system-prefers-dark'
@@ -32,7 +30,6 @@ const SleepTwinWorkspaceDialog = lazyWithRetry(() => import('./SleepTwinWorkspac
 const WorktreeVisibilityDialog = lazyWithRetry(() => import('./WorktreeVisibilityDialog'))
 const OrcaYamlTrustDialog = lazyWithRetry(() => import('./OrcaYamlTrustDialog'))
 const ForgetSshWorkspaceDialog = lazyWithRetry(() => import('./ForgetSshWorkspaceDialog'))
-const AgentDashboardSidebarHost = lazyWithRetry(() => import('./AgentDashboardSidebarHost'))
 
 const MIN_WIDTH = 220
 const MAX_WIDTH = 500
@@ -59,9 +56,6 @@ function Sidebar({
   const startupWorktreeRefreshCompleted = useAppStore((s) => s.startupWorktreeRefreshCompleted)
   const settings = useAppStore((s) => s.settings)
   const sidebarBody = useAppStore((s) => s.sidebarBody ?? 'workspaces')
-  const showAgentDashboard = settings?.experimentalAgentDashboardPopout === true
-  const agentDashboardDrawerOpen = useAppStore((s) => s.agentDashboardDrawerOpen)
-  const setAgentDashboardDrawerOpen = useAppStore((s) => s.setAgentDashboardDrawerOpen)
   const agentReadFilter = useAppStore((s) => s.agentsReadFilter)
   const setAgentReadFilter = useAppStore((s) => s.setAgentsReadFilter)
   const agentGroupBy = useAppStore((s) => s.agentsGroupBy)
@@ -92,26 +86,12 @@ function Sidebar({
   )
   const fetchAllWorktrees = useAppStore((s) => s.fetchAllWorktrees)
   const activeModal = useAppStore((s) => s.activeModal)
-  const statusBarVisible = useAppStore((s) => s.statusBarVisible)
   const systemPrefersDark = useSystemPrefersDark()
   const leftSidebarStyle = useMemo(
     () => resolveLeftSidebarStyleVariables(settings, systemPrefersDark),
     [settings, systemPrefersDark]
   ) as React.CSSProperties | undefined
   const { dropOwnerRef, dropHandlers, affordance } = useSidebarProjectDrop()
-  const {
-    workspaceBoardOpen,
-    workspaceBoardRenderedOpen,
-    workspaceBoardDragPreviewOpen,
-    workspaceBoardMenuOpen,
-    toggleWorkspaceBoard,
-    handleWorkspaceBoardOpenChange,
-    setWorkspaceBoardMenuOpen,
-    closeWorkspaceBoard,
-    previewWorkspaceBoardFromDrag,
-    solidifyWorkspaceBoardFromDrag,
-    cancelWorkspaceBoardDragPreview
-  } = useWorkspaceBoardPanel()
 
   const setLiveSidebarWidth = React.useCallback((width: number) => {
     document.documentElement.style.setProperty('--workspace-sidebar-live-width', `${width}px`)
@@ -127,18 +107,6 @@ function Sidebar({
       void fetchAllWorktrees()
     }
   }, [repoCount, startupWorktreeRefreshCompleted, fetchAllWorktrees])
-
-  useEffect(() => {
-    if (!sidebarOpen && workspaceBoardRenderedOpen) {
-      closeWorkspaceBoard()
-    }
-  }, [closeWorkspaceBoard, sidebarOpen, workspaceBoardRenderedOpen])
-
-  useEffect(() => {
-    if (!showAgentDashboard && agentDashboardDrawerOpen) {
-      setAgentDashboardDrawerOpen(false)
-    }
-  }, [agentDashboardDrawerOpen, setAgentDashboardDrawerOpen, showAgentDashboard])
 
   const { containerRef, onResizeStart, isResizing } = useSidebarResize<HTMLDivElement>({
     isOpen: sidebarOpen,
@@ -172,10 +140,7 @@ function Sidebar({
           <>
             {/* Fixed controls */}
             <SidebarNav />
-            <SidebarHeader
-              onWorkspaceBoardMenuOpenChange={setWorkspaceBoardMenuOpen}
-              activityOptionsTarget={setAgentOptionsTarget}
-            />
+            <SidebarHeader activityOptionsTarget={setAgentOptionsTarget} />
             <SeveredTerminalDaemonBanner />
             <StalledTerminalDaemonBanner />
             {sidebarBody === 'agents' ? (
@@ -199,11 +164,6 @@ function Sidebar({
                 <WorktreeList
                   scrollOffsetRef={worktreeScrollOffsetRef}
                   scrollAnchorRef={worktreeScrollAnchorRef}
-                  workspaceBoardOpen={workspaceBoardOpen}
-                  onWorktreeCardClick={closeWorkspaceBoard}
-                  onWorkspaceBoardDragPreviewStart={previewWorkspaceBoardFromDrag}
-                  onWorkspaceBoardDragPreviewCommit={solidifyWorkspaceBoardFromDrag}
-                  onWorkspaceBoardDragPreviewCancel={cancelWorkspaceBoardDragPreview}
                 />
               </>
             )}
@@ -212,11 +172,7 @@ function Sidebar({
               <SetupScriptPromptCard />
 
               {/* Fixed bottom toolbar */}
-              <SidebarToolbar
-                workspaceBoardOpen={workspaceBoardOpen}
-                workspaceBoardDragPreviewOpen={workspaceBoardDragPreviewOpen}
-                onWorkspaceBoardToggle={toggleWorkspaceBoard}
-              />
+              <SidebarToolbar />
             </div>
           </>
         )}
@@ -267,28 +223,6 @@ function Sidebar({
         {activeModal === 'confirm-orca-yaml-hooks' ? <OrcaYamlTrustDialog /> : null}
         {activeModal === 'forget-ssh-workspace' ? <ForgetSshWorkspaceDialog /> : null}
       </React.Suspense>
-      {sidebarOpen ? (
-        <WorkspaceKanbanDrawer
-          leftSidebarStyle={leftSidebarStyle}
-          open={workspaceBoardRenderedOpen}
-          statusBarVisible={statusBarVisible}
-          dragPreview={workspaceBoardDragPreviewOpen}
-          preserveOpenForMenu={workspaceBoardMenuOpen}
-          onOpenChange={handleWorkspaceBoardOpenChange}
-          onMenuOpenChange={setWorkspaceBoardMenuOpen}
-        />
-      ) : null}
-      {showAgentDashboard ? (
-        <React.Suspense fallback={null}>
-          <AgentDashboardSidebarHost
-            sidebarOpen={sidebarOpen}
-            workspaceBoardOpen={workspaceBoardOpen}
-            closeWorkspaceBoard={closeWorkspaceBoard}
-            leftSidebarStyle={leftSidebarStyle}
-            statusBarVisible={statusBarVisible}
-          />
-        </React.Suspense>
-      ) : null}
     </TooltipProvider>
   )
 }

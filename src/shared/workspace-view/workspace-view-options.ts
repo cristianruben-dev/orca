@@ -168,7 +168,7 @@ export type WorkspaceViewOptionContext = {
 const SHOWN: Record<WorkspaceViewOptionKey, (context: WorkspaceViewOptionContext) => boolean> = {
   hosts: (context) => context.hasRemoteHosts,
   projects: (context) => context.projectCount > 1,
-  groupBy: () => true,
+  groupBy: () => false,
   sortBy: () => true,
   projectOrderBy: (context) => context.groupBy === 'repo',
   cardLayout: (context) => !context.newCardStyle,

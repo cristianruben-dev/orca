@@ -13,7 +13,6 @@ import { SetupGuideSidebarEntry } from './SetupGuideSidebarEntry'
 import { SidebarTaskNavButton } from './SidebarTaskNavButton'
 import { HideSidebarMenu } from './sidebar-nav-controls'
 import { translate } from '@/i18n/i18n'
-import { lazyWithRetry } from '@/lib/lazy-with-retry'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 
 export function shouldShowMobileButton(
@@ -41,12 +40,10 @@ export function shouldShowSkillsButton(
 }
 
 export function shouldShowAgentDashboardButton(
-  settings: Partial<Pick<GlobalSettings, 'experimentalAgentDashboardPopout'>> | null | undefined
+  _settings?: Partial<Pick<GlobalSettings, 'experimentalAgentDashboardPopout'>> | null | undefined
 ): boolean {
-  return settings?.experimentalAgentDashboardPopout === true
+  return false
 }
-
-const AgentDashboardSidebarEntry = lazyWithRetry(() => import('./AgentDashboardSidebarEntry'))
 
 const SidebarNav = React.memo(function SidebarNav() {
   // Why: this memo boundary needs its own language subscription, while
@@ -59,7 +56,6 @@ const SidebarNav = React.memo(function SidebarNav() {
   const openModal = useAppStore((s) => s.openModal)
   const updateSettings = useAppStore((s) => s.updateSettings)
   const activeView = useAppStore((s) => s.activeView)
-  const showAgentDashboardButton = useAppStore((s) => shouldShowAgentDashboardButton(s.settings))
   const showMobileButton = useAppStore((s) => shouldShowMobileButton(s.settings))
   const showArtifactsButton = useAppStore((s) => shouldShowArtifactsButton(s.settings))
   const showSkillsButton = useAppStore((s) => shouldShowSkillsButton(s.settings))
@@ -170,11 +166,6 @@ const SidebarNav = React.memo(function SidebarNav() {
           </ContextMenuTrigger>
           <HideSidebarMenu onHide={hideSkillsButton} />
         </ContextMenu>
-      ) : null}
-      {showAgentDashboardButton ? (
-        <React.Suspense fallback={null}>
-          <AgentDashboardSidebarEntry />
-        </React.Suspense>
       ) : null}
       {showMobileButton ? (
         <ContextMenu>
