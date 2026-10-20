@@ -1,4 +1,4 @@
-import { PanelsTopLeft, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { lazyWithRetry } from '@/lib/lazy-with-retry'
@@ -21,8 +21,6 @@ import { SkillUpdateStatusSegment } from './SkillUpdateStatusSegment'
 import { NativeChatResumeStatusSegment } from './NativeChatResumeStatusSegment'
 import { CaffeinateStatusSegment } from './CaffeinateStatusSegment'
 import { RemoteServerUpdateStatusSegment } from './RemoteServerUpdateStatusSegment'
-import { TOGGLE_FLOATING_TERMINAL_EVENT } from '@/lib/floating-terminal'
-import { FloatingTerminalIconContextMenu } from '@/components/floating-terminal/FloatingTerminalIconContextMenu'
 import { ClaudeSwitcherMenu } from './ClaudeSwitcherMenu'
 import { CodexSwitcherMenu } from './CodexSwitcherMenu'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
@@ -69,8 +67,6 @@ export function StatusBarSurface({
     collapseUsage,
     collapsedUsageProviders,
     compact,
-    floatingTerminalActionLabel,
-    floatingTerminalShortcut,
     handleManageAccounts,
     handleOpenProviderAccounts,
     handleRefresh,
@@ -89,8 +85,6 @@ export function StatusBarSurface({
     setMenuPoint,
     setStatusBarUsageMode,
     showEmptyUsageCta,
-    showFloatingTerminalToggle,
-    showFloatingWorkspaceAttentionDot,
     showPorts,
     showSsh,
     statusBarUsageMode,
@@ -302,43 +296,6 @@ export function StatusBarSurface({
             ) : null}
             {showSsh ? <SshStatusSegment compact={compact} iconOnly={segmentsIconOnly} /> : null}
           </React.Suspense>
-          {showFloatingTerminalToggle && (
-            <FloatingTerminalIconContextMenu currentLocation="status-bar" className="relative">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    className="relative inline-flex size-5 cursor-pointer items-center justify-center rounded border border-border bg-secondary text-secondary-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
-                    aria-label={
-                      showFloatingWorkspaceAttentionDot
-                        ? translate(
-                            'auto.components.status.bar.StatusBar.floatingTerminalNewActivity',
-                            '{{label}}, new activity',
-                            { label: floatingTerminalActionLabel }
-                          )
-                        : floatingTerminalActionLabel
-                    }
-                    onClick={() => {
-                      window.dispatchEvent(new CustomEvent(TOGGLE_FLOATING_TERMINAL_EVENT))
-                    }}
-                  >
-                    <PanelsTopLeft className="size-3.5" />
-                    {showFloatingWorkspaceAttentionDot ? (
-                      // Why: amber = Orca's "needs attention" convention; ring matches the fill so the dot reads on the icon.
-                      <span
-                        aria-hidden
-                        data-floating-terminal-attention
-                        className="pointer-events-none absolute right-0.5 top-0.5 size-1.5 rounded-full bg-amber-500 ring-1 ring-secondary"
-                      />
-                    ) : null}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top" sideOffset={6}>
-                  {floatingTerminalActionLabel} ({floatingTerminalShortcut})
-                </TooltipContent>
-              </Tooltip>
-            </FloatingTerminalIconContextMenu>
-          )}
         </div>
       </div>
 

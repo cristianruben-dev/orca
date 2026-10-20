@@ -12,13 +12,11 @@ import {
   renderOrchestrationSettingsSection
 } from './settings-capability-section-renderers'
 import {
-  renderArtifactsSettingsSection,
   renderGeneralSettingsSection,
   renderIntegrationsSettingsSection,
   renderMobileSettingsSection,
   renderOrcaAccountSettingsSection,
-  renderSetupGuideSettingsSection,
-  renderShareSkillsSettingsSection
+  renderSetupGuideSettingsSection
 } from './settings-setup-workflow-section-renderers'
 import {
   renderGitSettingsSection,
@@ -26,7 +24,6 @@ import {
 } from './settings-git-task-section-renderers'
 import {
   renderBrowserSettingsSection,
-  renderFloatingWorkspaceSettingsSection,
   renderMobileEmulatorSettingsSection,
   renderQuickCommandsSettingsSection,
   renderTerminalSettingsSection
@@ -136,15 +133,12 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
                 {renderGeneralSettingsSection(context)}
                 {renderIntegrationsSettingsSection(context)}
                 {renderMobileSettingsSection(context)}
-                {renderArtifactsSettingsSection(context)}
-                {renderShareSkillsSettingsSection(context)}
                 {renderGitSettingsSection(context)}
                 {renderTasksSettingsSection(context)}
                 {renderTerminalSettingsSection(context)}
                 {renderQuickCommandsSettingsSection(context)}
                 {renderBrowserSettingsSection(context)}
                 {renderMobileEmulatorSettingsSection(context)}
-                {renderFloatingWorkspaceSettingsSection(context)}
                 {renderAppearanceSettingsSection(context)}
                 {renderChatSettingsSection(context)}
                 {renderInputSettingsSection(context)}

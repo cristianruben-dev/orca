@@ -137,7 +137,7 @@ describe('settings navigation metadata', () => {
     expect(sections.find((section) => section.id === 'mobile')?.group).toBe('setup')
   })
 
-  it('places Automations, Artifacts, and Share Skills first under Workflows', () => {
+  it('omits Automations, Artifacts, and Share Skills from Workflows', () => {
     const sections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -151,16 +151,10 @@ describe('settings navigation metadata', () => {
       .filter((section) => section.group === 'workflows')
       .map((section) => section.id)
 
-    expect(automations?.group).toBe('workflows')
-    expect(automations?.searchEntries[0]?.title).toBe('Show Automations Button')
-    expect(artifacts?.group).toBe('workflows')
-    expect(artifacts?.badge).toBe('Beta')
-    expect(artifacts?.description).toBe(
-      'Share HTML and Markdown files with your team and manage their public links.'
-    )
-    expect(shareSkills).toMatchObject({ group: 'workflows', badge: 'Beta' })
-    expect(shareSkills?.searchEntries[0]?.title).toBe('Unlisted skill links')
-    expect(workflowIds.slice(0, 3)).toEqual(['automations', 'artifacts', 'share-skills'])
+    expect(automations).toBeUndefined()
+    expect(artifacts).toBeUndefined()
+    expect(shareSkills).toBeUndefined()
+    expect(workflowIds[0]).toBe('git')
   })
 
   it('places the Orca account in Set Up on desktop only', () => {
@@ -205,11 +199,7 @@ describe('settings navigation metadata', () => {
     expect(webIds).not.toContain('advanced')
     expect(webIds).toContain('servers')
     expect(webIds).toContain('repo-repo-1')
-    const floatingWorkspace = webSections.find((section) => section.id === 'floating-workspace')
-    expect(floatingWorkspace?.description).toBe('Global terminal and markdown tabs.')
-    expect(floatingWorkspace?.searchEntries.flatMap((entry) => entry.keywords)).not.toContain(
-      'browser'
-    )
+    expect(webSections.find((section) => section.id === 'floating-workspace')).toBeUndefined()
     const shortcuts = webSections.find((section) => section.id === 'shortcuts')
     expect(shortcuts?.searchEntries.map((entry) => entry.title)).not.toContain('New browser tab')
     expect(shortcuts?.searchEntries.map((entry) => entry.title)).not.toContain(
