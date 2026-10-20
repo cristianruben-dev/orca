@@ -45,9 +45,6 @@ const AddProjectFromFolderDialog = lazy(
 const DiagramViewerModal = lazy(() => import('../components/editor/DiagramViewerModal'))
 const ProjectAddedDialog = lazy(() => import('../components/sidebar/ProjectAddedDialog'))
 const NodeDistMirrorDialog = lazy(() => import('../components/settings/NodeDistMirrorDialog'))
-const AiVaultSessionHistoryDialog = lazy(
-  () => import('../components/right-sidebar/AiVaultSessionHistoryDialog')
-)
 const DeleteWorktreeDialog = lazy(() => import('../components/sidebar/DeleteWorktreeDialog'))
 const PreservedBranchBatchReviewModal = lazy(
   () => import('../components/sidebar/PreservedBranchBatchReviewModal')
@@ -223,12 +220,6 @@ export function AppRootSurfaces(props: {
         {activeModal === 'project-added' ? (
           <ModalBoundary boundaryId="modal.project-added" resetKey>
             <ProjectAddedDialog />
-          </ModalBoundary>
-        ) : null}
-        {/* Root-hosted: inside a chat, its React events would reach the chat's capture handlers. */}
-        {activeModal === 'agent-session-history' ? (
-          <ModalBoundary boundaryId="modal.agent-session-history" resetKey>
-            <AiVaultSessionHistoryDialog />
           </ModalBoundary>
         ) : null}
         {/* Root-hosted: a toast, the SSH host row and a terminal pane all open it. */}
