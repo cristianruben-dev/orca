@@ -42,7 +42,6 @@ export function useResourceUsageStatusController() {
   const workspaceSessionReady = useAppStore((s) => s.workspaceSessionReady)
   const setActiveView = useAppStore((s) => s.setActiveView)
   const openModal = useAppStore((s) => s.openModal)
-  const openSpacePage = useAppStore((s) => s.openSpacePage)
   const recordFeatureInteraction = useAppStore((s) => s.recordFeatureInteraction)
   const activeView = useAppStore((s) => s.activeView)
   const activeWorktreeId = useAppStore((s) => s.activeWorktreeId)
@@ -238,7 +237,6 @@ export function useResourceUsageStatusController() {
     setOpen,
     setActiveView,
     openModal,
-    openSpacePage,
     refreshSessions,
     removeSession,
     removeSessions,

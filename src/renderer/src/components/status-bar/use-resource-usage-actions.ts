@@ -22,7 +22,6 @@ export function useResourceUsageActions({
   setOpen,
   setActiveView,
   openModal,
-  openSpacePage,
   refreshSessions,
   removeSession,
   removeSessions,
@@ -43,7 +42,6 @@ export function useResourceUsageActions({
   setOpen: Dispatch<SetStateAction<boolean>>
   setActiveView: AppState['setActiveView']
   openModal: AppState['openModal']
-  openSpacePage: AppState['openSpacePage']
   refreshSessions: () => Promise<void>
   removeSession: (sessionId: string) => void
   removeSessions: (sessionIds: ReadonlySet<string>) => void
@@ -220,11 +218,6 @@ export function useResourceUsageActions({
     setKilling
   ])
 
-  const openSpaceResults = useCallback((): void => {
-    setOpen(false)
-    openSpacePage()
-  }, [openSpacePage, setOpen])
-
   return {
     toggleRepo,
     toggleWorktree,
@@ -234,8 +227,7 @@ export function useResourceUsageActions({
     handleOpenWorkspaceCleanup,
     handleKillSession,
     handleKillOrphans,
-    runKillConfirmed,
-    openSpaceResults
+    runKillConfirmed
   }
 }
 
