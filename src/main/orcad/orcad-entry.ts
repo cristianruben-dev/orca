@@ -162,8 +162,7 @@ async function startOrcadRuntime(
   const idleExitStartup = beginOrcadIdleExit(runtimeUserDataPath)
   // Why before the profile store: it unseals protected settings as it loads.
   await prepareOrcadSecretStoreAndMigrate(runtimeUserDataPath)
-  const { store: profileStore, authority: profileStateAuthority } =
-    await createOrcadProfileStateStartup(runtimeUserDataPath)
+  const { store: profileStore } = await createOrcadProfileStateStartup(runtimeUserDataPath)
   const observedPaneIdentities = new AgentStatusObservedPaneIdentities()
   const observedStatusCapture = new AgentStatusObservedPaneIdentityCapture(observedPaneIdentities)
   profileStoreForShutdown = profileStore
@@ -359,11 +358,7 @@ async function startOrcadRuntime(
     runtimeId: runtime.getRuntimeId(),
     rpc,
     collectHealth: () =>
-      collectOrcadHealth(
-        getAppEnvironment().getVersion(),
-        profileStateAuthority,
-        idleExitStartup.previousIdleStop
-      )
+      collectOrcadHealth(getAppEnvironment().getVersion(), idleExitStartup.previousIdleStop)
   })
 
   await new ServeReadinessPublisher().publish(readiness, servePublishMode(options))

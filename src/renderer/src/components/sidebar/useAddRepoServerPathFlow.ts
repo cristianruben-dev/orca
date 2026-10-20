@@ -1,9 +1,7 @@
 import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from 'react'
-import { track } from '@/lib/telemetry'
 import { markOnboardingProjectAdded } from '@/lib/onboarding-project-checklist'
 import { isGitRepoKind } from '../../../../shared/repo-kind'
 import {
-  buildNestedRepoScanTelemetry,
   createNestedRepoTelemetryAttemptId,
   type NestedRepoTelemetryRuntimeKind
 } from '../../../../shared/nested-repo-telemetry'
@@ -134,15 +132,6 @@ export function useAddRepoServerPathFlow({
           }
           setNestedScanInProgress(false)
           setActiveNestedScanId(null)
-          track(
-            'add_repo_nested_scan_result',
-            buildNestedRepoScanTelemetry({
-              attemptId,
-              surface: 'sidebar',
-              runtimeKind,
-              scan
-            })
-          )
           if (scan?.selectedPathKind === 'non_git_folder' && scan.repos.length > 0) {
             showNestedRepoReview({
               scan,

@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { isLayoutOracleSource } from './pr-layout-oracle-route.mjs'
-import { LINUX_PACKAGE_TESTS, WINDOWS_PACKAGE_TESTS } from './pr-package-test-paths.mjs'
+import { LINUX_PACKAGE_TESTS } from './pr-package-test-paths.mjs'
 
 const DOCS_ONLY_FILES = new Set([
   'README.md',
@@ -32,7 +32,6 @@ export const PR_CHECK_JOBS = [
   'cross-version-wire',
   'managed_hook_node18',
   'package',
-  'package_windows',
   'layout_oracle',
   'dependency_isolation'
 ]
@@ -379,20 +378,6 @@ const LINUX_PACKAGE_PREFIXES = [
   'config/scripts/run-headless-serve'
 ]
 
-const WINDOWS_PACKAGE_PREFIXES = [
-  ...SHARED_PACKAGE_PREFIXES,
-  'native/windows-cli-launcher/',
-  'native/windows-agent-hook/',
-  'native/computer-use-windows/',
-  'resources/win32/',
-  'config/scripts/build-windows-cli-launcher',
-  'config/scripts/build-windows-agent-hook',
-  'config/scripts/windows-rust-executable-build',
-  'config/scripts/verify-packaged-windows-agent-hook',
-  'config/scripts/windows-pty-native-capability',
-  'tests/tools/windows-pty-native-capability-smoke/'
-]
-
 const DESKTOP_IRRELEVANT_PREFIXES = [
   'mobile/',
   'cloud/',
@@ -525,9 +510,7 @@ export function classifyPrJobs(
       shouldRun &&
         (forceAll ||
           ALWAYS_ON_CODE_JOBS.has(job) ||
-          jobDetector(job)(
-            ['package', 'package_windows'].includes(job) ? bundleFiles : changedFiles
-          ))
+          jobDetector(job)(job === 'package' ? bundleFiles : changedFiles))
     ])
   )
   // Why outside should_run: a mobile-only diff is desktop-irrelevant and skips every job above,
@@ -585,8 +568,6 @@ function jobDetector(job) {
       return (files) => files.some((file) => matchesPrefix(file, MANAGED_HOOK_PREFIXES))
     case 'package':
       return (files) => files.some(isLinuxPackagePath)
-    case 'package_windows':
-      return (files) => files.some(isWindowsPackagePath)
     case 'layout_oracle':
       return (files) => files.some(isLayoutOracleSource)
     case 'dependency_isolation':
@@ -598,10 +579,6 @@ function jobDetector(job) {
 
 function isLinuxPackagePath(file) {
   return LINUX_PACKAGE_TESTS.includes(file) || isProductBundlePath(file, LINUX_PACKAGE_PREFIXES)
-}
-
-function isWindowsPackagePath(file) {
-  return WINDOWS_PACKAGE_TESTS.includes(file) || isProductBundlePath(file, WINDOWS_PACKAGE_PREFIXES)
 }
 
 function isProductBundlePath(file, extraPrefixes) {

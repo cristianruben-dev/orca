@@ -262,7 +262,6 @@ function AgentCapabilitySetupControls(props: {
         <FeatureSetupInlineTerminal
           command={props.featureSetupCommand}
           runtimeContext={props.featureSetupRuntime ?? undefined}
-          selection={props.featureSetupCommandSelection ?? props.featureSetup}
         />
       ) : null}
     </>

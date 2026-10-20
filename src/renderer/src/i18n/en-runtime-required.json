@@ -27,6 +27,15 @@
       "CodexRestartChip": {
         "9263e75f49": "Codex is using the previous account"
       },
+      "FirstLaunchBanner": {
+        "94cc673726": "Got it",
+        "958d2cc31b": "Anonymous counts of which features you use help us prioritize what to build. No file contents, prompts, terminal output, or anything that identifies you. Change anytime in Settings -> Privacy & Telemetry.",
+        "9784b4d7bc": "Help us decide what to build next",
+        "b9e1b966c7": "Dismiss notice",
+        "d1deebb050": "Privacy policy",
+        "fc5cc29955": "Opt out",
+        "fcbee32f08": "Telemetry notice"
+      },
       "GitHubItemDialog": {
         "04539beb48": "issue",
         "307c98e8e3": "Show {{value0}} more lines above",
@@ -1404,8 +1413,45 @@
           "fullCoverage_one": "All 1 detected agent has the skill.",
           "fullCoverage_other": "All {{value0}} detected agents have the skill."
         },
+        "PrivacyDiagnosticBundleControls": {
+          "19ec5e29b3": "Collects recent app activity and errors into a redacted file you can review before sending. Nothing is uploaded until you choose to send it.",
+          "2801d4ce22": "Copy reference ID",
+          "2ae9a6b63e": "Done",
+          "61676df223": "Diagnostics sent. Share this reference ID with support: {{value0}}.",
+          "62340d4439": "Your review file is ready ({{value0}}). Open it to see what would be sent, then choose whether to send it to support.",
+          "798b6f0be5": "Open review file",
+          "7f14a1733c": "Delete sent file",
+          "a5acaffdb6": "Discard",
+          "aca2c8a367": "Send to support",
+          "d8be621237": "Open the review file first.",
+          "dc8404a930": "Create diagnostic file",
+          "fd7b3891af": "You opened the review file ({{value0}}). Send that file to support, or discard it."
+        },
+        "PrivacyDiagnosticsRows": {
+          "5a7cbe069a": "DO_NOT_TRACK=1 is set — creating and sending diagnostic files is disabled.",
+          "5ebb31e1fb": "Running in CI — diagnostics are off.",
+          "63d03261d1": "ORCA_TELEMETRY_DISABLED=1 is set — creating and sending diagnostic files is disabled.",
+          "d37e92a06b": "ORCA_DIAGNOSTICS_DISABLED=1 is set — app diagnostics are off.",
+          "e27c8d45bf": "Diagnostics are disabled by an environment variable."
+        },
+        "PrivacyDiagnosticsSection": {
+          "13eb2c65a1": "Reference ID copied",
+          "49fc6c80e8": "Diagnostics sent",
+          "7a4944595b": "Could not copy reference ID",
+          "860bca9ec9": "Review file discarded",
+          "a2b3505c77": "Review file created",
+          "af2fc82cde": "Send app diagnostics to support",
+          "c18cbe45df": "Sent diagnostics deleted",
+          "db3228e01a": "Review file opened"
+        },
         "PrivacyPane": {
-          "afec8b03be": "ci"
+          "36e0e2e63b": "environment variable. Unset it and restart to re-enable.",
+          "77410e0566": "Privacy policy",
+          "79a0f3c16c": "Telemetry is disabled by the",
+          "8bfdd23a88": "Help us figure out what to build next. Orca sends anonymous counts of which features you use and where things break.",
+          "afec8b03be": "ci",
+          "e3970bbbf5": "Telemetry is disabled because a CI environment variable is set. Unset it and restart.",
+          "fe904ac984": "Share anonymous usage data"
         },
         "ProjectWindowsRuntimeSetting": {
           "activeTaskPlural": "{{count}} active tasks",
@@ -1580,6 +1626,8 @@
           "8bd117d669": "Interface",
           "9abb9be3bc": "Set Up",
           "b5ee17826b": "Pair remote Orca runtimes for persistent sessions, richer remote state, and web or mobile handoff.",
+          "c1b43dc4e2": "Anonymous usage data and telemetry controls.",
+          "d7e3f62d70": "Privacy & Telemetry",
           "dd72ed437a": "Choose which task providers appear in the Tasks page and sidebar.",
           "e1578cd4bc": "Workflows",
           "mobile_group": "Mobile"
@@ -1904,7 +1952,6 @@
           "outcome": {
             "activeServer": "Not done: this server is the default host for new projects. Choose another one in Advanced before stopping it."
           },
-          "row": {},
           "title": "Orca on your SSH hosts"
         },
         "mobile": {
@@ -1912,6 +1959,38 @@
             "search": {
               "b730ff7049": "experimental"
             }
+          }
+        },
+        "privacy": {
+          "search": {
+            "3922051573": "data",
+            "058550f6bc": "do_not_track",
+            "10124159f1": "privacy",
+            "1686c07fee": "support",
+            "27a27b2f63": "opt out",
+            "2b5a5c312f": "posthog",
+            "4104f6f0f3": "analytics",
+            "4d4bb76bf4": "opt in",
+            "57b283461a": "Share Anonymous Usage Data",
+            "5854a5c752": "ci",
+            "5c508bad41": "Privacy & Telemetry",
+            "664f1a8984": "continuous integration",
+            "69637f4dc4": "orca_telemetry_disabled",
+            "6d258d2ed6": "Diagnostics",
+            "77d3180def": "telemetry",
+            "79c319948b": "usage",
+            "83a6cd79b3": "do not track",
+            "8b08f32366": "App diagnostics and support sharing controls.",
+            "94e04427f6": "env",
+            "aa3b794c17": "Anonymous product usage data, diagnostics, and telemetry controls.",
+            "b021b9cb81": "anonymous",
+            "b707cc3981": "Help improve Orca by sending anonymous feature-usage events.",
+            "c0494ff48a": "diagnostics",
+            "d8191ae5ca": "environment variable",
+            "e058a3c98d": "Telemetry environment variables",
+            "e8bc614a18": "disable",
+            "ead1deded2": "share",
+            "f7a2d9f137": "Environment variables that disable telemetry transmission."
           }
         },
         "providerAccountScope": {
@@ -1936,7 +2015,6 @@
             }
           }
         },
-        "serverList": {},
         "settingOwnership": {
           "clientDefaultProjectScopes": "Client default + project scopes",
           "terminalQuickCommands": "Commands are saved on this client, then scoped globally or to a project setup so they run from the selected terminal context."
@@ -2889,7 +2967,9 @@
         "f6300deb8b": "New Browser Tab"
       },
       "useSettingsNavigationMetadata": {
-        "5235c215ca": "Choose which task providers appear in the Tasks page and sidebar."
+        "3618579df6": "Privacy & Telemetry",
+        "5235c215ca": "Choose which task providers appear in the Tasks page and sidebar.",
+        "8400cfe1c1": "Anonymous usage data and telemetry controls."
       }
     },
     "lib": {
@@ -2959,6 +3039,15 @@
           "d1d78a7baa": "Git could not safely delete branch \"{{value0}}\"{{value1}}, so Orca kept it to avoid losing local commits.",
           "f4503ca505": "Open Settings > Git and try again.",
           "fa9299a66f": "Your new worktree is current, but local {{value0}} is {{value1}} {{value2}} behind. AI diffs may miss recent commits."
+        }
+      }
+    },
+    "web": {
+      "web": {
+        "preload": {
+          "api": {
+            "fb290366b2": "Unavailable on web."
+          }
         }
       }
     }
@@ -3262,8 +3351,8 @@
         "notDoneAnswer": "Your answer was not sent.",
         "notDoneCommand": "The command didn't run.",
         "notDoneGoal": "The goal wasn't changed.",
-        "notDoneQueuedEdit": "Your edit wasn't saved.",
         "notDoneOption": "The setting wasn't changed.",
+        "notDoneQueuedEdit": "Your edit wasn't saved.",
         "notDoneReadHistory": "This chat's history couldn't be loaded.",
         "notDoneSend": "Your message was not sent.",
         "notDoneStop": "The agent wasn't stopped.",

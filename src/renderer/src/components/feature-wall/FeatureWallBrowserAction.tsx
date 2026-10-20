@@ -163,11 +163,7 @@ function BrowserSkillInstallButton(): React.JSX.Element {
 
   if (command) {
     return (
-      <FeatureSetupInlineTerminal
-        command={command}
-        runtimeContext={runtimeContext ?? undefined}
-        selection={BROWSER_ONLY_FEATURE_SETUP}
-      />
+      <FeatureSetupInlineTerminal command={command} runtimeContext={runtimeContext ?? undefined} />
     )
   }
 

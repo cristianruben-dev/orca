@@ -23,7 +23,6 @@ import { settleTeardownWithinDeadline, settleWithinMs } from '../quit-teardown-d
 import { quitTeardownStartGate } from '../quit-teardown-start-gate'
 import { setUnreadDockBadgeCount } from '../dock/unread-badge'
 import { destroySystemTray } from '../tray/system-tray'
-import { shutdownTelemetry } from '../telemetry/client'
 import { shutdownObservability } from '../observability'
 import { isQuittingForUpdate } from '../updater'
 import { recordUpdaterLifecycle } from '../updater-lifecycle-diagnostics'
@@ -292,7 +291,6 @@ function installWillQuitHandler(): void {
           console.warn('[shutdown] Quit teardown deadline reached', { pendingTeardowns })
         }
       })
-      .then(() => shutdownTelemetry())
       .then(() => shutdownObservability())
       .catch(() => {
         /* swallow — telemetry must never prevent app.quit() */

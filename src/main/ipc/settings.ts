@@ -8,13 +8,11 @@ import { previewWarpThemeImport } from '../warp-themes'
 import { setMainUiLanguage } from '../i18n/main-i18n'
 import { rebuildAppMenu } from '../menu/register-app-menu'
 import { rebuildSystemTrayMenu } from '../tray/system-tray'
-import { track } from '../telemetry/client'
-import { SETTINGS_CHANGED_WHITELIST, type SettingsChangedKey } from '../../shared/telemetry-events'
+import { SETTINGS_CHANGED_WHITELIST } from '../../shared/telemetry-events'
 import type { AgentAwakeService } from '../agent-awake-service'
 import { sanitizeFloatingWorkspaceDirectorySetting } from './floating-workspace-directory'
 import { applyAgentStatusHooksEnabled } from '../agent-hooks/managed-agent-hook-controls'
 import { isAgentStatusHooksEnabledForAgent } from '../../shared/agent-status-hooks-setting'
-import { recordManagedHookInstallFailure } from '../agent-hooks/install-telemetry'
 import { applyElectronProxySettings } from '../network/proxy-settings'
 import { applyBrowserSessionProxies } from '../browser/browser-session-proxy'
 import { browserSessionRegistry } from '../browser/browser-session-registry'
@@ -243,7 +241,6 @@ export function registerSettingsHandlers(
         await applyAgentStatusHooksEnabled(result.agentStatusHooksEnabled, result, {
           userInitiated: true,
           shouldHydrateShellPath: app.isPackaged,
-          onInstallError: recordManagedHookInstallFailure,
           shouldContinue: (agent) => isAgentStatusHooksEnabledForAgent(store.getSettings(), agent)
         })
       } catch (error) {
@@ -293,10 +290,6 @@ export function registerSettingsHandlers(
         // No non-bool whitelist entries today; skip rather than guess.
         continue
       }
-      track('settings_changed', {
-        setting_key: key as SettingsChangedKey,
-        value_kind: 'bool'
-      })
     }
 
     return store.getSettings()

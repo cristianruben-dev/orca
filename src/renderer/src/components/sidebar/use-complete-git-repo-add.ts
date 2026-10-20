@@ -1,12 +1,5 @@
-import { useCallback, useRef } from 'react'
-import { useAppStore } from '@/store'
-import { track } from '@/lib/telemetry'
+import { useCallback } from 'react'
 import type { AddRepoExistingWorkspaceSource } from '../../../../shared/telemetry-events'
-import {
-  buildAddRepoExistingWorkspacesTelemetry,
-  shouldTrackAddRepoExistingWorkspacesDetected
-} from './add-repo-existing-workspaces-telemetry'
-import { compareWorktreeDisplayName } from '@/lib/worktree-display-name-order'
 import { finishProjectAddWithDefaultCheckout } from './project-added-default-checkout'
 import type { ExecutionHostId } from '../../../../shared/execution-host'
 
@@ -32,45 +25,18 @@ export function useCompleteGitRepoAdd({
   source: AddRepoExistingWorkspaceSource,
   executionHostId?: ExecutionHostId
 ) => Promise<void> {
-  const detectedTelemetryTrackedRef = useRef<Set<string>>(new Set())
-
   return useCallback(
     async (
       repoId: string,
       source: AddRepoExistingWorkspaceSource,
       executionHostId?: ExecutionHostId
     ): Promise<void> => {
-      const worktrees = (useAppStore.getState().worktreesByRepo[repoId] ?? []).filter(
-        (worktree) =>
-          executionHostId === undefined ||
-          worktree.hostId === executionHostId ||
-          (!worktree.hostId && executionHostId === 'local')
-      )
-      const sortedWorktrees = [...worktrees].sort((a, b) => {
-        if (a.lastActivityAt !== b.lastActivityAt) {
-          return b.lastActivityAt - a.lastActivityAt
-        }
-        return compareWorktreeDisplayName(a, b)
-      })
-      const existingWorkspaceTelemetry = buildAddRepoExistingWorkspacesTelemetry(
-        source,
-        sortedWorktrees
-      )
-      if (
-        existingWorkspaceTelemetry &&
-        shouldTrackAddRepoExistingWorkspacesDetected(existingWorkspaceTelemetry) &&
-        !detectedTelemetryTrackedRef.current.has(repoId)
-      ) {
-        detectedTelemetryTrackedRef.current.add(repoId)
-        track('add_repo_existing_workspaces_detected', existingWorkspaceTelemetry)
-      }
       if (finishProjectAdd) {
         await finishProjectAdd(repoId, source, executionHostId)
         return
       }
       await finishProjectAddWithDefaultCheckout({
         repoId,
-        source,
         executionHostId,
         closeModal,
         setHideDefaultBranchWorkspace

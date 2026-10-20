@@ -51,7 +51,6 @@ jobs:
       cross-version-wire: ${{ steps.readiness.outputs.reused != 'true' && steps.filter.outputs.cross-version-wire }}
       managed_hook_node18: ${{ steps.readiness.outputs.reused != 'true' && steps.filter.outputs.managed_hook_node18 }}
       package: ${{ steps.readiness.outputs.reused != 'true' && steps.filter.outputs.package }}
-      package_windows: ${{ steps.readiness.outputs.reused != 'true' && steps.filter.outputs.package_windows }}
       layout_oracle: ${{ steps.readiness.outputs.reused != 'true' && steps.filter.outputs.layout_oracle }}
       dependency_isolation: ${{ steps.readiness.outputs.reused != 'true' && steps.filter.outputs.dependency_isolation }}
       e2e_should_run: ${{ steps.e2e_filter.outputs.should_run }}
@@ -575,15 +574,7 @@ jobs:
           ORCA_BACKGROUND_LAUNCH: '1'
           ORCA_BALANCE_UNIT_SHARDS: '1'
         run: >-
-          node config/scripts/run-vitest.mjs run --config config/vitest.config.ts
-          --maxWorkers=4 --isolate --retry=0 --bail=0
-          config/scripts/mobile-release-check-scope.test.mjs
-          config/scripts/mobile-test-change-scope.test.mjs
-          config/scripts/pr-ready-check-reuse.test.mjs
-          config/scripts/ci-dependency-download-cache.test.mjs
-          config/scripts/win32-test-lane-registration.test.mjs
-          config/scripts/vitest-node-runtime-boundary.test.ts
-          config/scripts/vitest-sqlite-runtime-boundary.test.ts
+          node config/scripts/run-vitest.mjs run --config config/vitest.config.ts --maxWorkers=4 --isolate --retry=0 --bail=0 config/scripts/mobile-release-check-scope.test.mjs config/scripts/mobile-test-change-scope.test.mjs config/scripts/pr-ready-check-reuse.test.mjs config/scripts/ci-dependency-download-cache.test.mjs config/scripts/win32-test-lane-registration.test.mjs config/scripts/vitest-node-runtime-boundary.test.ts config/scripts/vitest-sqlite-runtime-boundary.test.ts
 
       # Report failure through the separate required check without blocking unrelated consumers.
       - name: Smoke process-host package on Node 18
@@ -601,10 +592,7 @@ jobs:
     name: Git compatibility
     needs: [code_paths, preflight]
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.git_compatibility == 'true' &&
-      needs.preflight.result == 'success'
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.git_compatibility == 'true' && needs.preflight.result == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -672,10 +660,7 @@ jobs:
     name: Codex index-heal contract
     needs: [code_paths, preflight]
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.codex_index_heal_contract == 'true' &&
-      needs.preflight.result == 'success'
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.codex_index_heal_contract == 'true' && needs.preflight.result == 'success'
     # Why ARM: @openai/codex ships @openai/codex-linux-arm64.
     runs-on: ubuntu-24.04-arm
     env:
@@ -771,10 +756,7 @@ jobs:
     name: xterm patch sync
     needs: [code_paths, preflight]
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.xterm_patch_sync == 'true' &&
-      needs.preflight.result == 'success'
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.xterm_patch_sync == 'true' && needs.preflight.result == 'success'
     # Why ARM: the patch check rebuilds 4 packages x 2 builds and byte-compares against the
     # checked-in bundles. Those were generated on Linux x64 and reproduce byte-for-byte on
     # darwin-arm64, so the output is neither host-arch nor host-OS dependent.
@@ -804,10 +786,7 @@ jobs:
     name: shell contracts
     needs: [code_paths, preflight]
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.shell_contracts == 'true' &&
-      needs.preflight.result == 'success'
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.shell_contracts == 'true' && needs.preflight.result == 'success'
     # Why ARM: fish 4.x is published for noble/arm64 and zsh is in the arm64 archive.
     runs-on: ubuntu-24.04-arm
     # Why: this job's cost is almost entirely package download, and a stalled mirror has
@@ -938,10 +917,7 @@ jobs:
     needs: [code_paths, preflight]
     # Cancellation and failed prerequisites stop the expensive matrix.
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.test == 'true' &&
-      needs.preflight.result == 'success'
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.test == 'true' && needs.preflight.result == 'success'
     uses: ./.github/workflows/unit-tests.yml
     with:
       node_versions: '["24"]'
@@ -1041,10 +1017,7 @@ jobs:
     name: cross-version wire compatibility
     needs: [code_paths, preflight]
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.cross-version-wire == 'true' &&
-      needs.preflight.result == 'success'
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.cross-version-wire == 'true' && needs.preflight.result == 'success'
     # Why ARM: source-only: tagged checkout plus in-process vitest, no docker or browser.
     runs-on: ubuntu-24.04-arm
 
@@ -1089,10 +1062,7 @@ jobs:
     name: managed hooks on Node 18
     needs: [code_paths, preflight]
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.managed_hook_node18 == 'true' &&
-      needs.preflight.result == 'success'
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.managed_hook_node18 == 'true' && needs.preflight.result == 'success'
     # Retain the required check while sharing preflight's checkout and built packages.
     runs-on: ubuntu-slim
     timeout-minutes: 5
@@ -1171,20 +1141,7 @@ jobs:
         env:
           ORCA_BACKGROUND_LAUNCH: '1'
         run: >-
-          xvfb-run --auto-servernum pnpm exec vitest run --config config/vitest.config.ts
-          --no-file-parallelism
-          src/main/browser/browser-client-page-renderer-lifecycle.electron.test.ts
-          src/main/browser/browser-route-tcp-egress.electron.test.ts
-          src/main/browser/browser-route-webrtc-egress.electron.test.ts
-          src/main/browser/browser-route-h3-egress.electron.test.ts
-          src/main/browser/browser-route-dns-prefetch.electron.test.ts
-          src/main/persistence/profile-state/profile-state-writer-stall.electron.test.ts
-          src/main/browser/popup-origin-chrome.electron.test.ts
-          src/main/browser/browser-link-materialization.electron.test.ts
-          src/main/browser/browser-popup-compatibility.electron.test.ts
-          src/main/browser/browser-popup-adapter-compatibility.electron.test.ts
-          src/main/browser/browser-popup-native-compatibility.electron.test.ts
-          src/main/browser/browser-popup-background-compatibility.electron.test.ts
+          xvfb-run --auto-servernum pnpm exec vitest run --config config/vitest.config.ts --no-file-parallelism src/main/browser/browser-client-page-renderer-lifecycle.electron.test.ts src/main/browser/browser-route-tcp-egress.electron.test.ts src/main/browser/browser-route-webrtc-egress.electron.test.ts src/main/browser/browser-route-h3-egress.electron.test.ts src/main/browser/browser-route-dns-prefetch.electron.test.ts src/main/persistence/profile-state/profile-state-writer-stall.electron.test.ts src/main/browser/popup-origin-chrome.electron.test.ts src/main/browser/browser-link-materialization.electron.test.ts src/main/browser/browser-popup-compatibility.electron.test.ts src/main/browser/browser-popup-adapter-compatibility.electron.test.ts src/main/browser/browser-popup-native-compatibility.electron.test.ts src/main/browser/browser-popup-background-compatibility.electron.test.ts
 
       - name: Restore native components
         id: linux-native-restore
@@ -1323,8 +1280,7 @@ jobs:
         env:
           ORCA_SHUTDOWN_FIXTURE_CACHE_IMAGE: ${{ steps.shutdown-fixture-cache.outputs.image }}
         run: >-
-          node config/scripts/run-headless-serve-shutdown-docker.mjs
-          --appimage dist/orca-linux.AppImage --all-entrypoints
+          node config/scripts/run-headless-serve-shutdown-docker.mjs --appimage dist/orca-linux.AppImage --all-entrypoints
 
       # A default container reproduces the hostile AppImage launch environment.
       - wait: cli-fixture-cache
@@ -1340,207 +1296,11 @@ jobs:
       - name: Smoke packaged hang watchdog worker
         run: xvfb-run --auto-servernum node config/scripts/smoke-packaged-hang-watchdog-worker.mjs --app-dir=dist/linux-unpacked
 
-  package_windows:
-    name: package (windows)
-    needs: [code_paths, preflight]
-    if: needs.code_paths.outputs.package_windows == 'true'
-    runs-on: windows-2022
-    timeout-minutes: 30
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - name: Cache electron-builder downloads
-        uses: actions/cache/restore@v5
-        with:
-          path: |
-            ~\AppData\Local\electron\Cache
-            ~\AppData\Local\electron-builder\Cache
-          # Release builds seed this exact path set; PR-local copies cannot serve other PRs.
-          key: electron-builder-win-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            electron-builder-win-
-
-      # Why persist-native-cache false: this job later rebuilds the same path for
-      # Electron. A post-job save would store the Electron ABI under the Node key.
-      - uses: ./.github/actions/install-node-dependencies
-        id: deps
-        with:
-          native-runtime: node
-          persist-native-cache: 'false'
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            mobile/pnpm-lock.yaml
-
-      # Why here: electron-builder's beforePack requires out/mobile-web, and the bundle
-      # build resolves React Native and Expo from mobile/node_modules.
-      - uses: ./.github/actions/install-mobile-dependencies
-
-      - name: Save compiled Node native modules
-        if: steps.deps.outputs.native-cache-hit != 'true'
-        uses: actions/cache/save@v5
-        with:
-          path: ${{ steps.deps.outputs.native-cache-path }}
-          key: ${{ steps.deps.outputs.native-cache-key }}
-
-      # vitest runs here directly rather than through `pnpm test`, so the addon
-      # assertions only hold once install-node-dependencies has rebuilt natives.
-      - name: Test Windows installer process probe
-        # Serialize the two suites so their cold PowerShell/CIM starts cannot contend.
-        run: >-
-          pnpm exec vitest run --config config/vitest.config.ts
-          --no-file-parallelism
-          config/scripts/nsis-process-check.test.mjs
-          config/scripts/idle-cpu-process-sampling.test.mjs
-
-      - name: Cache Windows CLI launcher
-        uses: actions/cache@v5
-        with:
-          # Why the cargo directories ride along: a hit on .build skips the build
-          # entirely, but a miss otherwise recompiles the resource crate from a
-          # cold registry.
-          path: |
-            native/windows-cli-launcher/.build
-            native/windows-cli-launcher/target
-            native/windows-agent-hook/.build
-            native/windows-agent-hook/target
-            ~/.cargo/registry
-          key: windows-cli-launcher-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/windows-cli-launcher/**', 'native/windows-agent-hook/**', 'config/scripts/build-windows-cli-launcher.mjs', 'config/scripts/build-windows-agent-hook.mjs', 'config/scripts/windows-rust-executable-build.mjs', 'resources/build/icon.ico', 'package.json') }}
-
-      # Why an explicit step rather than trusting the runner image: the packaged
-      # CLI launcher is a native Rust binary, and a host without cargo fails deep
-      # inside electron-builder's native hook instead of here.
-      - name: Ensure the Rust toolchain for the Windows CLI launcher
-        shell: pwsh
-        run: |
-          if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
-            rustup toolchain install stable --profile minimal
-            rustup default stable
-          }
-          cargo --version
-
-      # Why before the tests: the orca-agent-hook.exe suites then share one prebuilt binary rather
-      # than each starting its own build mid-run.
-      - name: Build the Windows agent hook
-        run: node config/scripts/build-windows-agent-hook.mjs
-
-      - name: Build the Windows CLI launcher
-        run: node config/scripts/build-windows-cli-launcher.mjs
-
-      - name: Test Windows-specific boundaries
-        run: >-
-          pnpm exec vitest run --config config/vitest.config.ts
-          src/main/zcode/zcode-plan-api-key-store-native-windows.test.ts
-          config/scripts/rebuild-native-deps.test.mjs
-          config/scripts/rebuild-native-deps-windows-process-tree.test.mjs
-          config/scripts/rebuild-native-deps-node-pty.test.mjs
-          config/scripts/ensure-native-runtime-job-ownership.test.mjs
-          config/scripts/verify-packaged-node-pty-job-ownership.test.mjs
-          config/scripts/windows-pe-machine.test.mjs
-          config/scripts/build-windows-cli-launcher.test.mjs
-          config/scripts/verify-packaged-windows-agent-hook.test.mjs
-          config/scripts/script-module-dependencies.test.mjs
-          src/main/windows-registry-addon.test.ts
-          src/shared/windows-security-addon.win32.test.ts
-          config/scripts/windows-process-tree-gyp-path.test.mjs
-          config/scripts/windows-process-tree-gyp-rebuild.test.mjs
-          config/scripts/package-electron-runtime-contract.test.mjs
-          config/scripts/electron-builder-runtime-resources.test.mjs
-          src/main/browser/browser-client-page-renderer-lifecycle.electron.test.ts
-          src/main/browser/browser-route-tcp-egress.electron.test.ts
-          src/main/browser/browser-route-webrtc-egress.electron.test.ts
-          src/main/browser/browser-route-h3-egress.electron.test.ts
-          src/main/browser/browser-route-dns-prefetch.electron.test.ts
-          src/main/persistence/profile-state/profile-state-writer-stall.electron.test.ts
-          src/main/providers/windows-conpty-wide-char-duplication.node-pty.test.ts
-          src/main/providers/pty-repaint-wide-char-buffer.node-pty.test.ts
-          src/shared/__tests__/process-host/windows-command-line.win32.test.ts
-          src/shared/__tests__/process-host/windows-cmd-shim-resolution.test.ts
-          src/shared/__tests__/process-host/windows-cmd-shim-resolution.win32.test.ts
-          src/shared/omp-fresh-launch-cmd.win32.test.ts
-          src/main/agent-hooks/windows-hook-payload-delivery.test.ts
-          src/main/agent-hooks/managed-hook-stdin-lifecycle.test.ts
-          src/main/jcode/hook-gate-script.test.ts
-          src/main/agent-hooks/windows-direct-cmd-hook-command.test.ts
-          src/main/agent-hooks/windows-native-hook-exe-hosts.test.ts
-          src/main/claude/windows-native-hook-registration.test.ts
-          src/main/agent-hooks/windows-cmd-hook-command-unicode.test.ts
-          src/main/agent-hooks/windows-batch-hook-launcher.test.ts
-          src/main/agent-hooks/windows-powershell-hook-launcher.test.ts
-          src/main/claude/claude-status-line-windows.test.ts
-          src/main/codex/windows-hook-command.test.ts
-          src/main/codex/windows-hook-upgrade.test.ts
-          src/main/codex/hook-service-managed-install.test.ts
-          src/main/windows/windows-pty-job.win32.test.ts
-          src/main/windows/windows-msys-job.win32.test.ts
-          src/main/providers/agent-foreground-process-git-bash.win32.test.ts
-          src/main/windows/windows-host-job.win32.test.ts
-          src/main/windows/windows-process-tree-command-line-patch.test.ts
-          src/main/windows/windows-process-table-native-addon.win32.test.ts
-          src/main/windows/windows-administrator-status.win32.test.ts
-          src/main/windows/windows-administrator-restart.win32.test.ts
-          src/main/daemon/daemon-pid-identity-native.win32.test.ts
-          src/main/persistence/profile-state/profile-state-access-windows-native.win32.test.ts
-          src/main/windows-live-tree-kill.win32.test.ts
-          src/main/wsl/wsl-runner.test.ts
-          src/main/wsl/wsl-guest-environment.test.ts
-          src/main/wsl/wsl-executable-path.win32.test.ts
-          src/main/claude-accounts/claude-profile-history-windows.test.ts
-          src/main/wsl/wsl-w1-w3-contract.test.ts
-          src/shared/source-scan/source-tree-scan.test.ts
-          src/main/cli/wsl-cli-powershell-boundary.test.ts
-          src/main/computer/desktop-script-runtime-host.win32.test.ts
-          src/main/cursor/hook-service.test.ts
-          src/main/orca-profiles/profile-index-store.test.ts
-          src/main/startup/windows-install-dir-acl-repair.win32.test.ts
-          src/main/startup/windows-app-data-path.test.ts
-          src/main/runtime/repo-worktree-admin-fingerprint.test.ts
-          src/main/runtime/worktree-scan-admin-fingerprint-gate.test.ts
-          src/shared/secure-file-fsync-flags.test.ts
-          src/shared/secure-path-windows-acl.win32.test.ts
-          src/main/runtime/unreadable-secret-store-preservation.win32.test.ts
-          src/main/ipc/pty-codex-account-attribution.test.ts
-          src/main/ipc/pty-spawn-env-codex-resume-provenance.test.ts
-          src/main/ipc/preflight-provider-command-selection.test.ts
-          src/main/ipc/preflight-runnable-local-cli.test.ts
-          src/main/managed-server/install/remote-node-runtime-store-windows.test.ts
-
-      # Why the :parallel variant: identical to build:release except the three
-      # electron-vite targets overlap instead of running back to back. The Linux package
-      # job already packages and smoke-tests an AppImage built that way.
-      - name: Build package inputs
-        env:
-          ORCA_CI_MAIN_SOURCEMAPS: '0'
-        run: pnpm run build:release:parallel
-
-      - name: Prepare Electron native runtime
-        uses: ./.github/actions/prepare-native-runtime
-        with:
-          native-runtime: electron
-          node-version: ${{ steps.deps.outputs.node-version }}
-
-      - name: Package unpacked app
-        env:
-          ORCA_REUSE_PREPARED_NATIVE_RUNTIME: '1'
-        run: pnpm exec electron-builder --config config/electron-builder.config.cjs --dir
-
-      - name: Smoke packaged Windows PTY native capability
-        run: pnpm run smoke:windows-pty-native-capability -- --exe=dist/win-unpacked/Orca.exe
-
-      - name: Smoke packaged CLI
-        run: node config/scripts/smoke-packaged-cli.mjs --app-dir=dist/win-unpacked
-
   e2e:
     name: e2e
     needs: [code_paths, preflight]
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.e2e_should_run == 'true' &&
-      (
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.e2e_should_run == 'true' && (
         needs.preflight.result == 'success' ||
         (
           needs.preflight.result == 'skipped' &&
@@ -1569,10 +1329,7 @@ jobs:
     name: layout oracle
     needs: [code_paths, preflight]
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.layout_oracle == 'true' &&
-      needs.preflight.result == 'success'
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.layout_oracle == 'true' && needs.preflight.result == 'success'
     permissions:
       contents: read
     uses: ./.github/workflows/e2e.yml
@@ -1599,16 +1356,6 @@ jobs:
       contents: read
     uses: ./.github/workflows/terminal-ime-e2e.yml
 
-  windows_wsl:
-    name: real WSL terminal
-    needs: code_paths
-    if: needs.code_paths.outputs.wsl_source_changed == 'true'
-    permissions:
-      contents: read
-    uses: ./.github/workflows/windows-wsl-e2e.yml
-    with:
-      ref: ${{ github.event.pull_request.head.sha }}
-
   # Why: pnpm's global virtual store links each package to only its declared dependencies, which
   # is how developers install. Hoisting hides an undeclared one everywhere else, so install that way
   # here with HOME and the store in an empty temp dir, where no stray node_modules can mask it.
@@ -1616,9 +1363,7 @@ jobs:
     name: dependency isolation under the global virtual store
     needs: [code_paths]
     if: >-
-      !cancelled() &&
-      needs.code_paths.result == 'success' &&
-      needs.code_paths.outputs.dependency_isolation == 'true'
+      !cancelled() && needs.code_paths.result == 'success' && needs.code_paths.outputs.dependency_isolation == 'true'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     env:
@@ -1685,7 +1430,6 @@ jobs:
       - cross-version-wire
       - managed_hook_node18
       - package
-      - package_windows
       - layout_oracle
       - dependency_isolation
     # Report settled results without competing with the GitHub-hosted test queue.
@@ -1727,8 +1471,6 @@ jobs:
           MANAGED_HOOK_NODE18_SHOULD_RUN: ${{ needs.code_paths.outputs.managed_hook_node18 }}
           PACKAGE: ${{ needs.package.result }}
           PACKAGE_SHOULD_RUN: ${{ needs.code_paths.outputs.package }}
-          PACKAGE_WINDOWS: ${{ needs.package_windows.result }}
-          PACKAGE_WINDOWS_SHOULD_RUN: ${{ needs.code_paths.outputs.package_windows }}
           LAYOUT_ORACLE: ${{ needs.layout_oracle.result }}
           LAYOUT_ORACLE_SHOULD_RUN: ${{ needs.code_paths.outputs.layout_oracle }}
           DEPENDENCY_ISOLATION: ${{ needs.dependency_isolation.result }}
@@ -1773,7 +1515,6 @@ jobs:
           check_job cross-version-wire "$CROSS_VERSION_WIRE" "$CROSS_VERSION_WIRE_SHOULD_RUN"
           check_job managed_hook_node18 "$MANAGED_HOOK_NODE18" "$MANAGED_HOOK_NODE18_SHOULD_RUN"
           check_job package "$PACKAGE" "$PACKAGE_SHOULD_RUN"
-          check_job package_windows "$PACKAGE_WINDOWS" "$PACKAGE_WINDOWS_SHOULD_RUN"
           check_job layout_oracle "$LAYOUT_ORACLE" "$LAYOUT_ORACLE_SHOULD_RUN"
           check_job dependency_isolation "$DEPENDENCY_ISOLATION" "$DEPENDENCY_ISOLATION_SHOULD_RUN"
           exit "$failed"

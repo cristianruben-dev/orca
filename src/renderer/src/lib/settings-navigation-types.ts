@@ -29,7 +29,6 @@ const SETTINGS_NAV_TARGETS = [
   'notifications',
   'computer-use',
   'developer-permissions',
-  'privacy',
   'advanced',
   'dev',
   'voice',

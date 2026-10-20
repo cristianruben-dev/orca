@@ -11,7 +11,6 @@ import { translate } from '@/i18n/i18n'
 import type { OpenFile } from '@/store/slices/editor'
 import { ExternalFileChangeCompareDialog } from './ExternalFileChangeCompareDialog'
 import { getDiskBaselineSignature } from './diff-content-signature'
-import { trackExternalChangeConflictAction } from './editor-external-change-telemetry'
 import { attemptEditorFileSave } from './editor-file-save-attempt'
 import {
   editorModelSiblingTabs,
@@ -96,7 +95,6 @@ export function reloadTabContentFromDisk(
             // conflict (and its autosave suspension) must come back with it.
             current.setExternalMutation(tab.id, 'changed')
           }
-          trackExternalChangeConflictAction(file, 'undo_reload')
         }
       }
     }
@@ -190,18 +188,15 @@ export function ExternalFileChangeBanner({
       : file.isDirty
 
   const handleReload = (): void => {
-    trackExternalChangeConflictAction(file, 'reload')
     reloadTabContentFromDisk(file, reloadContent)
   }
   const handleKeepEdits = (): void => {
-    trackExternalChangeConflictAction(file, 'keep')
     keepTabEditsOverExternalChange(file)
   }
   const handleOverwrite = (): void => {
     void overwriteDiskWithTabEdits(file)
   }
   const handleCompare = (): void => {
-    trackExternalChangeConflictAction(file, 'compare')
     setCompareOpen(true)
   }
 

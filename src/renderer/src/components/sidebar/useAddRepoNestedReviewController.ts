@@ -45,10 +45,7 @@ export function useAddRepoNestedReviewController({
 }): ReturnType<typeof useAddRepoNestedReviewState> &
   Pick<
     ReturnType<typeof useAddRepoNestedImportFlow>,
-    | 'handleImportNestedRepos'
-    | 'handleOpenNestedRootFolder'
-    | 'resetNestedImportFlow'
-    | 'trackNestedBackAction'
+    'handleImportNestedRepos' | 'handleOpenNestedRootFolder' | 'resetNestedImportFlow'
   > {
   const review = useAddRepoNestedReviewState({
     activeRuntimeEnvironmentId: reviewRuntimeEnvironmentId,

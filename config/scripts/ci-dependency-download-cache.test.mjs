@@ -282,9 +282,6 @@ describe('CI dependency download caches', () => {
     const persistence = workflow('node-server-tests').jobs.persistence.steps.find(
       (step) => step.uses === installer
     )
-    const ssh = workflow('ssh-windows-hosts').jobs.hosts.steps.find(
-      (step) => step.uses === installer
-    )
     const platformJobs = read(
       workflow('ci-cache-warmup-platforms').jobs['warm-platforms'].uses
     ).jobs
@@ -293,7 +290,6 @@ describe('CI dependency download caches', () => {
     expect(persistence.with['cache-pnpm-store']).toBe(
       "${{ !inputs.build_template && runner.os != 'Windows' }}"
     )
-    expect(ssh.with['cache-pnpm-store']).toBe('false')
     expect(warmer.with['cache-pnpm-store']).toBe('false')
     expect(warmer.with['native-runtime']).toBe('node')
     expect(persistence.with['cache-pnpm-store-lookup-only']).toBe('true')
@@ -450,7 +446,7 @@ describe('CI dependency download caches', () => {
     )
     expect(save.uses).toBe('actions/cache@v5')
     expect(save.with.path).toBe('${{ matrix.eb_cache_path }}')
-    for (const name of ['dev-channel-win-build', 'windows-signing-rehearsal']) {
+    for (const name of []) {
       const writer = Object.values(workflow(name).jobs)
         .flatMap((job) => job.steps ?? [])
         .find((step) => step.name === 'Cache electron-builder downloads')
@@ -535,17 +531,14 @@ describe('release install targets', () => {
     }
   })
 
-  it.each(['release-cut', 'dev-channel-win-build', 'windows-signing-rehearsal'])(
-    '%s keeps installs scoped to the runner host',
-    (name) => {
-      const installs = installCommands(name)
-      expect(installs.length).toBeGreaterThan(0)
-      for (const command of installs) {
-        expect(command).not.toContain('--os=')
-        expect(command).not.toContain('--cpu=')
-      }
+  it.each(['release-cut'])('%s keeps installs scoped to the runner host', (name) => {
+    const installs = installCommands(name)
+    expect(installs.length).toBeGreaterThan(0)
+    for (const command of installs) {
+      expect(command).not.toContain('--os=')
+      expect(command).not.toContain('--cpu=')
     }
-  )
+  })
 
   it('offers the mac CPU targets for local packaging without touching the lockfile', () => {
     const script = JSON.parse(readFileSync('package.json', 'utf8')).scripts['install:release']

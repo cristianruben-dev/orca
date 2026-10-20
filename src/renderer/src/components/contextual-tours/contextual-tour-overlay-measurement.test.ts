@@ -27,8 +27,7 @@ describe('contextual tour overlay measurement', () => {
       tour: getContextualTour('automations'),
       activeStepIndex: 0,
       sidebarOpen: true,
-      keybindings: undefined,
-      previousTelemetryTotalSteps: 0
+      keybindings: undefined
     })
 
     expect(result.kind).toBe('render')
@@ -52,8 +51,7 @@ describe('contextual tour overlay measurement', () => {
       tour: getContextualTour('automations'),
       activeStepIndex: 1,
       sidebarOpen: true,
-      keybindings: undefined,
-      previousTelemetryTotalSteps: 0
+      keybindings: undefined
     })
 
     expect(result.kind).toBe('render')
@@ -88,8 +86,7 @@ describe('contextual tour overlay measurement', () => {
       },
       activeStepIndex: 1,
       sidebarOpen: true,
-      keybindings: undefined,
-      previousTelemetryTotalSteps: 0
+      keybindings: undefined
     })
 
     expect(result.kind).toBe('render')

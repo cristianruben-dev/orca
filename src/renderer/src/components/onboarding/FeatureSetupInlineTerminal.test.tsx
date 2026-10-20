@@ -46,13 +46,6 @@ vi.mock('./OnboardingInlineCommandTerminal', () => ({
   }
 }))
 
-const SELECTION = {
-  browserUse: false,
-  computerUse: false,
-  orchestration: true,
-  linearTickets: false
-}
-
 describe('FeatureSetupInlineTerminal', () => {
   beforeEach(() => {
     mocks.runtime.installDisabledReason = null
@@ -62,9 +55,7 @@ describe('FeatureSetupInlineTerminal', () => {
   })
 
   it('runs the command through the resolved WSL runtime', () => {
-    render(
-      <FeatureSetupInlineTerminal command="npx skills add orchestration" selection={SELECTION} />
-    )
+    render(<FeatureSetupInlineTerminal command="npx skills add orchestration" />)
 
     expect(mocks.buildCommand).toHaveBeenCalledWith('npx skills add orchestration', {
       runtime: 'wsl',
@@ -84,9 +75,7 @@ describe('FeatureSetupInlineTerminal', () => {
   it('uses the host command builder when the WSL runtime needs repair', () => {
     mocks.runtime.installDisabledReason = 'The selected WSL distro is unavailable.'
 
-    render(
-      <FeatureSetupInlineTerminal command="npx skills add orchestration" selection={SELECTION} />
-    )
+    render(<FeatureSetupInlineTerminal command="npx skills add orchestration" />)
 
     expect(mocks.buildCommand).toHaveBeenCalledWith('npx skills add orchestration', undefined)
     expect(mocks.terminalProps).toMatchObject({
@@ -108,7 +97,6 @@ describe('FeatureSetupInlineTerminal', () => {
           installDisabledReason: null,
           terminalShellOverride: 'cmd.exe'
         }}
-        selection={SELECTION}
       />
     )
 

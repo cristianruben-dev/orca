@@ -14,7 +14,6 @@ type StarNagAgentValueMomentDeps = {
   isPromptVisible: () => boolean
   isCooldownActive: (deferredUntil: number | null | undefined) => boolean
   markCompleted: () => void
-  trackAlreadyStarredSuppressed: () => void
   broadcastShow: (mode: StarNagPromptMode) => boolean
 }
 
@@ -51,7 +50,6 @@ export class StarNagAgentValueMoment {
         return { status: 'ready', mode: 'web' }
       }
       if (starred) {
-        this.deps.trackAlreadyStarredSuppressed()
         this.deps.markCompleted()
         this.consumeMoment()
         return { status: 'skipped' }

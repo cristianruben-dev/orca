@@ -67,7 +67,6 @@ import {
   structuredAgentSessionDraftScopeKey
 } from './native-chat-composer-draft-store'
 import { reportStructuredSessionUserInput } from '@/lib/worker-terminal-takeover-report'
-import { emitNativeChatMessageSent } from '@/lib/native-chat-telemetry'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { agentSessionFailureWords } from '../../../../shared/agent-session-failure-words'
 import { agentJournalItemKey } from '../../../../shared/agent-session-journal-item-key'
@@ -442,7 +441,6 @@ it('keeps the draft through Continue admission, refusal, uncertainty and recorde
   ])
   expect(reveal).toHaveBeenCalledOnce()
   expect(reportStructuredSessionUserInput).toHaveBeenCalledWith('session-1', 'studio-mac')
-  expect(emitNativeChatMessageSent).toHaveBeenCalledWith({ agent: 'codex', runtime: 'remote' })
   await act(async () =>
     answer.resolve({
       ok: false,

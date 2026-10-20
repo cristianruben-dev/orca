@@ -8,8 +8,6 @@ import {
   classifyDaemonPtyCwd,
   type DaemonPtyCwdClass
 } from '../../shared/daemon-adoption-telemetry'
-import type { EventProps } from '../../shared/telemetry-events'
-import { track } from '../telemetry/client'
 import {
   probeFolderAccessForFreshDaemon,
   type FreshDaemonFolderAccess
@@ -39,17 +37,6 @@ type StoredMismatch = DaemonFolderAccessMismatchNotice & {
 
 let stored: StoredMismatch | null = null
 let probeInFlight: Promise<void> | null = null
-
-function emit(
-  action: EventProps<'daemon_folder_access_notice'>['action'],
-  cwdClass: DaemonPtyCwdClass
-): void {
-  try {
-    track('daemon_folder_access_notice', { action, cwd_class: cwdClass })
-  } catch {
-    // Telemetry is best-effort; a dropped event must never withhold or delay the notice.
-  }
-}
 
 function daemonKeyOf(identity: DaemonEndpointIdentity): string {
   return `${identity.pid}:${identity.startedAtMs}:${identity.launchNonce}`
@@ -99,28 +86,6 @@ function startProbe(entry: StoredMismatch): Promise<void> {
   return run
 }
 
-/**
- * The restart's verdict: the first spawn by a *different* daemon into the folder class the stored
- * denial is about. An entry the same daemon already read back is gone, so it reports nothing.
- */
-function reportOutcomeIfReplacementDaemon(
-  daemonKey: string,
-  cwdClass: DaemonPtyCwdClass,
-  fixed: boolean
-): void {
-  const prior = stored
-  if (
-    !prior ||
-    prior.outcomeReported ||
-    prior.daemonKey === daemonKey ||
-    prior.cwdClass !== cwdClass
-  ) {
-    return
-  }
-  prior.outcomeReported = true
-  emit(fixed ? 'restart_outcome_fixed' : 'restart_outcome_still_denied', cwdClass)
-}
-
 export function recordDaemonFolderAccessMismatch(
   identity: DaemonEndpointIdentity | null,
   cwd: string
@@ -130,7 +95,6 @@ export function recordDaemonFolderAccessMismatch(
   }
   const daemonKey = daemonKeyOf(identity)
   const cwdClass = classifyDaemonPtyCwd(cwd, homedir())
-  reportOutcomeIfReplacementDaemon(daemonKey, cwdClass, false)
   // Why no probe here: this is the PTY spawn path, and the focus-time poll probes before it answers.
   stored = {
     daemonKey,
@@ -155,7 +119,6 @@ export function clearDaemonFolderAccessMismatch(
     return
   }
   const cwdClass = classifyDaemonPtyCwd(cwd, homedir())
-  reportOutcomeIfReplacementDaemon(daemonKeyOf(identity), cwdClass, true)
   if (entryFor(identity)?.cwdClass === cwdClass) {
     stored = null
   }

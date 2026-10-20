@@ -25,9 +25,6 @@ const {
 } = require('./packaged-runtime-node-modules.cjs')
 const { verifyLinuxGlibcFloor } = require('./scripts/verify-linux-glibc-floor.cjs')
 const {
-  verifyPackagedWindowsAgentHook
-} = require('./scripts/verify-packaged-windows-agent-hook.cjs')
-const {
   ensureBundledWaylandClipboard,
   finalizePackagedWaylandClipboard
 } = require('./wayland-clipboard-resources.cjs')
@@ -48,9 +45,6 @@ const {
   finalizePackagedRipgrep
 } = require('./bundled-ripgrep-resources.cjs')
 const {
-  verifyPackagedWindowsNodePty
-} = require('./scripts/verify-packaged-node-pty-job-ownership.cjs')
-const {
   assertOrcadTemplateBuilt,
   finalizePackagedOrcadTemplate,
   orcadTemplateExtraResource,
@@ -65,7 +59,6 @@ const {
   placeAppImageNodeRuntime,
   verifyAppImageNodeRuntimeServesPty
 } = require('./scripts/appimage-node-runtime.cjs')
-const { signWindowsUninstallerViaSignPath } = require('./scripts/windows-uninstaller-signing.cjs')
 const { buildMacShipItScheduling } = require('./scripts/macos-shipit-scheduling.cjs')
 
 // Why: dev-channel builds must carry the *release* identity — same bundle id,
@@ -74,22 +67,13 @@ const { buildMacShipItScheduling } = require('./scripts/macos-shipit-scheduling.
 const isMacHourly = process.env.ORCA_MAC_HOURLY === '1'
 const isMacDaily = process.env.ORCA_MAC_DAILY === '1'
 const isMacAdhoc = process.env.ORCA_MAC_ADHOC === '1'
-// Why a second set of variables rather than making the mac ones platform-neutral:
-// the mac ones gate `isMacRelease` below, which turns on hardened runtime,
-// notarization, and root-level `forceCodeSigning`. A Windows dev build that
-// reused them would fail packaging outright for want of a cert it is
-// deliberately not using.
-const isWinHourly = process.env.ORCA_WIN_HOURLY === '1'
-const isWinDaily = process.env.ORCA_WIN_DAILY === '1'
-const isWinAdhoc = process.env.ORCA_WIN_ADHOC === '1'
-const isWinDevChannel = isWinHourly || isWinDaily || isWinAdhoc
 const isMacRelease = process.env.ORCA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
 const isLinuxArm64Release = process.env.ORCA_LINUX_ARM64_RELEASE === '1'
 const localBuildVersion =
-  isMacRelease || isWinDevChannel ? undefined : process.env.ORCA_LOCAL_BUILD_VERSION
-const isHourlyChannel = isMacHourly || isWinHourly
-const isDailyChannel = isMacDaily || isWinDaily
-const isAdhocChannel = isMacAdhoc || isWinAdhoc
+  isMacRelease ? undefined : process.env.ORCA_LOCAL_BUILD_VERSION
+const isHourlyChannel = isMacHourly
+const isDailyChannel = isMacDaily
+const isAdhocChannel = isMacAdhoc
 const devChannelBuildVersion = isHourlyChannel
   ? process.env.ORCA_HOURLY_BUILD_VERSION
   : isDailyChannel
@@ -171,10 +155,6 @@ const linuxSpeechNativeResource = {
   from: 'node_modules/sherpa-onnx-linux-${arch}',
   to: 'node_modules/sherpa-onnx-linux-${arch}'
 }
-const winSpeechNativeResource = {
-  from: 'node_modules/sherpa-onnx-win-x64',
-  to: 'node_modules/sherpa-onnx-win-x64'
-}
 // electron-builder replaces these defaults when `depends` is configured; retain
 // Electron's loader requirements alongside Orca's headless-host dependencies.
 const debElectronRuntimeDependencies = [
@@ -207,14 +187,6 @@ const TABULAR_FILE_EXTENSIONS = ['csv', 'tsv']
 
 // Why: the config must load on a host-only install without resolving unused Windows addons.
 // This is load-time tolerance only; beforePack enforces that the target's natives are installed.
-// Why one package: @vscode/windows-process-tree is the only os: win32 npm addon;
-// the @orca/windows-* addons are workspace links present on every host, so their presence proves nothing.
-const windowsRuntimeResources = existsSync(
-  join(__dirname, '..', 'node_modules', '@vscode', 'windows-process-tree', 'package.json')
-)
-  ? createPackagedRuntimeNodeModuleResources('win32')
-  : []
-
 // Shared with the terminal host helper so its purpose strings cannot drift from the app's.
 const macUsageDescriptions = {
   NSAppleEventsUsageDescription:
@@ -485,10 +457,6 @@ module.exports = {
     const archEnumByNodeArch = { ia32: 0, x64: 1, armv7l: 2, arm64: 3 }
     const hostArchEnum = archEnumByNodeArch[process.arch]
     const canExecuteTargetArch = context.arch === hostArchEnum || context.arch === 4
-    if (context.electronPlatformName === 'win32') {
-      verifyPackagedWindowsNodePty(resourcesDir, context.arch, { canExecuteTargetArch })
-      verifyPackagedWindowsAgentHook(resourcesDir, context.arch)
-    }
     verifySkillsCliRuntime(join(resourcesDir, 'app.asar.unpacked', 'out'), resourcesDir, {
       executeCommands: canExecuteTargetArch
     })
@@ -546,75 +514,6 @@ module.exports = {
       )
       await packageMacTerminalHost(join(resourcesDir, '..', '..'), context)
     }
-  },
-  win: {
-    executableName: 'Orca',
-    // Why: Windows installers are signed after electron-builder packaging by
-    // SignPath, so the packager cannot infer the updater publisherName.
-    //
-    // Why dev channels drop it instead: they ship unsigned, because SignPath's
-    // approval waits are budgeted in hours and cannot fit an hourly cadence.
-    // electron-updater Authenticode-verifies every installer it downloads
-    // against the publisherName baked into the *installed* app's app-update.yml
-    // (NsisUpdater.verifySignature), and skips verification entirely when that
-    // name is absent. An unsigned build that still claimed 'SignPath Foundation'
-    // would therefore reject its own channel's next build — and its way back to
-    // stable with it. Dropping it is what makes dev→dev and dev→stable work.
-    // Why a sign hook on a build that does not sign: it is the only moment
-    // electron-builder exposes the NSIS uninstaller (built in its own makensis
-    // pass, embedded, then deleted). The hook signs nothing — it relays the file
-    // to and from the CI SignPath request, and is inert when the relay env vars
-    // are unset, so local and dev builds are unaffected. publisherName stays on
-    // its existing channel split above.
-    signtoolOptions: {
-      sign: signWindowsUninstallerViaSignPath,
-      ...(isWinDevChannel ? {} : { publisherName: 'SignPath Foundation' })
-    },
-    ...(isWinDevChannel ? { verifyUpdateCodeSignature: false } : {}),
-    extraResources: [
-      ...commonExtraResources,
-      ...windowsRuntimeResources,
-      winSpeechNativeResource,
-      {
-        from: 'resources/win32/bin/orca.cmd',
-        to: 'bin/orca.cmd'
-      },
-      {
-        from: 'native/windows-cli-launcher/.build/orca.exe',
-        to: 'bin/orca.exe'
-      },
-      {
-        from: 'native/windows-cli-launcher/.build/orca-administrator-restart.exe',
-        to: 'bin/orca-administrator-restart.exe'
-      },
-      // Why resources/bin: SignPath signs every unsigned PE under win-unpacked, and the hook
-      // installer copies this signed file into ~/.orca/agent-hooks (#20913).
-      {
-        from: 'native/windows-agent-hook/.build/orca-agent-hook.exe',
-        to: 'bin/orca-agent-hook.exe'
-      },
-      {
-        from: 'node_modules/agent-browser/bin/agent-browser-win32-x64.exe',
-        to: 'agent-browser-win32-x64.exe'
-      },
-      {
-        from: 'native/computer-use-windows/runtime.ps1',
-        to: 'computer-use-windows/runtime.ps1'
-      },
-      featureWallResources
-    ]
-  },
-  nsis: {
-    artifactName: 'orca-windows-setup.${ext}',
-    shortcutName: '${productName}',
-    uninstallDisplayName: '${productName}',
-    createDesktopShortcut: 'always',
-    // Why: electron-builder allows one include, so both Windows installer hooks live in it -
-    // the relocated-daemon uninstall sweep (guarded by ${isUpdated} so it never runs during an
-    // update's uninstallOldVersion) and the additive markdown "Open with" registration.
-    // Windows markdown association is deliberately NOT done via `fileAssociations`; see the
-    // header comment in that file for why that would steal the user's default .md handler.
-    include: resolve(__dirname, 'nsis', 'orca-installer-hooks.nsh')
   },
   mac: {
     // Why rank Alternate: Orca joins Finder's "Open With" list without claiming

@@ -14,9 +14,7 @@ const configuration = {
   sourceSha: 'a'.repeat(40),
   version: '1.2.3-rc.4',
   packageManager: 'pnpm@12.14.0',
-  identity: 'rc',
-  diagnosticsTokenUrl: 'https://example.test/diagnostics',
-  telemetryKeySha256: 'b'.repeat(64)
+  identity: 'rc'
 }
 
 afterEach(() => {
@@ -59,26 +57,22 @@ describe('release JavaScript transfer', () => {
     expect(javascriptInventory(join(options.root, 'out'))).toEqual(before)
   })
 
-  it.each([
-    'sourceSha',
-    'version',
-    'packageManager',
-    'identity',
-    'diagnosticsTokenUrl',
-    'telemetryKeySha256'
-  ])('rejects a different %s before replacing the current build', (field) => {
-    const options = fixture()
-    packReleaseJavascript(options)
-    expect(() =>
-      restoreReleaseJavascript({
-        ...options,
-        configuration: { ...configuration, [field]: 'different' }
-      })
-    ).toThrow('JavaScript build configuration differs')
-    expect(readFileSync(join(options.root, 'out', 'main', 'index.js'), 'utf8')).toBe(
-      'main/index.js'
-    )
-  })
+  it.each(['sourceSha', 'version', 'packageManager', 'identity'])(
+    'rejects a different %s before replacing the current build',
+    (field) => {
+      const options = fixture()
+      packReleaseJavascript(options)
+      expect(() =>
+        restoreReleaseJavascript({
+          ...options,
+          configuration: { ...configuration, [field]: 'different' }
+        })
+      ).toThrow('JavaScript build configuration differs')
+      expect(readFileSync(join(options.root, 'out', 'main', 'index.js'), 'utf8')).toBe(
+        'main/index.js'
+      )
+    }
+  )
 
   it('rejects a damaged archive before replacing the current build', () => {
     const options = fixture()

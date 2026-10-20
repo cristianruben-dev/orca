@@ -13,7 +13,6 @@
  * react-devtools-commit-hook-shim, which must merely exist before react-dom's
  * module evaluation and is therefore the entries' first import.
  */
-import { observeReactCommit } from '@/lib/react-commit-cascade-telemetry'
 import { recordRendererCrashBreadcrumb } from '@/lib/crash-breadcrumb-recorder'
 import {
   ensureReactDevtoolsCommitHook,
@@ -24,8 +23,6 @@ export const REACT_COMMIT_CASCADE_UNINSTALLED_BREADCRUMB = 'react_commit_cascade
 
 /** Long enough that any live renderer has committed; short enough to reach a crash report. */
 export const REACT_COMMIT_CASCADE_INSTALL_CHECK_MS = 10_000
-
-type FiberRootLike = { pendingLanes?: unknown }
 
 let installed = false
 let commitsSeen = 0
@@ -76,12 +73,10 @@ function installObserverOnHook(hook: ReactDevtoolsCommitHook): void {
     // Fast Refresh from the chain below.
     try {
       commitsSeen += 1
-      const pendingLanes = (root as FiberRootLike | null)?.pendingLanes
       // Why 0 and not a skip: a React shape change that hides pendingLanes must
       // end the cascade, not freeze a stale depth that later commits push over
       // the limit. 0 is the lane value that means "nothing pending", so it
       // takes the same reset path and this fails safe to no crumb.
-      observeReactCommit(root, typeof pendingLanes === 'number' ? pendingLanes : 0)
     } catch {
       // Best-effort crash evidence only.
     }

@@ -180,7 +180,6 @@ export abstract class OrcaRuntimeWithTerminalCreateDeduplication extends OrcaRun
       launchAgent: startup.agent,
       launchRuntime: startup.launchRuntime,
       startupCommandDelivery: startup.startup.startupCommandDelivery,
-      telemetry: startup.startup.telemetry,
       title: opts.title
     })
     // Why: agents that read the prompt after they start get it typed in, not on argv.

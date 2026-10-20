@@ -1,11 +1,8 @@
 import { useCallback, useRef } from 'react'
 import { toast } from 'sonner'
-import { track } from '@/lib/telemetry'
 import { useAppStore } from '@/store'
 import { getSelectedNestedRepoPathsInScanOrder } from '@/lib/nested-repo-selected-paths'
 import {
-  buildNestedRepoImportActionTelemetry,
-  buildNestedRepoImportResultTelemetry,
   shouldEmitNestedRepoImportSubmitTelemetry,
   type NestedRepoTelemetryRuntimeKind
 } from '../../../../shared/nested-repo-telemetry'
@@ -69,35 +66,11 @@ export function useAddRepoNestedImportFlow({
   handleImportNestedRepos: (mode: 'group' | 'separate') => Promise<void>
   handleOpenNestedRootFolder: () => Promise<void>
   resetNestedImportFlow: () => void
-  trackNestedBackAction: () => void
 } {
   const nestedImportGenRef = useRef(0)
   const resetNestedImportFlow = useCallback((): void => {
     nestedImportGenRef.current++
   }, [])
-  const trackNestedBackAction = useCallback((): void => {
-    if (!nestedScan || !nestedAttemptId) {
-      return
-    }
-    track(
-      'add_repo_nested_import_action',
-      buildNestedRepoImportActionTelemetry({
-        attemptId: nestedAttemptId,
-        surface: 'sidebar',
-        runtimeKind: nestedRuntimeKind ?? getNestedRepoRuntimeKind(nestedConnectionId),
-        action: 'back',
-        foundCount: nestedScan.repos.length,
-        selectedCount: nestedSelectedPaths.size
-      })
-    )
-  }, [
-    getNestedRepoRuntimeKind,
-    nestedAttemptId,
-    nestedConnectionId,
-    nestedRuntimeKind,
-    nestedScan,
-    nestedSelectedPaths.size
-  ])
 
   const handleImportNestedRepos = useCallback(
     async (mode: 'group' | 'separate'): Promise<void> => {
@@ -112,26 +85,12 @@ export function useAddRepoNestedImportFlow({
       ) {
         return
       }
-      const foundCount = nestedScan.repos.length
-      const selectedCount = nestedSelectedPaths.size
       const selectedProjectPaths = getSelectedNestedRepoPathsInScanOrder(
         nestedScan,
         nestedSelectedPaths
       )
-      const runtimeKind = nestedRuntimeKind ?? getNestedRepoRuntimeKind(nestedConnectionId)
       const gen = ++nestedImportGenRef.current
       setIsAdding(true)
-      track(
-        'add_repo_nested_import_action',
-        buildNestedRepoImportActionTelemetry({
-          attemptId,
-          surface: 'sidebar',
-          runtimeKind,
-          action: mode === 'group' ? 'import_group' : 'import_separate',
-          foundCount,
-          selectedCount
-        })
-      )
       let resultTracked = false
       try {
         const result = await importNestedRepos({
@@ -143,18 +102,6 @@ export function useAddRepoNestedImportFlow({
           runtimeEnvironmentId: nestedRuntimeEnvironmentId,
           mode
         })
-        track(
-          'add_repo_nested_import_result',
-          buildNestedRepoImportResultTelemetry({
-            attemptId,
-            surface: 'sidebar',
-            runtimeKind,
-            mode,
-            foundCount,
-            selectedCount,
-            result
-          })
-        )
         resultTracked = true
         if (!result) {
           return
@@ -216,18 +163,6 @@ export function useAddRepoNestedImportFlow({
         }
       } finally {
         if (!resultTracked) {
-          track(
-            'add_repo_nested_import_result',
-            buildNestedRepoImportResultTelemetry({
-              attemptId,
-              surface: 'sidebar',
-              runtimeKind,
-              mode,
-              foundCount,
-              selectedCount,
-              result: null
-            })
-          )
         }
         if (gen === nestedImportGenRef.current) {
           setIsAdding(false)
@@ -267,11 +202,7 @@ export function useAddRepoNestedImportFlow({
       scan: nestedScan,
       generation,
       currentGeneration: () => nestedImportGenRef.current,
-      attemptId: nestedAttemptId,
-      runtimeKind: nestedRuntimeKind,
       connectionId: nestedConnectionId,
-      selectedCount: nestedSelectedPaths.size,
-      getRuntimeKind: getNestedRepoRuntimeKind,
       owner: nestedRuntimeEnvironmentId,
       ...(displayName ? { displayName } : {}),
       closeModal,
@@ -292,7 +223,6 @@ export function useAddRepoNestedImportFlow({
   return {
     handleImportNestedRepos,
     handleOpenNestedRootFolder,
-    resetNestedImportFlow,
-    trackNestedBackAction
+    resetNestedImportFlow
   }
 }

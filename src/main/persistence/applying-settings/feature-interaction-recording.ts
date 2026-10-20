@@ -1,14 +1,11 @@
 import type { PersistedState } from '../../../shared/persisted-state-types'
 import {
   compareFeatureInteractionUsageBuckets,
-  getFeatureInteractionCategory,
   getFeatureInteractionUsageBucket,
   normalizeFeatureInteractions,
   normalizeFeatureInteractionTelemetryBuckets,
   type FeatureInteractionId
 } from '../../../shared/feature-interactions'
-import { track } from '../../telemetry/client'
-import { getCohortAtEmit } from '../../telemetry/cohort-classifier'
 
 export type FeatureInteractionOperations = {
   state: PersistedState
@@ -28,7 +25,6 @@ export function recordFeatureInteraction(
   const existing = featureInteractions[id]
   const previousCount = existing?.interactionCount ?? 0
   const nextCount = previousCount + 1
-  const previousBucket = getFeatureInteractionUsageBucket(previousCount)
   const nextBucket = getFeatureInteractionUsageBucket(nextCount)
   const lastEmittedBucket = telemetryBuckets[id] ?? null
   const shouldEmit =
@@ -56,16 +52,6 @@ export function recordFeatureInteraction(
   }
 
   if (shouldEmit) {
-    track('feature_interaction_usage_bucket_reached', {
-      feature_id: id,
-      feature_category: getFeatureInteractionCategory(id),
-      count_bucket: nextBucket,
-      bucket_source:
-        lastEmittedBucket === null && previousBucket !== null && previousBucket === nextBucket
-          ? 'observed_existing'
-          : 'crossed_now',
-      ...getCohortAtEmit()
-    })
   }
   return operations.getUI()
 }

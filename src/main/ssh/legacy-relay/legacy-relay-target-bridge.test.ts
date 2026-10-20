@@ -73,9 +73,6 @@ function bridge(overrides: Partial<LegacyRelayTargetBridgeDeps> = {}): LegacyRel
       // As the registry wires it.
       stops.exited(id)
     },
-    onTerminalExited: () => {
-      events.exitedTelemetry += 1
-    },
     // As the registry keeps them: one target's owners outlive each bridge.
     owners,
     ...overrides

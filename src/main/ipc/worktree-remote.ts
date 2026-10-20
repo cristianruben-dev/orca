@@ -367,7 +367,6 @@ async function spawnLocalStartupAndSetupTerminals(args: {
         ...(isTuiAgent(createdWithAgent) ? { launchAgent: createdWithAgent } : {}),
         ...(sequencedStartup.viewMode ? { viewMode: sequencedStartup.viewMode } : {}),
         startupCommandDelivery: sequencedStartup.startupCommandDelivery,
-        telemetry: sequencedStartup.telemetry,
         // Why: the submitting renderer decides whether to open the workspace; activating here yanked users who moved on (#9944).
         surfaceOwner: false
       },

@@ -4,7 +4,6 @@ import { createDaemonActiveProviderFixtures } from './pty-ipc-daemon-provider-fi
 import { registerPtyHandlers } from './pty/register-handlers'
 import { detectAgentCommandsOnHost } from '../preflight/agent-detection'
 import { buildAgentStartupPlan, buildAgentResumeStartupPlan } from '../../shared/tui-agent-startup'
-import { agentStartedTelemetry } from '../agent-launch/agent-started-telemetry'
 import { trackMock } from './pty-ipc-mock-registry'
 
 vi.mock('../preflight/agent-detection', () => ({
@@ -86,8 +85,7 @@ describe('independent renderer Qoder provider spawn boundary', () => {
         cwd: process.cwd(),
         command: plan.launchCommand,
         launchAgent: 'qoder',
-        launchConfig: plan.launchConfig,
-        ...(mode === 'start' ? { telemetry: agentStartedTelemetry('qoder', 'orchestration') } : {})
+        launchConfig: plan.launchConfig
       })
       expect(physicalSpawn.mock.calls.at(-1)?.[0].command).toBe(
         plan.launchCommand.replace(/^qodercli/, 'qoder')

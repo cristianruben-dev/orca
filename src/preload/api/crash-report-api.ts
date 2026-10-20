@@ -2,8 +2,6 @@ import type {
   CrashReportBreadcrumbData,
   CrashReportCopyDiagnosticsArgs,
   CrashReportRecord,
-  CrashReportSubmitArgs,
-  CrashReportSubmitResult,
   ReactErrorBoundaryReportArgs,
   ReactErrorBoundaryReportResult
 } from '../../shared/crash-reporting'
@@ -22,7 +20,6 @@ export type CrashReportsApi = {
     args: ReactErrorBoundaryReportArgs
   ) => Promise<ReactErrorBoundaryReportResult>
   recordBreadcrumb: (args: { name: string; data?: CrashReportBreadcrumbData }) => void
-  submit: (args: CrashReportSubmitArgs) => Promise<CrashReportSubmitResult>
   copyLatestDiagnostics: (
     args?: CrashReportCopyDiagnosticsArgs
   ) => Promise<{ ok: true } | { ok: false; error: string }>

@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Repo } from '../../shared/repo-types'
-import { tuiAgentToAgentKind } from '../../shared/agent-kind'
 import { getDefaultSettings } from '../../shared/constants'
 import type { RuntimeManagedWorktreeCreateArgs } from './runtime-managed-worktree-create-types'
 import type { AgentLaunchRuntime } from '../../shared/agent-launch-runtime'
@@ -83,39 +82,17 @@ describe('buildWorktreeStartupForAgent host resolution', () => {
     expect(launchCliNameFor(makeRepo({ executionHostId: 'runtime:vm-1' }))).toBe('orca-ide')
   })
 
-  it('uses per-launch arguments and preserves launch telemetry', () => {
+  it('uses per-launch arguments', () => {
     const result = buildWorktreeStartupForAgent({
       repo: makeRepo({}),
       settings,
       agent: 'claude',
       agentArgs: '--model opus',
-      launchSource: 'source_control_recovery',
       getLaunchRuntime: () => LINUX,
       toSessionOptions: () => undefined
     })
 
     expect(result.startup.command).toContain("'--model'")
-    expect(result.startup.telemetry).toEqual({
-      agent_kind: 'claude-code',
-      launch_source: 'source_control_recovery',
-      request_kind: 'new'
-    })
-  })
-
-  it('attributes a startup agent whose caller named no surface as unknown', () => {
-    const result = buildWorktreeStartupForAgent({
-      repo: makeRepo({}),
-      settings,
-      agent: 'claude',
-      getLaunchRuntime: () => LINUX,
-      toSessionOptions: () => undefined
-    })
-
-    expect(result.startup.telemetry).toEqual({
-      agent_kind: 'claude-code',
-      launch_source: 'unknown',
-      request_kind: 'new'
-    })
   })
 })
 
@@ -227,34 +204,6 @@ describe('buildWorktreeStartupForDraft agent detection', () => {
 
     expect(result?.agent).toBe('claude')
   })
-
-  // The host picks and launches this agent itself, so it is attributed like any other it builds,
-  // whether the draft rides the launch command or is pasted once the agent is up.
-  it.each([
-    ['claude', 'cli', 'cli', false],
-    ['claude', undefined, 'unknown', false],
-    ['claude-agent-teams', 'orchestration', 'orchestration', true],
-    ['claude-agent-teams', undefined, 'unknown', true]
-  ] as const)(
-    'attributes a %s draft launch named %s as %s',
-    async (agent, launchSource, expected, pasted) => {
-      const result = await buildWorktreeStartupForDraft({
-        repo: makeRepo({}),
-        settings,
-        draft: 'ship it',
-        requestedAgent: agent,
-        getLaunchRuntime: () => LINUX,
-        ...(launchSource ? { launchSource } : {})
-      })
-
-      expect(result?.draftPaste !== undefined).toBe(pasted)
-      expect(result?.startup.telemetry).toEqual({
-        agent_kind: tuiAgentToAgentKind(agent),
-        launch_source: expected,
-        request_kind: 'new'
-      })
-    }
-  )
 })
 
 describe('buildWorktreeStartupForAgent extra agent args', () => {

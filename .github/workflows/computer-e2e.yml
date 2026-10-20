@@ -76,7 +76,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-latest]
+        os: [ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -92,38 +92,7 @@ jobs:
       # Windows worker cap, so the real csc.exe launcher-compile tests time out
       # on hosted Windows. Use the shared config so this job matches pnpm test.
       - run: >-
-          pnpm vitest run --config config/vitest.config.ts
-          config/scripts/macos-computer-helper-owner-loss-group-recovery.test.mjs
-          config/scripts/macos-computer-helper-owner-loss-processes.test.mjs
-          config/scripts/computer-use-smoke.test.mjs
-          src/main/computer/computer-provider-lifecycle.test.ts
-          src/main/computer/computer-provider-unavailable-message.test.ts
-          src/main/computer/sidecar-client.test.ts
-          src/main/computer/macos-native-provider-client.test.ts
-          src/main/computer/macos-native-provider-socket.test.ts
-          src/main/computer/macos-computer-use-permissions.test.ts
-          src/main/computer/macos-computer-use-permission-status.test.ts
-          src/main/providers/windows-shell-preflight-runtime.windows.test.ts
-          src/main/computer/desktop-script-provider-client.test.ts
-          src/main/computer/desktop-script-provider-cache.test.ts
-          src/main/computer/desktop-script-provider-actions.test.ts
-          src/main/computer/desktop-script-provider-cache-lifecycle.test.ts
-          src/main/computer/desktop-script-provider-errors.test.ts
-          src/main/computer/desktop-script-provider-action-errors.test.ts
-          src/shared/computer-use-error-recovery.test.ts
-          src/shared/computer-use-key-spec.test.ts
-          src/cli/format.test.ts
-          src/cli/handlers/computer.test.ts
-          src/cli/handlers/computer-action-routing.test.ts
-          src/cli/handlers/computer-action-validation.test.ts
-          src/cli/handlers/computer-state-formatting.test.ts
-          src/cli/index.test.ts
-          src/main/runtime/rpc/dispatcher-computer-errors.test.ts
-          src/main/runtime/rpc/errors.test.ts
-          src/main/runtime/rpc/methods/computer.test.ts
-          src/main/runtime/rpc/methods/computer-actions.test.ts
-          src/cli/runtime/envelope-schema.test.ts
-          src/shared/remote-runtime-client.test.ts
+          pnpm vitest run --config config/vitest.config.ts config/scripts/macos-computer-helper-owner-loss-group-recovery.test.mjs config/scripts/macos-computer-helper-owner-loss-processes.test.mjs config/scripts/computer-use-smoke.test.mjs src/main/computer/computer-provider-lifecycle.test.ts src/main/computer/computer-provider-unavailable-message.test.ts src/main/computer/sidecar-client.test.ts src/main/computer/macos-native-provider-client.test.ts src/main/computer/macos-native-provider-socket.test.ts src/main/computer/macos-computer-use-permissions.test.ts src/main/computer/macos-computer-use-permission-status.test.ts src/main/providers/windows-shell-preflight-runtime.windows.test.ts src/main/computer/desktop-script-provider-client.test.ts src/main/computer/desktop-script-provider-cache.test.ts src/main/computer/desktop-script-provider-actions.test.ts src/main/computer/desktop-script-provider-cache-lifecycle.test.ts src/main/computer/desktop-script-provider-errors.test.ts src/main/computer/desktop-script-provider-action-errors.test.ts src/shared/computer-use-error-recovery.test.ts src/shared/computer-use-key-spec.test.ts src/cli/format.test.ts src/cli/handlers/computer.test.ts src/cli/handlers/computer-action-routing.test.ts src/cli/handlers/computer-action-validation.test.ts src/cli/handlers/computer-state-formatting.test.ts src/cli/index.test.ts src/main/runtime/rpc/dispatcher-computer-errors.test.ts src/main/runtime/rpc/errors.test.ts src/main/runtime/rpc/methods/computer.test.ts src/main/runtime/rpc/methods/computer-actions.test.ts src/cli/runtime/envelope-schema.test.ts src/shared/remote-runtime-client.test.ts
       - run: pnpm verify:computer-native
       - run: pnpm build:cli
       - run: pnpm run build:electron-vite:parallel
@@ -159,15 +128,12 @@ jobs:
           native-runtime: electron
       - name: Owner-loss benchmark process cleanup
         run: >-
-          pnpm vitest run
-          config/scripts/macos-computer-helper-owner-loss-group-recovery.test.mjs
-          config/scripts/macos-computer-helper-owner-loss-processes.test.mjs
+          pnpm vitest run config/scripts/macos-computer-helper-owner-loss-group-recovery.test.mjs config/scripts/macos-computer-helper-owner-loss-processes.test.mjs
       # Why: the parallel launcher's cancellation tests are darwin-only and no
       # other PR job runs on macOS.
       - name: Parallel native build launcher cancellation
         run: >-
-          pnpm vitest run --config config/vitest.config.ts
-          config/scripts/build-native-for-platform.test.mjs
+          pnpm vitest run --config config/vitest.config.ts config/scripts/build-native-for-platform.test.mjs
       - name: Authenticated helper owner-loss smoke
         run: pnpm bench:macos-computer-helper-owner-loss --expect reaped --trials 1
       - name: Swift tests and signed universal helper verification
@@ -191,20 +157,3 @@ jobs:
       - run: pnpm build:cli
       - run: pnpm run build:electron-vite:parallel
       - run: xvfb-run --auto-servernum dbus-run-session -- pnpm test:e2e:computer --reporter=verbose tests/e2e/computer-linux.e2e.ts
-
-  windows:
-    if: github.event_name != 'pull_request'
-    runs-on: windows-latest
-    env:
-      ORCA_COMPUTER_E2E: '1'
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/install-node-dependencies
-        with:
-          native-runtime: electron
-      - run: pnpm verify:computer-native
-      - run: pnpm build:cli
-      - run: pnpm run build:electron-vite:parallel
-      - run: pnpm test:e2e:computer --reporter=verbose tests/e2e/computer-windows.e2e.ts tests/e2e/computer-windows-store.e2e.ts

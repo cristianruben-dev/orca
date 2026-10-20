@@ -15,7 +15,6 @@ import { createWebAiVaultApi } from './preload-api/web-ai-vault-api'
 import { createWebAppApi } from './preload-api/web-app-api'
 import { createBrowserApi, createEmulatorApi } from './preload-api/web-browser-api'
 import { createCliApi } from './preload-api/web-cli-api'
-import { createWebDiagnosticsApi } from './preload-api/web-diagnostics-api'
 import { withFallback } from './preload-api/web-fallback-api'
 import { createFileApi } from './preload-api/web-filesystem-api'
 import { createGitApi } from './preload-api/web-git-api'
@@ -48,7 +47,6 @@ import { webRuntimeState } from './preload-api/web-runtime-session'
 import { createWebSettingsApi } from './preload-api/web-settings-api'
 import { createShellApi } from './preload-api/web-shell-api'
 import { createWebStarNagApi } from './preload-api/web-star-nag-api'
-import { createWebTelemetryApi } from './preload-api/web-telemetry-api'
 import { createPtyApi, createSshApi } from './preload-api/web-terminal-api'
 import { createWebUiApi } from './preload-api/web-ui-api'
 import { createUpdaterApi } from './preload-api/web-updater-api'
@@ -75,7 +73,6 @@ function createWebPreloadApi(): Partial<PreloadApi> {
     ...createWebSettingsApi(),
     keybindings: createWebKeybindingsApi(),
     ui: createWebUiApi(),
-    ...createWebDiagnosticsApi(),
     ...createWebWorkspaceSessionApi(),
     ...createWebOnboardingApi(),
     ...createWebGithubCacheApi(),
@@ -146,7 +143,6 @@ function createWebPreloadApi(): Partial<PreloadApi> {
       isAvailable: () => callRuntimeResult<boolean>('host.gitBash.isAvailable').catch(() => false)
     },
     ...createWebAgentStatusApi(),
-    ...createWebMobileApi(),
-    ...createWebTelemetryApi()
+    ...createWebMobileApi()
   }
 }

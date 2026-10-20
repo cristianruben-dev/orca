@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { validate } from '../telemetry/validator'
 
 const { trackMock, probeMock } = vi.hoisted(() => ({ trackMock: vi.fn(), probeMock: vi.fn() }))
 vi.mock('../telemetry/client', () => ({ track: trackMock }))
@@ -351,7 +350,6 @@ describe('restart outcome', () => {
       action: 'restart_outcome_fixed',
       cwd_class: 'documents'
     })
-    expect(validate('daemon_folder_access_notice', trackMock.mock.calls[0][1]).ok).toBe(true)
   })
 
   it('counts a replacement daemon denied the same folder as still denied', () => {
@@ -364,7 +362,6 @@ describe('restart outcome', () => {
       action: 'restart_outcome_still_denied',
       cwd_class: 'documents'
     })
-    expect(validate('daemon_folder_access_notice', trackMock.mock.calls[0][1]).ok).toBe(true)
   })
 
   it('counts one outcome per restart, not one per spawn', () => {

@@ -67,8 +67,7 @@ function withPlannedLaunch(
     ...(planned.launchAgent ? { launchAgent: planned.launchAgent } : {}),
     ...(planned.startupCommandDelivery
       ? { startupCommandDelivery: planned.startupCommandDelivery }
-      : {}),
-    ...(planned.telemetry ? { telemetry: planned.telemetry } : {})
+      : {})
   }
 }
 

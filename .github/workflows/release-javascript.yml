@@ -11,9 +11,6 @@ on:
         value: ${{ jobs.bundle.outputs.supported }}
       source_sha:
         value: ${{ jobs.bundle.outputs.source_sha }}
-    secrets:
-      ORCA_POSTHOG_WRITE_KEY:
-        required: true
 
 permissions:
   contents: read
@@ -63,8 +60,6 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=4096
           ORCA_BUILD_IDENTITY: ${{ steps.identity.outputs.value }}
-          ORCA_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
-          ORCA_POSTHOG_WRITE_KEY: ${{ secrets.ORCA_POSTHOG_WRITE_KEY }}
         run: |
           pnpm run build:release:javascript
           node config/scripts/release-javascript-artifact.mjs pack

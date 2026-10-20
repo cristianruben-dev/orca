@@ -154,7 +154,6 @@ export async function createRuntimeFolderWorktree(args: {
         ...(args.startupLaunchRuntime ? { launchRuntime: args.startupLaunchRuntime } : {}),
         ...(args.startup.viewMode ? { viewMode: args.startup.viewMode } : {}),
         startupCommandDelivery: args.startup.startupCommandDelivery,
-        telemetry: args.startup.telemetry,
         ...(shouldActivate ? {} : { surfaceOwner: false })
       })
       if (args.draftPaste) {

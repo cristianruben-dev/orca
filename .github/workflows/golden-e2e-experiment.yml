@@ -23,9 +23,6 @@ jobs:
             platform: linux
           - os: macos-15
             platform: mac
-          # Match the release gate: Windows runs a focused golden subset.
-          - os: windows-2022
-            platform: windows
 
     steps:
       - name: Checkout

@@ -12,15 +12,11 @@ import { StarNagCard } from '../components/StarNagCard'
 import { NativeChatResumeOnRestartModal } from '../components/NativeChatResumeOnRestartModal'
 import { StarNagAgentValueMomentObserver } from '../components/star-nag/StarNagAgentValueMomentObserver'
 import { StarNagToastHost } from '../components/star-nag/StarNagToastHost'
-import { TelemetryFirstLaunchSurface } from '../components/TelemetryFirstLaunchSurface'
 import { ZoomOverlay } from '../components/ZoomOverlay'
 import { useAppStore } from '../store'
 import type { UpdateStatus } from '../../../shared/update-status-types'
 import { useLazyModalMounts } from './use-lazy-modal-mounts'
-import {
-  selectAppRootSurfaceTelemetryOptedIn,
-  selectAppRootSurfaceVoiceEnabled
-} from './app-root-surface-settings'
+import { selectAppRootSurfaceVoiceEnabled } from './app-root-surface-settings'
 import type { FloatingWorkspacePanelState } from './use-floating-workspace-panel'
 import type { OnboardingGate } from './use-onboarding-and-feature-tips'
 
@@ -71,11 +67,6 @@ const RemoteServerUpdateDialog = lazy(
 const ContextualTourOverlay = lazy(() =>
   import('../components/contextual-tours/ContextualTourOverlay').then((module) => ({
     default: module.ContextualTourOverlay
-  }))
-)
-const SetupGuideTelemetryObserver = lazy(() =>
-  import('../components/setup-guide/SetupGuideTelemetryObserver').then((module) => ({
-    default: module.SetupGuideTelemetryObserver
   }))
 )
 const FloatingTerminalPanel = lazy(() =>
@@ -135,15 +126,12 @@ export function AppRootSurfaces(props: {
   // Keep this always-mounted surface subscribed only to the settings fields it reads. A
   // settings object replacement for an unrelated preference should not rerender every overlay.
   const voiceEnabled = useAppStore(selectAppRootSurfaceVoiceEnabled)
-  const telemetryOptedIn = useAppStore(selectAppRootSurfaceTelemetryOptedIn)
   const statusBarVisible = useAppStore((s) => s.statusBarVisible)
-  const persistedUIReady = useAppStore((s) => s.persistedUIReady)
   const dictationState = useAppStore((s) => s.dictationState)
   const updateStatus = useAppStore((s) => s.updateStatus)
   const activeContextualTourId = useAppStore((s) => s.activeContextualTourId)
   const hasSshCredentialRequest = useAppStore((s) => s.sshCredentialQueue.length > 0)
 
-  const shouldMountSetupGuideTelemetryObserver = persistedUIReady
   const shouldMountUpdateCard = shouldMountUpdateCardForStatus(updateStatus)
   const shouldMountDictationController = voiceEnabled || dictationState !== 'idle'
 
@@ -269,11 +257,6 @@ export function AppRootSurfaces(props: {
           </ModalBoundary>
         ) : null}
       </Suspense>
-      {shouldMountSetupGuideTelemetryObserver ? (
-        <Suspense fallback={null}>
-          <SetupGuideTelemetryObserver />
-        </Suspense>
-      ) : null}
       {activeContextualTourId !== null ? (
         <Suspense fallback={null}>
           <ContextualTourOverlay />
@@ -304,9 +287,6 @@ export function AppRootSurfaces(props: {
       </OverlayBoundary>
       <StarNagAgentValueMomentObserver />
       {/* Why: mount at App root to render once per session; internal cohort gate limits it to pre-telemetry users — see telemetry-plan.md §First-launch experience. */}
-      <OverlayBoundary boundaryId="overlay.telemetry-first-launch" resetKey={telemetryOptedIn}>
-        <TelemetryFirstLaunchSurface />
-      </OverlayBoundary>
       <OverlayBoundary boundaryId="overlay.zoom" resetKey={activeView}>
         <ZoomOverlay />
       </OverlayBoundary>

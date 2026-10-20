@@ -4,7 +4,6 @@
  */
 import type { SshManagedServerUpdateNote, SshTarget } from '../../shared/ssh-types'
 import type { ManagedOrcadAutoUpdateOutcome } from '../managed-server/lifecycle/orcad-managed-auto-update'
-import type { HostServerUpdateReason } from './ssh-host-server-connect-events'
 import { ORCAD_ACTIVATION_FENCE_BUSY_CODE } from '../managed-server/activation/orcad-activation-fence-hold'
 
 export type ManagedServerUpdateDeps = {
@@ -109,3 +108,13 @@ function skipped(
       return { note: undefined, reason: 'connected', recorded: false }
   }
 }
+
+/** What a managed host's update on connect did; `connected` when there was nothing to do. */
+export type HostServerUpdateReason =
+  | 'connected'
+  | 'updated'
+  | 'update_deferred'
+  | 'update_failed'
+  | 'update_host_newer'
+  | 'update_rolled_back'
+  | 'update_check_failed'
