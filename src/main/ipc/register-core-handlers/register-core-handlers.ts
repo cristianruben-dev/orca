@@ -46,7 +46,6 @@ import { setAgentBrowserBridgeRef, registerBrowserHandlers } from '../browser'
 import { setTrustedBrowserRendererWebContentsId } from '../browser-renderer-trust'
 import { registerSessionHandlers } from '../session'
 import { registerSettingsHandlers } from '../settings'
-import { registerDiagnosticsHandlers } from '../diagnostics'
 import { registerSkillsHandlers } from '../skills'
 import { registerSkillDeleteIpcHandlers } from '../skill-delete/handlers'
 import { registerWorkspaceSpaceHandlers } from '../workspace-space'
@@ -54,7 +53,6 @@ import { registerWorkspacePortHandlers } from '../workspace-ports'
 import { registerLocalhostWorktreeLabelHandlers } from '../localhost-worktree-labels'
 import { registerAutomationHandlers } from '../automations'
 import { registerKeybindingHandlers } from '../keybindings'
-import { registerTelemetryHandlers } from '../telemetry'
 import { registerShellHandlers } from '../shell'
 import { registerPetHandlers } from '../pet'
 import { registerPluginHandlers } from '../plugins'
@@ -219,7 +217,6 @@ export function registerCoreHandlers(
   // lanes never share a code path — `ipc/diagnostics.ts` imports only from
   // `src/main/observability/`, never from `src/main/telemetry/`. Order is
   // not load-bearing; both register independent ipcMain channels.
-  registerDiagnosticsHandlers()
   registerTerminalRenderDesyncEvidenceHandler()
   registerComputerUsePermissionHandlers()
   registerSettingsHandlers(store, agentAwakeService)
@@ -236,7 +233,6 @@ export function registerCoreHandlers(
   if (pluginService) {
     registerPluginHandlers(store, pluginService, runtime, marketplaceServices)
   }
-  registerTelemetryHandlers(store)
   registerOrcaProfileHandlers(store, {
     onBeforeRelaunch: lifecycleOptions.onBeforeRelaunch,
     onAuthMutation: lifecycleOptions.onOrcaProfileAuthMutation,

@@ -28,26 +28,8 @@
 // import isolation rule above. The cost of one duplicated array vs.
 // punching a hole in the architecture is trivially worth it.
 
-import {
-  createLocalFileSink,
-  DEFAULT_MAX_FILES,
-  getRotatedFamilySize,
-  type LocalFileSink
-} from './local-file-sink'
-import { getDaemonLogFilePath, getTraceFilePath } from './logs-directory'
-import { DAEMON_LOG_MAX_FILES } from '../daemon/daemon-file-log'
-import {
-  collectBundle as _collectBundle,
-  type CollectBundleOptions,
-  type CollectedBundle
-} from './bundle'
-import {
-  deleteBundle as _deleteBundle,
-  uploadBundle as _uploadBundle,
-  type DeleteBundleOptions,
-  type UploadBundleOptions,
-  type UploadBundleResult
-} from './diagnostic-bundle-upload'
+import { createLocalFileSink, type LocalFileSink } from './local-file-sink'
+import { getTraceFilePath } from './logs-directory'
 import { setActiveSink, startSpan } from './tracer'
 import { setSecurePathHardeningReporter } from '../../shared/secure-path-hardening-report'
 
@@ -135,7 +117,6 @@ export { getTraceFilePath } from './logs-directory'
 // ── Module-level state ───────────────────────────────────────────────────
 
 let sink: LocalFileSink | null = null
-let consent: ObservabilityConsent | null = null
 
 /** Create the local file sink, install it as the active tracer sink, and
  *  update module-level `sink`. */
@@ -153,7 +134,6 @@ function installLocalSink(filePath: string): void {
 /** `traceFilePath` names another process's own file; the desktop's is the bundle's default. */
 export function initObservability(options?: { traceFilePath?: string }): ObservabilityConsent {
   const c = resolveObservabilityConsent()
-  consent = c
   if (!c.localFileEnabled) {
     // Disabled at the CI / ORCA_DIAGNOSTICS_DISABLED level — leave the
     // tracer's active sink unset, so all spans are no-ops.
@@ -207,70 +187,4 @@ export async function shutdownObservability(): Promise<void> {
     sink.close()
     sink = null
   }
-  consent = null
-}
-
-// ── Bundle / trace-folder operations exposed to IPC ─────────────────────
-
-export type DiagnosticsStatus = {
-  readonly localFileEnabled: boolean
-  readonly bundleEnabled: boolean
-  readonly traceFilePath: string
-  readonly traceFamilySize: number
-  readonly disabledReason?: ObservabilityConsent['disabledReason']
-}
-
-export function getDiagnosticsStatus(): DiagnosticsStatus {
-  const c = consent ?? resolveObservabilityConsent()
-  const traceFilePath = getTraceFilePath()
-  const traceFamilySize = c.localFileEnabled ? getRotatedFamilySize(traceFilePath) : 0
-  return {
-    localFileEnabled: c.localFileEnabled,
-    bundleEnabled: c.bundleEnabled,
-    traceFilePath,
-    traceFamilySize,
-    ...(c.disabledReason ? { disabledReason: c.disabledReason } : {})
-  }
-}
-
-/** Collect a bundle from the live trace folder. The `appVersion` /
- *  `platform` / `arch` / `osRelease` / `orcaChannel` inputs come from main
- *  and are baked into the bundle header. NEVER pass `install_id` here —
- *  the bundle's identity is the per-bundle submission ID, not the
- *  PostHog-lane install_id (Issue 8 in the security review). */
-export function collectDiagnosticBundle(
-  meta: Pick<
-    CollectBundleOptions,
-    'appVersion' | 'platform' | 'arch' | 'osRelease' | 'orcaChannel' | 'lookbackMinutes'
-  >
-): CollectedBundle {
-  // Flush the active sink first so the very latest spans are present in the
-  // file when we read it back. Without this, the user's most-recent action
-  // before clicking Share might miss the bundle by a few hundred ms — which
-  // is exactly the case "the thing I just did" they want diagnosed.
-  if (sink) {
-    sink.flush()
-  }
-  return _collectBundle({
-    traceFilePath: getTraceFilePath(),
-    maxFiles: DEFAULT_MAX_FILES,
-    // Why: the detached daemon writes its lifecycle log to a separate file, so
-    // the bundle collector must be pointed at it explicitly — it does not glob
-    // the logs directory.
-    daemonLogFilePath: getDaemonLogFilePath(),
-    daemonLogMaxFiles: DAEMON_LOG_MAX_FILES,
-    ...meta
-  })
-}
-
-/** Upload a collected bundle payload. Returns the ticket ID on success;
- *  throws on any of the failure modes documented in `bundle.ts`. */
-export async function uploadDiagnosticBundle(
-  opts: UploadBundleOptions
-): Promise<UploadBundleResult> {
-  return _uploadBundle(opts)
-}
-
-export async function deleteDiagnosticBundle(opts: DeleteBundleOptions): Promise<void> {
-  return _deleteBundle(opts)
 }

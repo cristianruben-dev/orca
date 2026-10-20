@@ -1,7 +1,6 @@
 import { clipboard, ipcMain } from 'electron'
 import {
   type CrashReportCopyDiagnosticsArgs,
-  type CrashReportSubmitArgs,
   formatCrashReportText
 } from '../../shared/crash-reporting'
 import type { CrashReportStore } from '../crash-reporting/crash-report-store'
@@ -27,7 +26,7 @@ import {
   inFlightSubmissions,
   submittedReportIds
 } from './crash-reporting-sendable-reports'
-import { buildUncapturedCrashReportText, submitCrashReport } from './crash-reporting-submission'
+import { buildUncapturedCrashReportText } from './crash-report-text'
 
 export function _resetRendererErrorReportDedupeForTests(): void {
   recentRendererErrorReportKeys.clear()
@@ -113,9 +112,4 @@ export function registerCrashReportingHandlers(store: CrashReportStore): void {
       return { ok: false, error: 'Failed to record renderer error report.' }
     }
   })
-
-  ipcMain.removeHandler('crashReports:submit')
-  ipcMain.handle('crashReports:submit', async (_event, args: CrashReportSubmitArgs) =>
-    submitCrashReport(store, args)
-  )
 }
