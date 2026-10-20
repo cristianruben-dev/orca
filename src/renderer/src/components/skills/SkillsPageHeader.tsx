@@ -1,4 +1,4 @@
-import { BookOpen, Download, History, Link2, MoreHorizontal, Share2, Trash2, X } from 'lucide-react'
+import { BookOpen, Download, History, MoreHorizontal, Share2, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -25,8 +25,7 @@ export function SkillsPageHeader({
   deleteUnsupportedReason,
   onStartDelete,
   onInstallFromLink,
-  onManageInstalls,
-  onOpenSharedLinks
+  onManageInstalls
 }: {
   skillCount: number
   sourceEntries: readonly SkillSourceInventoryEntry[]
@@ -42,7 +41,7 @@ export function SkillsPageHeader({
   onStartDelete: () => void
   onInstallFromLink: () => void
   onManageInstalls: () => void
-  onOpenSharedLinks: () => void
+  onOpenSharedLinks?: () => void
 }): React.JSX.Element {
   return (
     <header className="shrink-0 border-b border-border">
@@ -117,10 +116,6 @@ export function SkillsPageHeader({
             <DropdownMenuItem onSelect={onManageInstalls}>
               <History />
               {translate('auto.components.skills.SkillsPage.c13b82793c', 'Manage installs')}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={onOpenSharedLinks}>
-              <Link2 />
-              {translate('auto.components.skills.SkillsPage.sharedLinks', 'Shared links')}
             </DropdownMenuItem>
             <Tooltip>
               <TooltipTrigger asChild>

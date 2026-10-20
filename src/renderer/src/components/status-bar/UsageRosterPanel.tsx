@@ -1,7 +1,6 @@
 import React from 'react'
 import { ChevronRight, RefreshCw } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { SettingsSegmentedControl } from '@/components/settings/SettingsFormControls'
 import { useResetCountdownClock } from '@/hooks/useResetCountdownClock'
 import { translate } from '@/i18n/i18n'
 import { formatRateLimitWindowChipLabel, formatWindowLabel } from '@/lib/window-label-formatter'
@@ -207,8 +206,6 @@ export function UsageRow({
 export function UsageRosterPanel({
   providers,
   display,
-  statusBarUsageMode,
-  onStatusBarUsageModeChange,
   isRefreshing,
   onRefresh,
   onOpenProvider,
@@ -220,8 +217,8 @@ export function UsageRosterPanel({
 }: {
   providers: ProviderRateLimits[]
   display: UsagePercentageDisplay
-  statusBarUsageMode: StatusBarUsageMode
-  onStatusBarUsageModeChange: (mode: StatusBarUsageMode) => void
+  statusBarUsageMode?: StatusBarUsageMode
+  onStatusBarUsageModeChange?: (mode: StatusBarUsageMode) => void
   isRefreshing: boolean
   onRefresh: () => void
   onOpenProvider: (provider: ProviderId) => void
@@ -270,38 +267,6 @@ export function UsageRosterPanel({
           </DropdownMenuItem>
         </div>
       </div>
-      {/* Density picker lives at the top of the popover it controls (view-switcher
-          pattern) so both modes are named and discoverable on first open. */}
-      <div className="px-3.5 pb-2.5">
-        <SettingsSegmentedControl<StatusBarUsageMode>
-          value={statusBarUsageMode}
-          onChange={onStatusBarUsageModeChange}
-          ariaLabel={translate(
-            'auto.components.status.bar.UsageRosterPanel.footerDetailAria',
-            'Usage footer detail'
-          )}
-          size="sm"
-          equalWidth
-          options={[
-            {
-              value: 'verbose',
-              label: translate('auto.components.status.bar.UsageRosterPanel.detailed', 'Detailed'),
-              tooltip: translate(
-                'auto.components.status.bar.UsageRosterPanel.detailedTooltip',
-                'Full usage with bars, labels, and percentages'
-              )
-            },
-            {
-              value: 'compact',
-              label: translate('auto.components.status.bar.UsageRosterPanel.compact', 'Compact'),
-              tooltip: translate(
-                'auto.components.status.bar.UsageRosterPanel.compactTooltip',
-                'Condensed usage: one summary per provider'
-              )
-            }
-          ]}
-        />
-      </div>
       <div className="border-t border-border/70" />
       {sorted.map((p) => {
         const state = getUsageRosterRowState(p, usedSections(p).length > 0)
@@ -313,7 +278,7 @@ export function UsageRosterPanel({
             state={state}
             showSignInAction={showSignInAction}
             now={now}
-            mode={statusBarUsageMode}
+            mode="compact"
           />
         )
         if (showSignInAction) {
