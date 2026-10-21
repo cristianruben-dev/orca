@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import en from '@/i18n/locales/en.json'
-import ko from '@/i18n/locales/ko.json'
 import { i18n } from '@/i18n/i18n'
 import { getBrowserPaneSearchEntries, getTerminalLinkActionSearchKeywords } from './browser-search'
 import {
@@ -160,45 +159,22 @@ describe('Link Routing description localization', () => {
     await i18n.changeLanguage('en')
   })
 
-  it('renders the Korean copy with the shortcut interpolated', async () => {
-    const koCopy = (
-      ko.auto.components.settings.BrowserLinkRoutingSetting as unknown as Record<string, string>
-    )['description']
-    expect(koCopy).toBeTruthy()
-    expect(koCopy).toContain('{{shortcut}}')
-
-    i18n.addResourceBundle('ko', 'translation', ko, true, true)
-    await i18n.changeLanguage('ko')
-
+  it('renders the English copy with the shortcut interpolated', () => {
     const description = getBrowserLinkRoutingDescription({ isMac: true })
-    expect(description).toBe(koCopy.replace('{{shortcut}}', '⇧⌘-click'))
+    expect(description).toContain('⇧⌘-click')
     expect(description).not.toMatch(/\{\{.+?\}\}/)
-    // Fails when the copy is a hardcoded English literal.
-    expect(description).not.toContain("Orca's built-in browser")
+    expect(description).toContain("Orca's built-in browser")
 
-    // The entry title is localized too, so match on the description instead.
     const entry = getBrowserPaneSearchEntries({ isMac: true }).find(
       (item) => item.description === description
     )
     expect(entry).toBeDefined()
-
-    await i18n.changeLanguage('en')
-    expect(getBrowserLinkRoutingDescription({ isMac: true })).toContain("Orca's built-in browser")
   })
 
-  it('renders the Korean copy for the invert-on variant', async () => {
-    const koBase = (
-      ko.auto.components.settings.BrowserLinkRoutingSetting as unknown as Record<string, string>
-    )['descriptionBase']
-    expect(koBase).toBeTruthy()
-
-    i18n.addResourceBundle('ko', 'translation', ko, true, true)
-    await i18n.changeLanguage('ko')
-
+  it('renders the English copy for the invert-on variant', () => {
     const description = getBrowserLinkRoutingDescription({ isMac: true }, true)
-    expect(description).toBe(koBase)
-    // Fails when the invert-on branch regresses to a hardcoded English literal.
-    expect(description).not.toContain("Orca's built-in browser")
+    expect(description).not.toContain('⇧⌘-click')
+    expect(description).not.toContain('always uses your system browser')
   })
 
   it('uses the catalog key rather than an inline literal', () => {

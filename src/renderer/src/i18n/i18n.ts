@@ -23,15 +23,9 @@ export const i18n: I18nInstance = i18next.createInstance()
 // changeLanguage() call (UI switch or test) transparently loads its bundle
 // instead of paying the parse cost at cold start.
 const NON_DEFAULT_LOCALE_LOADERS: Record<
-  Exclude<SupportedUiLocale, 'en'>,
+  string,
   () => Promise<{ default: Record<string, unknown> }>
-> = {
-  es: () => import('./locales/es.json'),
-  fr: () => import('./locales/fr.json'),
-  ja: () => import('./locales/ja.json'),
-  ko: () => import('./locales/ko.json'),
-  zh: () => import('./locales/zh.json')
-}
+> = {}
 
 const lazyLocaleBackend: BackendModule = {
   type: 'backend',

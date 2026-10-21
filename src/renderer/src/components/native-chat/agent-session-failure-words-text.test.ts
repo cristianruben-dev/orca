@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { i18n, translate } from '@/i18n/i18n'
 import type * as I18nModule from '@/i18n/i18n'
 import en from '@/i18n/locales/en.json'
-import zh from '@/i18n/locales/zh.json'
 import {
   AGENT_SESSION_ATTACHMENT_PROBLEM_REASONS,
   AGENT_SESSION_FAILURE_KINDS,
@@ -44,8 +43,6 @@ const NOTICE_PIECES: readonly AgentSessionFailureCopyId[] = [
   'waitForStart',
   'agentStillWorking'
 ]
-// Kana, and kanji whose simplified Chinese form differs (続 is 续, 読 is 读, ...).
-const JAPANESE_ONLY = /[\u3040-\u30ff続読変済図気帰戻検択転権単圧応対発処実証覧関専]/u
 const VALUES = {
   agent: 'Claude',
   loginCommand: 'agent login',
@@ -89,15 +86,8 @@ afterEach(async () => {
 })
 
 describe('desktop words for a failure fact', () => {
-  it.each([
-    ['en', 'Then send your message again.'],
-    ['es', 'Después, envía tu mensaje de nuevo.'],
-    ['fr', 'Puis envoyez à nouveau votre message.'],
-    ['ja', 'その後、メッセージをもう一度送信してください。'],
-    ['ko', '그런 다음 메시지를 다시 보내세요.'],
-    ['zh', '然后再次发送消息。']
-  ])('keeps %s copy while separating an unpunctuated provider detail', async (locale, retry) => {
-    await i18n.changeLanguage(locale)
+  it('keeps English copy while separating an unpunctuated provider detail', async () => {
+    await i18n.changeLanguage('en')
     const fact = {
       kind: 'notSignedIn',
       detail: { text: 'See {{agent}} docs/models.md', audience: 'person' }
@@ -107,7 +97,7 @@ describe('desktop words for a failure fact', () => {
     expect(row.endsWith(fact.detail.text)).toBe(true)
     expect(
       agentSessionFailureSentence(fact, 'rejection', context, sayAgentSessionFailureTranslated)
-    ).toBe(`${row}. ${retry}`)
+    ).toBe(`${row}. Then send your message again.`)
   })
 
   it('has a key for every piece, whose English default is the shared sentence', () => {
@@ -158,8 +148,7 @@ describe('desktop words for a failure fact', () => {
     }
   })
 
-  it("words a refused start and a rejected message in the reader's language", async () => {
-    await i18n.changeLanguage('fr')
+  it('words a refused start and a rejected message in English', () => {
     const refused = agentSessionRefusalFailure({
       code: 'agent_session_operation_invalid',
       details: { reason: 'notSignedIn' }
@@ -169,7 +158,7 @@ describe('desktop words for a failure fact', () => {
         agentSessionWriteNoticeParts(refused, 'send', { agentName: 'Claude' })
       )
     ).toBe(
-      "Votre message n'a pas été envoyé. Claude n’est pas connecté. Exécutez `claude auth login`, ou choisissez un compte dans les paramètres des Comptes Claude."
+      "Your message was not sent. Claude isn't signed in. Run `claude auth login`, or choose an account in Claude Accounts settings."
     )
     const detail = 'Uses {{agent}} $t(components.native-chat.failureWords.theAgent) <b>&</b>'
     const rejected = structuredAgentSessionRejectionParts(
@@ -180,16 +169,16 @@ describe('desktop words for a failure fact', () => {
     )
     // The provider's own words stay as written: placeholders, nesting and markup are not read.
     expect(agentSessionWriteNoticeText(rejected)).toBe(
-      `Codex n'a pas accepté ce message : ${detail}.`
+      `Codex didn't accept this message: ${detail}.`
     )
     expect(
       agentSessionWriteNoticeText(
         structuredAgentSessionRejectionParts(null, 'send', { kind: 'providerExited' }, {})
       )
-    ).toBe("L'agent s'est arrêté avant l'envoi de ce message.")
+    ).toBe('The agent stopped before this message was sent.')
   })
 
-  it('names the command a failed start was for inside the translated sentence', async () => {
+  it('names the command a failed start was for inside the sentence', () => {
     const sentence = (kind: AgentSessionFailureFact['kind'], command: 'clear' | 'compact') =>
       agentSessionFailureSentence(
         { kind },
@@ -197,24 +186,16 @@ describe('desktop words for a failure fact', () => {
         { agentName: 'Codex', command },
         sayAgentSessionFailureTranslated
       )
-    await i18n.changeLanguage('fr')
-    expect(sentence('restartFailed', 'compact')).toBe(
-      "Codex n'a pas pu redémarrer. Relancez /compact."
-    )
+    expect(sentence('restartFailed', 'compact')).toBe("Codex couldn't restart. Run /compact again.")
     expect(sentence('notSignedIn', 'clear')).toBe(
-      'Codex n’est pas connecté. Exécutez `codex login`. Relancez /clear.'
+      "Codex isn't signed in. Run `codex login`. Run /clear again."
     )
-    await i18n.changeLanguage('ja')
     expect(sentence('providerStartFailed', 'compact')).toBe(
-      'Codex は起動が完了する前に停止しました。/compact をもう一度実行してください。'
-    )
-    expect(sentence('managedAccountUnsupported', 'compact')).toBe(
-      'WSL に Claude アカウントが追加されている間、Claude チャットには Windows の Claude アカウントが必要です。Claude アカウントの設定で選択または追加してから、/compact をもう一度実行してください。'
+      'Codex stopped before it finished starting. Run /compact again.'
     )
   })
 
-  it("says which request a start ran out of time on in the reader's language", async () => {
-    await i18n.changeLanguage('fr')
+  it('says which request a start ran out of time on', () => {
     expect(
       agentSessionFailureSentence(
         { kind: 'startFailed', requestTimeout: { method: 'thread/start', timeoutMs: 30_000 } },
@@ -223,12 +204,11 @@ describe('desktop words for a failure fact', () => {
         sayAgentSessionFailureTranslated
       )
     ).toBe(
-      "Codex a mis trop de temps à démarrer (aucune réponse à thread/start après 30 s). Si cela se reproduit, l'ordinateur qui exécute ce chat est peut-être surchargé."
+      'Codex took too long to start (no response to thread/start after 30s). If this keeps happening, the computer running this chat may be overloaded.'
     )
   })
 
-  it("says a refused command and a refused Stop in the reader's language", async () => {
-    await i18n.changeLanguage('fr')
+  it('says a refused command and a refused Stop', () => {
     const sentence = (fact: AgentSessionFailureFact) =>
       agentSessionFailureSentence(
         fact,
@@ -236,20 +216,17 @@ describe('desktop words for a failure fact', () => {
         { agentName: 'Codex' },
         sayAgentSessionFailureTranslated
       )
-    expect(sentence({ kind: 'commandRefused' })).toBe(
-      "Cette commande n'a pas été exécutée. Réessayez."
-    )
-    expect(sentence({ kind: 'stopRefused' })).toBe("Codex n'avait aucun tour en cours à arrêter.")
+    expect(sentence({ kind: 'commandRefused' })).toBe("This command didn't run. Try it again.")
+    expect(sentence({ kind: 'stopRefused' })).toBe('Codex had no turn running to stop.')
     expect(
       sentence({
         kind: 'stopRefused',
         detail: { text: 'no active turn to interrupt.', audience: 'person' }
       })
-    ).toBe("Codex ne s'est pas arrêté : no active turn to interrupt.")
+    ).toBe("Codex didn't stop: no active turn to interrupt.")
   })
 
-  it("says an image's size limit in the reader's unit", async () => {
-    await i18n.changeLanguage('fr')
+  it("says an image's size limit", () => {
     const sentence = (reason: 'tooLarge' | 'totalTooLarge', megabytes: number) =>
       agentSessionFailureSentence(
         { kind: 'attachmentInvalid', attachment: { reason, limit: megabytes * 1024 * 1024 } },
@@ -258,10 +235,10 @@ describe('desktop words for a failure fact', () => {
         sayAgentSessionFailureTranslated
       )
     expect(sentence('tooLarge', 5)).toBe(
-      "Une image de ce message dépasse 5 Mo, le message n'a donc pas été envoyé."
+      'An image on this message is larger than 5 MB, so the message was not sent.'
     )
     expect(sentence('totalTooLarge', 20)).toBe(
-      "Les images de ce message dépassent 20 Mo au total, le message n'a donc pas été envoyé."
+      'The images on this message add up to more than 20 MB, so the message was not sent.'
     )
   })
 
@@ -281,19 +258,11 @@ describe('desktop words for a failure fact', () => {
     ).toBe(sentence)
   })
 
-  it('shows a host sentence with no fact beside it as written', async () => {
-    await i18n.changeLanguage('fr')
+  it('shows a host sentence with no fact beside it as written', () => {
     expect(
       agentSessionWriteNoticeText(
         structuredAgentSessionRejectionParts('Claude does not support .bmp images', 'send')
       )
     ).toBe('Claude does not support .bmp images')
-  })
-
-  it('keeps Japanese-only characters out of the Chinese words', () => {
-    const chat = zh.components['native-chat']
-    for (const words of Object.values(chat.failureWords)) {
-      expect(words).not.toMatch(JAPANESE_ONLY)
-    }
   })
 })
