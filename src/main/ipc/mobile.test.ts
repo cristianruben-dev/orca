@@ -784,46 +784,33 @@ describe('registerMobileHandlers', () => {
     expect(consumePendingUnpairedDeviceAuthFailure).toHaveBeenCalledOnce()
   })
 
-  it('inspects and repairs the current packaged Windows websocket port', async () => {
-    const runPowerShell = vi
-      .fn()
-      .mockResolvedValueOnce(
-        JSON.stringify({
-          ruleAllowed: false,
-          privateFirewallEnabled: true,
-          networkCategory: 'Private'
-        })
-      )
-      .mockResolvedValueOnce('{"launched":true,"exitCode":0}')
+  it('reports windows firewall as unsupported', async () => {
     const rpcServer = { getWebSocketEndpoint: () => 'ws://0.0.0.0:6768' }
     registerMobileHandlers(rpcServer as never, {
       firewallEnvironment: {
         platform: 'win32',
         isPackaged: true,
-        executablePath: 'C:\\Program Files\\Orca\\Orca.exe',
-        runPowerShell
+        executablePath: 'C:\\Program Files\\Orca\\Orca.exe'
       }
     })
 
     await expect(
       handlers.get('mobile:getWindowsFirewallStatus')?.(null, { address: '192.168.0.108' })
-    ).resolves.toMatchObject({ supported: true, port: 6768, ruleAllowed: false })
+    ).resolves.toEqual({ supported: false })
     await expect(
       handlers.get('mobile:repairWindowsFirewall')?.({
         sender: { isDestroyed: () => false, getType: () => 'window' }
       })
-    ).resolves.toEqual({ ok: true })
+    ).resolves.toEqual({ ok: false, reason: 'unsupported' })
   })
 
   it('rejects firewall mutation from a non-window renderer', async () => {
-    const runPowerShell = vi.fn()
     const rpcServer = { getWebSocketEndpoint: () => 'ws://0.0.0.0:6768' }
     registerMobileHandlers(rpcServer as never, {
       firewallEnvironment: {
         platform: 'win32',
         isPackaged: true,
-        executablePath: 'C:\\Program Files\\Orca\\Orca.exe',
-        runPowerShell
+        executablePath: 'C:\\Program Files\\Orca\\Orca.exe'
       }
     })
 
@@ -832,7 +819,6 @@ describe('registerMobileHandlers', () => {
         sender: { isDestroyed: () => false, getType: () => 'webview' }
       })
     ).toEqual({ ok: false, reason: 'unsupported' })
-    expect(runPowerShell).not.toHaveBeenCalled()
   })
 })
 

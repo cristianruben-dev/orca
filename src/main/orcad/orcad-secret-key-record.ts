@@ -18,7 +18,6 @@ import {
   hardenExistingSecureFile,
   writeSecureFile
 } from '../../shared/secure-file'
-import { restrictWindowsFile } from '../../shared/secure-path-windows-acl'
 import { ORCAD_MASTER_KEY_BYTES } from './orcad-secret-sealing'
 
 // `os-keyring`: written only by older builds; read to migrate it (see orcad-legacy-keyring-key.ts).
@@ -247,10 +246,6 @@ export function sweepStaleRecordStaging(statePath: string): void {
 
 export async function restrictExistingRecord(path: string): Promise<boolean> {
   try {
-    // Why verify on Windows: the hardening helper does not report a failed ACL restriction.
-    if (process.platform === 'win32') {
-      return await restrictWindowsFile(path)
-    }
     hardenExistingSecureFile(path)
     return (statSync(path).mode & 0o077) === 0
   } catch {

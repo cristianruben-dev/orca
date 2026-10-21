@@ -10,8 +10,6 @@ import {
   writeSync
 } from 'node:fs'
 import { getSecretStore } from '../shared/secret-store'
-import { fsyncFileSync } from '../shared/secure-file'
-import { writeRestrictedWindowsFile } from '../shared/secure-path-windows-acl'
 import {
   credentialDecryptionMessage,
   type IntegrationCredentialService
@@ -57,13 +55,6 @@ export function writeCredentialFileAtomic(
   const tempPath = `${path}.${process.pid}.${randomBytes(4).toString('hex')}.tmp`
   let handle: number | null = null
   try {
-    if (process.platform === 'win32') {
-      // Why born restricted: a sibling would otherwise inherit the directory's DACL and replace
-      // the previous credential's owner-only ACL.
-      writeRestrictedWindowsFile(tempPath, data)
-      fsyncFileSync(tempPath)
-      return publishStagedCredential(tempPath, path, shouldPublish)
-    }
     handle = openSync(tempPath, 'w', 0o600)
     // Why: write(2) is allowed to return a short count, so a single writeSync
     // could publish a truncated credential — the very corruption this avoids.
