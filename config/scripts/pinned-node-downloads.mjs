@@ -3,7 +3,6 @@ import { chmodSync, copyFileSync, existsSync, mkdirSync, rmSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import {
   NODE_RUNTIME_PIN,
-  isWindowsServerTarget,
   nodeRuntimeAsset,
   nodeRuntimeExecutablePath,
   nodeRuntimeHeadersUrl,
@@ -63,7 +62,11 @@ export async function fetchPinnedFile({ url, destination, sha256 }) {
  * Why per target: on Windows node-gyp links `<nodedir>/Release/node.lib`, which differs by
  * arch and is not in the headers tarball.
  */
-export async function preparePinnedNodeDir({ target, workDir, cacheDir = pinnedNodeCacheDir() }) {
+export async function preparePinnedNodeDir({
+  target: _target,
+  workDir,
+  cacheDir = pinnedNodeCacheDir()
+}) {
   const { version, headers } = NODE_RUNTIME_PIN
   const tarball = await fetchPinnedFile({
     url: nodeRuntimeHeadersUrl(),
@@ -73,16 +76,6 @@ export async function preparePinnedNodeDir({ target, workDir, cacheDir = pinnedN
   rmSync(workDir, { recursive: true, force: true })
   extract(tarball, workDir, `node-v${version}/include`)
   const nodeDir = join(workDir, `node-v${version}`)
-  if (isWindowsServerTarget(target)) {
-    const lib = NODE_RUNTIME_PIN.windowsImportLibs[target]
-    const cached = await fetchPinnedFile({
-      url: nodeRuntimeReleaseUrl('official', lib.file, version),
-      destination: join(cacheDir, `node-v${version}-${lib.file.replace('/', '-')}`),
-      sha256: lib.sha256
-    })
-    mkdirSync(join(nodeDir, 'Release'), { recursive: true })
-    copyFileSync(cached, join(nodeDir, 'Release', 'node.lib'))
-  }
   return nodeDir
 }
 

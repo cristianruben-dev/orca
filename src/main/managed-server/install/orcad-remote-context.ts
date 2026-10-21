@@ -4,7 +4,6 @@ import type { SshTarget } from '../../../shared/ssh-types'
 import type { OrcadActivationRecord } from '../activation/orcad-activation-record'
 import { readOrcadActivationRecord } from '../activation/orcad-activation-record-store'
 import { resolveOrcadRuntimeTarget } from '../lifecycle/orcad-runtime-target'
-import { prepareWindowsOrcadHost } from '../host-state/orcad-windows-host-preparation'
 import {
   isWslOrcadHostTarget,
   type OrcadHostTarget,
@@ -59,7 +58,7 @@ export async function resolveOrcadRemoteContext<Target extends OrcadHostTarget =
   detectedHost?: RemoteHostPlatform
 ): Promise<OrcadRemoteContext<Target>> {
   const host = detectedHost ?? (await detectRemoteHostPlatform(connection, { signal }))
-  if (!host) {
+  if (!host || isWindowsRemoteHost(host)) {
     throw new OrcadHostUnsupportedError('Orca’s server doesn’t support this SSH host’s platform.')
   }
   const remote = { conn: connection, host, signal }
@@ -74,16 +73,6 @@ export async function resolveOrcadRemoteContext<Target extends OrcadHostTarget =
   })
   if (!isWslOrcadHostTarget(target)) {
     rememberSshHostPlatform(target.id, host, serverTarget)
-  }
-  if (isWindowsRemoteHost(host)) {
-    // Every Windows host op, the activation record read included, runs on the pinned node.exe.
-    await prepareWindowsOrcadHost({
-      conn: connection,
-      host,
-      remoteHome,
-      serverTarget,
-      signal
-    })
   }
   const activationRecord = await readOrcadActivationRecord({
     ...remote,
@@ -102,14 +91,14 @@ export async function resolveOrcadRemoteContext<Target extends OrcadHostTarget =
 
 /**
  * The directory orcad's state hangs off on this machine: the login home, or this machine's own
- * home under it. Windows and WSL keep the login home: neither shares one across machines.
+ * home under it. WSL keeps the login home: neither shares one across machines.
  */
 export async function resolveOrcadMachineHome(
   remote: OrcadRemoteExecTarget,
   keyByMachine: boolean
 ): Promise<{ loginHome: string; orcadHome: string; userDataDir: string }> {
   const { host } = remote
-  if (!keyByMachine || isWindowsRemoteHost(host)) {
+  if (!keyByMachine) {
     const loginHome = normalizeRemoteHome(
       await execOrcadRemote(remote, readRemoteHomeCommand(host)),
       host

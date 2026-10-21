@@ -5,11 +5,7 @@
  * current owner; SIGKILL would skip flushing state and releasing the instance lock.
  */
 import { quotePosixShell } from '../../../shared/shell-argument-quoting'
-import {
-  isWindowsRemoteHost,
-  joinRemotePath,
-  type RemoteHostPlatform
-} from '../../ssh/ssh-remote-platform'
+import { joinRemotePath, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 import {
   ORCAD_READINESS_FILENAME,
   ORCAD_PID_FILENAME,
@@ -20,7 +16,6 @@ import {
   ORCAD_STOP_REQUESTS_CAPABILITY
 } from '../../../shared/orcad-stop-request'
 import { selectOrcadSlotRuntimeCommand } from './orcad-remote-runtime'
-import { orcadWindowsSlotOpCommand } from './orcad-remote-windows-node'
 
 /**
  * Ask the orcad recorded in a version dir to stop, and wait for it to go.
@@ -29,7 +24,6 @@ import { orcadWindowsSlotOpCommand } from './orcad-remote-windows-node'
  * request file, which only that orcad watches; older builds keep receiving SIGTERM. Both need
  * the readiness PID to corroborate the launcher's PID first, so a reused PID is never stopped.
  * `justLaunched` is only for this client's fixed exec launcher, including pre-readiness exits.
- * Windows has no graceful signal, so it only ever writes the request file.
  */
 export function stopOrcadCommand(
   host: RemoteHostPlatform,
@@ -39,14 +33,6 @@ export function stopOrcadCommand(
     | { justLaunched?: false; nodePath: string }
   )
 ): string {
-  if (isWindowsRemoteHost(host)) {
-    // Windows: stop-request file only; TerminateProcess skips durable shutdown and leaks the instance lock.
-    return orcadWindowsSlotOpCommand(host, remoteInstallDir, 'stop', [
-      remoteInstallDir,
-      String(options.waitSeconds),
-      options.justLaunched === true ? '1' : '0'
-    ])
-  }
   const pidFile = quotePosixShell(joinRemotePath(host, remoteInstallDir, ORCAD_PID_FILENAME))
   const readiness = quotePosixShell(
     joinRemotePath(host, remoteInstallDir, ORCAD_READINESS_FILENAME)

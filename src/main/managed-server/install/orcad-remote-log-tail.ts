@@ -7,16 +7,7 @@ import { redactString } from '../../observability/redactor'
 import { quotePosixShell } from '../../../shared/shell-argument-quoting'
 import { ORCAD_LOG_FILENAME } from './orcad-remote-host-support'
 import { execCommand } from '../../ssh/remote-exec/remote-exec-command'
-import {
-  isWindowsRemoteHost,
-  joinRemotePath,
-  type RemoteHostPlatform
-} from '../../ssh/ssh-remote-platform'
-import {
-  orcadWindowsSlotOpCommand,
-  readOrcadWindowsEncodedAnswer
-} from './orcad-remote-windows-node'
-import { ORCAD_WINDOWS_LOG_TAIL_MARKER } from '../host-state/orcad-windows-host-script'
+import { joinRemotePath, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 import type { OrcadRemoteExecTarget } from './orcad-remote-runtime-control'
 
 export const ORCAD_LOG_TAIL_LINES = 40
@@ -26,21 +17,12 @@ const ORCAD_LOG_TAIL_TIMEOUT_MS = 10_000
 
 export function orcadLogTailCommand(host: RemoteHostPlatform, slotDir: string): string {
   const log = joinRemotePath(host, slotDir, ORCAD_LOG_FILENAME)
-  if (isWindowsRemoteHost(host)) {
-    return orcadWindowsSlotOpCommand(host, slotDir, 'log-tail', [
-      log,
-      String(ORCAD_LOG_TAIL_MAX_BYTES)
-    ])
-  }
   return `tail -c ${ORCAD_LOG_TAIL_MAX_BYTES} ${quotePosixShell(log)} 2>/dev/null || true`
 }
 
 /** The last lines of what the host printed, redacted; null when the log is empty or absent. */
-export function parseOrcadLogTail(host: RemoteHostPlatform, output: string): string | null {
-  const raw = isWindowsRemoteHost(host)
-    ? (readOrcadWindowsEncodedAnswer(output, ORCAD_WINDOWS_LOG_TAIL_MARKER) ?? '')
-    : output
-  const bounded = Buffer.from(raw, 'utf8').subarray(-ORCAD_LOG_TAIL_MAX_BYTES).toString('utf8')
+export function parseOrcadLogTail(_host: RemoteHostPlatform, output: string): string | null {
+  const bounded = Buffer.from(output, 'utf8').subarray(-ORCAD_LOG_TAIL_MAX_BYTES).toString('utf8')
   const lines = bounded.replace(/\s+$/u, '').split(/\r?\n/u).slice(-ORCAD_LOG_TAIL_LINES)
   const tail = redactString(lines.join('\n'))
   return tail.trim() ? tail : null
@@ -53,7 +35,7 @@ export async function readOrcadLogTail(
   try {
     // No abort signal: the failure being reported may be the cancellation itself.
     const output = await execCommand(target.conn, orcadLogTailCommand(target.host, slotDir), {
-      wrapCommand: target.host.commandDialect !== 'powershell',
+      wrapCommand: true,
       timeoutMs: ORCAD_LOG_TAIL_TIMEOUT_MS
     })
     return parseOrcadLogTail(target.host, output)

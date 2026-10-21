@@ -1,5 +1,5 @@
 /** Whether the pre-activation snapshot fits, asked before the running server is stopped (#30491). */
-import { orcadRemoteBaseDir } from '../managed-server/install/orcad-remote-windows-node'
+import { RELAY_REMOTE_DIR } from './remote-exec/remote-frame-protocol'
 import { execOrcadRemoteOr } from '../managed-server/install/orcad-remote-runtime-control'
 import {
   ORCAD_STATE_SNAPSHOT_DIR,
@@ -11,9 +11,13 @@ import {
   orcadSnapshotSpaceCommand,
   parseOrcadSnapshotSpace
 } from '../managed-server/host-state/orcad-state-snapshot-space'
-import { joinRemotePath } from './ssh-remote-platform'
+import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import { isUnconfirmedSshCommandTermination } from './remote-exec/remote-exec-command'
 import type { OrcadSlotOptions } from './orcad-recovery-slot'
+
+function orcadRemoteBaseDir(host: RemoteHostPlatform, remoteHome: string): string {
+  return joinRemotePath(host, remoteHome, RELAY_REMOTE_DIR)
+}
 
 export const ORCAD_SNAPSHOT_SPACE_INSUFFICIENT_CODE = 'orcad_snapshot_space_insufficient'
 

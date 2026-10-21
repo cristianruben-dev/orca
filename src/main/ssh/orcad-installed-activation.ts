@@ -5,7 +5,7 @@
  * the host for `recoverInterruptedOrcadActivation` to finish or undo it. A run that ends with
  * the host provably back on one slot drops the fence; one that cannot prove it keeps it.
  */
-import { orcadRemoteBaseDir } from '../managed-server/install/orcad-remote-windows-node'
+import { RELAY_REMOTE_DIR } from './remote-exec/remote-frame-protocol'
 import { randomUUID } from 'node:crypto'
 import type { OrcadDeployOptions, OrcadDeployResult } from './orcad-remote-deploy'
 import { isUnconfirmedSshCommandTermination } from './remote-exec/remote-exec-command'
@@ -34,7 +34,7 @@ import {
   orcadSnapshotDirName,
   parseOrcadSnapshotCapture
 } from '../managed-server/host-state/orcad-state-snapshot'
-import { joinRemotePath } from './ssh-remote-platform'
+import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import { computeLocalOrcadBuildHash } from './orcad-local-build-hash'
 import { preflightInstalledOrcad } from '../managed-server/install/orcad-remote-preflight'
 import type { OrcadActivationLockControl } from '../managed-server/activation/orcad-activation-lock'
@@ -69,6 +69,10 @@ import {
 import { withOrcadLogTail } from '../managed-server/install/orcad-remote-log-tail'
 import { orcadCandidateLaunchFailureCode } from '../orcad/orcad-host-unavailable'
 import { errorMessage } from '../../shared/error-message'
+
+function orcadRemoteBaseDir(host: RemoteHostPlatform, remoteHome: string): string {
+  return joinRemotePath(host, remoteHome, RELAY_REMOTE_DIR)
+}
 
 type Outcome = Extract<OrcadDeployResult, { outcome: 'installed-not-activated' }>
 

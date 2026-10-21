@@ -21,6 +21,7 @@ import {
   RUNTIME_STORE_ENTRY_NAME,
   RUNTIME_STORE_TOMBSTONE_NAME,
   RUNTIME_STORE_TOMBSTONE_PREFIX,
+  runtimeStoreInventoryCommand,
   type RuntimeStoreInventory
 } from './remote-node-runtime-store-inventory'
 import {
@@ -38,15 +39,7 @@ import {
   removeRemoteTreeCommand,
   restoreRemoteTreeCommand
 } from '../../ssh/ssh-remote-commands'
-import {
-  isWindowsRemoteHost,
-  joinRemotePath,
-  type RemoteHostPlatform
-} from '../../ssh/ssh-remote-platform'
-import {
-  hostRuntimeStoreInventoryCommand,
-  windowsSweepStaleRuntimeStagesCommand
-} from './remote-node-runtime-store-windows'
+import { joinRemotePath, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 
 const MAX_REMOVALS_PER_PASS = 8
 const ABANDONED_TOMBSTONE_MS = 30 * 60_000
@@ -138,12 +131,9 @@ const SWEPT_STAGE = 'SWEPT'
  */
 export function sweepStaleRuntimeStagesCommand(
   storeDir: string,
-  host?: RemoteHostPlatform
+  _host?: RemoteHostPlatform
 ): string {
   const staleMinutes = Math.ceil(INSTALL_LOCK_STALE_MS / 60_000)
-  if (host && isWindowsRemoteHost(host)) {
-    return windowsSweepStaleRuntimeStagesCommand(storeDir, staleMinutes, SWEPT_STAGE)
-  }
   return [
     `for s in ${quotePosixShell(storeDir)}/${RUNTIME_STORE_STAGE_PREFIX}*; do`,
     '  [ -d "$s" ] && [ ! -L "$s" ] || continue',
@@ -165,12 +155,11 @@ export function parseSweptRuntimeStages(output: string): string[] {
 
 function exec(
   conn: RemoteInstallTransport,
-  host: RemoteHostPlatform,
+  _host: RemoteHostPlatform,
   command: string,
   signal?: AbortSignal
 ): Promise<string> {
-  // Why unwrapped on Windows: these are already self-contained powershell.exe command lines.
-  return execCommand(conn, command, { wrapCommand: !isWindowsRemoteHost(host), signal })
+  return execCommand(conn, command, { wrapCommand: true, signal })
 }
 
 async function readInventory(
@@ -181,7 +170,7 @@ async function readInventory(
 ): Promise<RuntimeStoreInventory | null> {
   try {
     return parseRuntimeStoreInventory(
-      await exec(conn, host, hostRuntimeStoreInventoryCommand(host, remoteHome), signal)
+      await exec(conn, host, runtimeStoreInventoryCommand(host, remoteHome), signal)
     )
   } catch (err) {
     if (isUnconfirmedSshCommandTermination(err)) {

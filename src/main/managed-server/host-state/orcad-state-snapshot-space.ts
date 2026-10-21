@@ -8,7 +8,7 @@
  * the running server: a host that cannot fit the snapshot keeps that server.
  */
 import { quotePosixShell } from '../../../shared/shell-argument-quoting'
-import { isWindowsRemoteHost, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
+import type { RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 import { ORCAD_SNAPSHOT_FAILURE, ORCAD_SNAPSHOT_MEMBERS } from './orcad-state-snapshot-members'
 import { dfAvailableKb, formatKb } from './remote-filesystem-space'
 
@@ -39,18 +39,15 @@ function prunePatterns(keep: readonly string[]): string {
 /**
  * Prints the KB the members occupy, the KB a prune would reclaim, and the `df -Pk` line for
  * `baseDir`; `UNMEASURED` when a scan overran its deadline. Read-only, so it can run before
- * anything stops. Null on Windows (not measured).
+ * anything stops.
  */
 export function orcadSnapshotSpaceCommand(
-  host: RemoteHostPlatform,
+  _host: RemoteHostPlatform,
   userDataDir: string,
   snapshotsRoot: string,
   baseDir: string,
   keep: readonly string[]
-): string | null {
-  if (isWindowsRemoteHost(host)) {
-    return null
-  }
+): string {
   const root = quotePosixShell(userDataDir)
   const members = ORCAD_SNAPSHOT_MEMBERS.map((member) => `${root}/${quotePosixShell(member)}`)
   const sum = `awk '{ total += $1 } END { print total + 0 }'`

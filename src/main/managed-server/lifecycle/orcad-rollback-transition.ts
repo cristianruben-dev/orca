@@ -1,5 +1,5 @@
 /** The locked, journaled half of `rollbackOrcad`. */
-import { orcadRemoteBaseDir } from '../install/orcad-remote-windows-node'
+import { RELAY_REMOTE_DIR } from '../../ssh/remote-exec/remote-frame-protocol'
 import { randomUUID } from 'node:crypto'
 import type { OrcadRollbackOptions, OrcadRollbackResult } from '../install/orcad-remote-rollback'
 import { isUnconfirmedSshCommandTermination } from '../../ssh/remote-exec/remote-exec-command'
@@ -21,7 +21,7 @@ import {
   newestStateMtimeCommand,
   parseNewestStateMtimeSeconds
 } from '../host-state/orcad-state-newest-mtime'
-import { joinRemotePath } from '../../ssh/ssh-remote-platform'
+import { joinRemotePath, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 import type { OrcadActivationLockControl } from '../activation/orcad-activation-lock'
 import {
   rollbackStartingState,
@@ -52,6 +52,10 @@ import {
 } from './orcad-rollback-terminal-barrier'
 import { withOrcadLogTail } from '../install/orcad-remote-log-tail'
 import { errorMessage } from '../../../shared/error-message'
+
+function orcadRemoteBaseDir(host: RemoteHostPlatform, remoteHome: string): string {
+  return joinRemotePath(host, remoteHome, RELAY_REMOTE_DIR)
+}
 
 async function stateWritesSinceActivation(options: OrcadRollbackOptions): Promise<boolean | null> {
   const activatedAtSeconds = Math.floor(Date.parse(options.record.activatedAt ?? '') / 1000)

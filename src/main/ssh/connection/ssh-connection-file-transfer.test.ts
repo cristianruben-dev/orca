@@ -56,24 +56,24 @@ describe('SshConnection', () => {
   it('passes the detected host platform to system SSH file operations', async () => {
     vi.mocked(resolveWithSshG).mockResolvedValueOnce(createResolvedConfig())
     const conn = new SshConnection(createTarget({ configHost: 'fdpass-host' }), createCallbacks())
-    const hostPlatform = getRemoteHostPlatform('win32-x64')
+    const hostPlatform = getRemoteHostPlatform('linux-x64')
 
     await conn.connect()
-    await conn.uploadDirectory('/tmp/local-relay', 'C:/Users/me/.orca-remote/relay', {
+    await conn.uploadDirectory('/tmp/local-relay', '/home/me/.orca-remote/relay', {
       hostPlatform
     })
-    await conn.writeFile('C:/Users/me/.orca-remote/relay/.version', '0.1.0', {
+    await conn.writeFile('/home/me/.orca-remote/relay/.version', '0.1.0', {
       hostPlatform
     })
-    await conn.writeBuffer('C:/Users/me/.orca-remote/relay/logo.png', Buffer.from('png'), {
+    await conn.writeBuffer('/home/me/.orca-remote/relay/logo.png', Buffer.from('png'), {
       hostPlatform,
       exclusive: true
     })
-    await conn.downloadFile('C:/Users/me/.orca-remote/relay/logo.png', '/tmp/logo.png', {
+    await conn.downloadFile('/home/me/.orca-remote/relay/logo.png', '/tmp/logo.png', {
       hostPlatform
     })
     const uploadSession = await conn.openFileUploadSession({ hostPlatform })
-    await uploadSession.uploadFile('/tmp/logo.png', 'C:/Users/me/project/logo.png', {
+    await uploadSession.uploadFile('/tmp/logo.png', '/home/me/project/logo.png', {
       exclusive: true
     })
     uploadSession.close()
@@ -81,7 +81,7 @@ describe('SshConnection', () => {
     expect(uploadDirectoryViaSystemSsh).toHaveBeenCalledWith(
       expect.objectContaining({ configHost: 'fdpass-host' }),
       '/tmp/local-relay',
-      'C:/Users/me/.orca-remote/relay',
+      '/home/me/.orca-remote/relay',
       expect.objectContaining({
         hostPlatform,
         resolvedConfig: expect.objectContaining({ proxyUseFdpass: true })
@@ -89,7 +89,7 @@ describe('SshConnection', () => {
     )
     expect(writeFileViaSystemSsh).toHaveBeenCalledWith(
       expect.objectContaining({ configHost: 'fdpass-host' }),
-      'C:/Users/me/.orca-remote/relay/.version',
+      '/home/me/.orca-remote/relay/.version',
       '0.1.0',
       expect.objectContaining({
         hostPlatform,
@@ -98,7 +98,7 @@ describe('SshConnection', () => {
     )
     expect(writeBufferViaSystemSsh).toHaveBeenCalledWith(
       expect.objectContaining({ configHost: 'fdpass-host' }),
-      'C:/Users/me/.orca-remote/relay/logo.png',
+      '/home/me/.orca-remote/relay/logo.png',
       Buffer.from('png'),
       expect.objectContaining({
         hostPlatform,
@@ -108,7 +108,7 @@ describe('SshConnection', () => {
     )
     expect(downloadFileViaSystemSsh).toHaveBeenCalledWith(
       expect.objectContaining({ configHost: 'fdpass-host' }),
-      'C:/Users/me/.orca-remote/relay/logo.png',
+      '/home/me/.orca-remote/relay/logo.png',
       '/tmp/logo.png',
       expect.objectContaining({
         hostPlatform,
@@ -118,7 +118,7 @@ describe('SshConnection', () => {
     expect(uploadFileViaSystemSsh).toHaveBeenCalledWith(
       expect.objectContaining({ configHost: 'fdpass-host' }),
       '/tmp/logo.png',
-      'C:/Users/me/project/logo.png',
+      '/home/me/project/logo.png',
       expect.objectContaining({
         hostPlatform,
         exclusive: true,

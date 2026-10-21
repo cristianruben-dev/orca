@@ -7,21 +7,10 @@ import {
   parseOrcadProfilePreflight
 } from '../../../shared/orcad-profile-preflight'
 import { assertPosixOrcadHost } from './orcad-remote-host-support'
-import {
-  orcadWindowsNodeCommandLine,
-  orcadWindowsSlotOpCommand,
-  readOrcadWindowsEncodedAnswer
-} from './orcad-remote-windows-node'
-import { readWindowsOrcadSlotEntry } from './orcad-remote-launch-windows'
-import { ORCAD_WINDOWS_RUNTIME_MARKER } from '../host-state/orcad-windows-host-script'
 import { orcadNodeSlotRuntimeCommand, selectOrcadSlotEntryCommand } from './orcad-remote-runtime'
 import { execCommand } from '../../ssh/remote-exec/remote-exec-command'
 import { quotePosixShell } from '../../../shared/shell-argument-quoting'
-import {
-  isWindowsRemoteHost,
-  joinRemotePath,
-  type RemoteHostPlatform
-} from '../../ssh/ssh-remote-platform'
+import { joinRemotePath, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 import type { OrcadHostTransport } from '../../ssh/orcad-host-transport'
 
 export function orcadProfilePreflightCommand(
@@ -53,43 +42,11 @@ export async function preflightInstalledOrcad(options: {
   signal?: AbortSignal
 }): Promise<void> {
   const nonce = randomUUID()
-  const command = isWindowsRemoteHost(options.host)
-    ? await windowsOrcadProfilePreflightCommand(options, nonce)
-    : orcadProfilePreflightCommand(options.host, options.remoteInstallDir, nonce)
+  const command = orcadProfilePreflightCommand(options.host, options.remoteInstallDir, nonce)
   const output = await execCommand(options.conn, command, {
     signal: options.signal,
     timeoutMs: ORCAD_PROFILE_PREFLIGHT_TIMEOUT_MS,
-    wrapCommand: !isWindowsRemoteHost(options.host)
+    wrapCommand: true
   })
   parseOrcadProfilePreflight(output, nonce, ORCAD_NODE_RUNTIME_IDENTITY, options.fullVersion)
-}
-
-/**
- * Windows: resolve the slot's node.exe, then run its selected entry with plain argv. No
- * ORCA_BACKGROUND_LAUNCH here: orcad opens no window, and argv cannot set environment.
- */
-async function windowsOrcadProfilePreflightCommand(
-  options: {
-    conn: OrcadHostTransport
-    host: RemoteHostPlatform
-    remoteInstallDir: string
-    signal?: AbortSignal
-  },
-  nonce: string
-): Promise<string> {
-  const { host, remoteInstallDir } = options
-  const slotAnswer = await execCommand(
-    options.conn,
-    orcadWindowsSlotOpCommand(host, remoteInstallDir, 'slot-runtime', [remoteInstallDir]),
-    { signal: options.signal, wrapCommand: false }
-  )
-  const runtime = readOrcadWindowsEncodedAnswer(slotAnswer, ORCAD_WINDOWS_RUNTIME_MARKER)
-  if (!runtime) {
-    throw new Error('The Windows host did not name the runtime this orcad slot needs.')
-  }
-  return orcadWindowsNodeCommandLine(runtime, [
-    readWindowsOrcadSlotEntry(slotAnswer, host, remoteInstallDir),
-    ORCAD_PROFILE_PREFLIGHT_FLAG,
-    nonce
-  ])
 }

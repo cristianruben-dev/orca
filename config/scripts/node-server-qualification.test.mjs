@@ -119,8 +119,6 @@ it('keeps all hosts for shared changes alongside a platform-specific change', ()
 })
 
 it.each([
-  'src/main/managed-server/install/remote-node-runtime-store-windows.ts',
-  'src/main/managed-server/install/orcad-remote-node-runtime-windows.ts',
   'src/main/ssh/ssh-posix-command-wrapper.test.ts',
   'src/main/providers/agent-foreground-process-git-bash.win32.test.ts',
   'src/main/runtime/windows-firewall-remote-scope.ts',

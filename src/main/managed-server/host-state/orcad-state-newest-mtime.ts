@@ -1,7 +1,6 @@
 /** When the shared profile state was last written, which tells a rollback whether to restore. */
 import { quotePosixShell } from '../../../shared/shell-argument-quoting'
-import { isWindowsRemoteHost, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
-import { orcadWindowsHostOpCommand } from '../install/orcad-remote-windows-node'
+import type { RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 import { ORCAD_SNAPSHOT_MEMBERS } from './orcad-state-snapshot-members'
 
 /**
@@ -12,13 +11,10 @@ import { ORCAD_SNAPSHOT_MEMBERS } from './orcad-state-snapshot-members'
  * assume writes".
  */
 export function newestStateMtimeCommand(
-  host: RemoteHostPlatform,
+  _host: RemoteHostPlatform,
   userDataDir: string,
-  baseDir: string
+  _baseDir: string
 ): string {
-  if (isWindowsRemoteHost(host)) {
-    return orcadWindowsHostOpCommand(host, baseDir, 'state-newest-mtime', [userDataDir])
-  }
   const root = quotePosixShell(userDataDir)
   const paths = ORCAD_SNAPSHOT_MEMBERS.map((member) => `${root}/${quotePosixShell(member)}`).join(
     ' '

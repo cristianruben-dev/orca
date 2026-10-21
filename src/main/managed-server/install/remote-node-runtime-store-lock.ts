@@ -16,12 +16,7 @@ import {
   type InstallLockOwnerFile
 } from './remote-install-lock-commands'
 import { RELAY_REMOTE_DIR } from '../../ssh/remote-exec/remote-frame-protocol'
-import { removeRemoteTreeCommand } from '../../ssh/ssh-remote-commands'
-import {
-  isWindowsRemoteHost,
-  joinRemotePath,
-  type RemoteHostPlatform
-} from '../../ssh/ssh-remote-platform'
+import { joinRemotePath, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 
 export const RUNTIME_STORE_LOCK_NAME = '.store-lock'
 /** Names the holder, so a release never removes a lock someone else took after it. */
@@ -61,9 +56,6 @@ function heldLock(
 ): HeldRuntimeStoreLock {
   return {
     releasedByHostOnExit: (command) => {
-      if (isWindowsRemoteHost(host)) {
-        throw new Error('The runtime store lock is released by the host only on POSIX hosts.')
-      }
       // Why ignore HUP/PIPE: a client that hung up must not stop the release, and capturing the
       // output keeps the release ahead of the first write to a closed channel.
       return (
@@ -81,12 +73,9 @@ async function releaseRuntimeStoreLock(
   storeDir: string,
   owner: InstallLockOwnerFile
 ): Promise<void> {
-  const windows = isWindowsRemoteHost(host)
   const lock = lockDir(host, storeDir)
   // Why owner-checked on POSIX: the host may already have released it and another holder taken it.
-  const command = windows
-    ? removeRemoteTreeCommand(host, lock)
-    : `${posixReleaseOwnedLockCommand(host, lock, owner)} || true`
+  const command = `${posixReleaseOwnedLockCommand(host, lock, owner)} || true`
   await execHostCommand(conn, host, command).catch((error) => {
     if (isUnconfirmedSshCommandTermination(error)) {
       throw error

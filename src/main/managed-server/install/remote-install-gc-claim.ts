@@ -9,11 +9,8 @@ import {
   tryStealInstallLockCommand
 } from './remote-install-lock-commands'
 import { removeRemoteTreeCommand } from '../../ssh/ssh-remote-commands'
-import { powerShellCommand } from '../../ssh/ssh-remote-powershell'
-import { quotePowerShellLiteral as powerShellLiteral } from '../../../shared/powershell-native-argument'
 import {
   getRemoteHostPlatform,
-  isWindowsRemoteHost,
   joinRemotePath,
   type RemoteHostPlatform
 } from '../../ssh/ssh-remote-platform'
@@ -96,11 +93,7 @@ async function writeRelayGcClaimOwner(
   const token = `${process.pid}-${Date.now()}-${randomUUID()}`
   const claimPath = relayGcClaimPath(remoteRelayDir)
   const ownerPath = joinRemotePath(host, claimPath, RELAY_GC_OWNER_NAME)
-  const command = isWindowsRemoteHost(host)
-    ? powerShellCommand(
-        `Set-Content -LiteralPath ${powerShellLiteral(ownerPath)} -Value ${powerShellLiteral(token)} -NoNewline -ErrorAction Stop`
-      )
-    : `printf %s ${quotePosixShell(token)} > ${quotePosixShell(ownerPath)}`
+  const command = `printf %s ${quotePosixShell(token)} > ${quotePosixShell(ownerPath)}`
   try {
     await execHostCommand(conn, host, command, { signal })
     return token
@@ -122,11 +115,7 @@ export async function isRelayGcClaimOwned(
   host: RemoteHostPlatform = DEFAULT_REMOTE_HOST
 ): Promise<boolean> {
   const ownerPath = joinRemotePath(host, relayGcClaimPath(remoteRelayDir), RELAY_GC_OWNER_NAME)
-  const command = isWindowsRemoteHost(host)
-    ? powerShellCommand(
-        `if ((Get-Content -LiteralPath ${powerShellLiteral(ownerPath)} -Raw -ErrorAction SilentlyContinue) -ceq ${powerShellLiteral(token)}) { 'OWNED' } else { 'LOST' }`
-      )
-    : `test "$(cat ${quotePosixShell(ownerPath)} 2>/dev/null)" = ${quotePosixShell(token)} && echo OWNED || echo LOST`
+  const command = `test "$(cat ${quotePosixShell(ownerPath)} 2>/dev/null)" = ${quotePosixShell(token)} && echo OWNED || echo LOST`
   const output = await execHostCommand(conn, host, command).catch((error) => {
     if (isUnconfirmedSshCommandTermination(error)) {
       throw error
@@ -146,20 +135,12 @@ export async function releaseRelayGcClaim(
 ): Promise<RelayGcClaimReleaseResult> {
   const claimPath = relayGcClaimPath(remoteRelayDir)
   const ownerPath = joinRemotePath(host, claimPath, RELAY_GC_OWNER_NAME)
-  const command = isWindowsRemoteHost(host)
-    ? powerShellCommand(
-        `$claim = ${powerShellLiteral(claimPath)}; ` +
-          `if (-not (Test-Path -LiteralPath $claim)) { 'RELEASED' } ` +
-          `elseif ((Get-Content -LiteralPath ${powerShellLiteral(ownerPath)} -Raw -ErrorAction SilentlyContinue) -cne ${powerShellLiteral(token)}) { 'LOST' } ` +
-          'else { try { Remove-Item -LiteralPath $claim -Recurse -Force -ErrorAction Stop } catch {}; ' +
-          "if (Test-Path -LiteralPath $claim) { 'UNKNOWN' } else { 'RELEASED' } }"
-      )
-    : [
-        `if ! test -e ${quotePosixShell(claimPath)}; then echo RELEASED;`,
-        `elif test "$(cat ${quotePosixShell(ownerPath)} 2>/dev/null)" != ${quotePosixShell(token)}; then echo LOST;`,
-        `else ${removeRemoteTreeCommand(host, claimPath)} 2>/dev/null;`,
-        `if test -e ${quotePosixShell(claimPath)}; then echo UNKNOWN; else echo RELEASED; fi; fi`
-      ].join(' ')
+  const command = [
+    `if ! test -e ${quotePosixShell(claimPath)}; then echo RELEASED;`,
+    `elif test "$(cat ${quotePosixShell(ownerPath)} 2>/dev/null)" != ${quotePosixShell(token)}; then echo LOST;`,
+    `else ${removeRemoteTreeCommand(host, claimPath)} 2>/dev/null;`,
+    `if test -e ${quotePosixShell(claimPath)}; then echo UNKNOWN; else echo RELEASED; fi; fi`
+  ].join(' ')
   const output = await execHostCommand(conn, host, command).catch((error) => {
     if (isUnconfirmedSshCommandTermination(error)) {
       throw error

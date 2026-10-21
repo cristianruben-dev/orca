@@ -9,16 +9,11 @@ import {
   type HostRelayEndpointCensus
 } from './ssh-host-relay-endpoint-census'
 import type { SshConnection } from '../connection/ssh-connection'
-import { censusWindowsHostRelays, windowsCensusNodePath } from './ssh-host-relay-windows-census'
 import { execCommand } from '../remote-exec/remote-exec-command'
 import { readRemoteHomeCommand } from '../ssh-remote-commands'
 import { resolveRemoteNodePath } from '../ssh-remote-node-resolution'
 import { detectRemoteHostPlatform } from '../ssh-remote-platform-detection'
-import {
-  isWindowsRemoteHost,
-  normalizeRemoteHome,
-  validateRemoteHome
-} from '../ssh-remote-platform'
+import { normalizeRemoteHome, validateRemoteHome } from '../ssh-remote-platform'
 import {
   assessOrcadMigrationTerminals,
   terminalsRunElsewhere,
@@ -59,29 +54,19 @@ export function hostTerminalProofFromCensus(
 /** The census over the connect's bootstrap connection, before any relay session exists. */
 export async function censusSshHostRelaysBeforeSession(
   conn: SshConnection,
-  targetId: string,
+  _targetId: string,
   signal?: AbortSignal
 ): Promise<HostRelayEndpointCensus> {
   const host = await detectRemoteHostPlatform(conn, { signal })
   if (!host) {
     return { verdict: 'unverifiable', count: 0 }
   }
-  const windows = isWindowsRemoteHost(host)
   const remoteHome = normalizeRemoteHome(
-    await execCommand(conn, readRemoteHomeCommand(host), { signal, wrapCommand: !windows }),
+    await execCommand(conn, readRemoteHomeCommand(host), { signal, wrapCommand: true }),
     host
   )
   if (!validateRemoteHome(remoteHome, host)) {
     return { verdict: 'unverifiable', count: 0 }
-  }
-  if (windows) {
-    return censusWindowsHostRelays(conn, {
-      host,
-      remoteHome,
-      targetId,
-      nodePath: () => windowsCensusNodePath(conn, host, remoteHome, signal),
-      signal
-    })
   }
   return censusHostRelayEndpoints(conn, {
     host,

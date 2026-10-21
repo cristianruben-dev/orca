@@ -25,10 +25,10 @@ import {
   runWithOrcadFence,
   type OrcadFence
 } from './orcad-activation-fence-scope'
-import { orcadRemoteBaseDir, orcadWindowsHomeOpCommand } from '../install/orcad-remote-windows-node'
+import { joinRemotePath, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
+import { RELAY_REMOTE_DIR } from '../../ssh/remote-exec/remote-frame-protocol'
 import { forgetHeldOrcadFence, rememberHeldOrcadFence } from '../../ssh/orcad-held-fence-tokens'
 import { exitedOwnLockProof } from '../../ssh/orcad-exited-own-lock'
-import { isWindowsRemoteHost } from '../../ssh/ssh-remote-platform'
 import {
   orcadActivationFenceLockDir,
   orcadActivationTransactionPath,
@@ -40,6 +40,10 @@ import {
 } from './orcad-activation-transaction-store'
 
 const ORCAD_ACTIVATION_MAX_READINESS_TIMEOUT_MS = 5 * 60_000
+
+function orcadRemoteBaseDir(host: RemoteHostPlatform, remoteHome: string): string {
+  return joinRemotePath(host, remoteHome, RELAY_REMOTE_DIR)
+}
 
 export type OrcadActivationLockOptions = OrcadRemoteExecTarget & { remoteHome: string }
 
@@ -254,13 +258,7 @@ async function releaseActivationFence(
   const journal = orcadActivationTransactionPath(options.host, options.remoteHome)
   // Why no signal: a cancelled run must still be able to drop a fence it proved unnecessary.
   const target = withoutAbortSignal(options)
-  const command = isWindowsRemoteHost(options.host)
-    ? orcadWindowsHomeOpCommand(options.host, options.remoteHome, 'fence-release', [
-        fence.lockDir,
-        journal,
-        fence.token
-      ])
-    : posixReleaseFenceCommand(fence, journal, lockRoot)
+  const command = posixReleaseFenceCommand(fence, journal, lockRoot)
   const answer = (await execOrcadRemote(target, command)).trim()
   forgetHeldOrcadFence(fence.token)
   if (answer.endsWith('SUPERSEDED')) {
