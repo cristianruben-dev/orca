@@ -7,7 +7,6 @@ import {
 } from '../../../shared/execution-host'
 import type { ExecutionHostOwnerMatch } from '../../../shared/worktree-execution-host-resolution'
 import { translate } from '@/i18n/i18n'
-import { getWindowsPathAccess } from './windows-path-access'
 
 export type LocalPathOpenOwner =
   | ExecutionHostOwnerMatch<ExecutionHostId>
@@ -30,10 +29,7 @@ export function isLocalPathOpenBlocked(owner: LocalPathOpenOwner): boolean {
  * host's, which Windows reaches through `\\wsl.localhost` (D5). Main re-checks the owner.
  */
 export function isRevealOrEditorOpenBlocked(owner: LocalPathOpenOwner): boolean {
-  return (
-    isLocalPathOpenBlocked(owner) &&
-    getWindowsPathAccess(getLocalPathOpenOwnerHostId(owner)) === null
-  )
+  return isLocalPathOpenBlocked(owner)
 }
 
 /** The owner of a route still spelled as a runtime id plus an SSH connection id. */
