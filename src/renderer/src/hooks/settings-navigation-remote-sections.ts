@@ -24,14 +24,7 @@ import {
 import type { SettingsNavigationBuildOptions } from './settings-navigation-build-options'
 
 export function buildRemoteSettingsSections(
-  {
-    isMac,
-    isWindowsTerminalHost,
-    isWebClient,
-    isDev,
-    repos,
-    projectGrouping
-  }: SettingsNavigationBuildOptions,
+  { isMac, isWebClient, isDev, repos, projectGrouping }: SettingsNavigationBuildOptions,
   runtimeEnvironmentsSearchEntry: SettingsNavSection['searchEntries'][number],
   reposById: ReadonlyMap<string, Repo>
 ): SettingsNavSection[] {
@@ -178,9 +171,7 @@ export function buildRemoteSettingsSections(
         title: checkoutLabel ?? project.displayName,
         description: `${getRepoKindLabel(project)} • ${hostSummary}`,
         icon: SlidersHorizontal,
-        searchEntries: getRepositoryPaneSearchEntries(representativeRepo, {
-          windowsRuntimeSupported: isWindowsTerminalHost
-        }),
+        searchEntries: getRepositoryPaneSearchEntries(representativeRepo),
         group: 'repositories'
       }
     })

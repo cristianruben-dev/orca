@@ -8,70 +8,26 @@ import {
 import { matchesSettingsSearch } from './settings-search'
 
 describe('getTerminalPaneSearchEntries', () => {
-  it('indexes desktop administrator mode only for Windows clients', () => {
-    const windows = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
-    const remoteWindows = getTerminalPaneSearchEntries({
-      isWindows: false,
-      isWindowsTerminalHost: true,
-      isMac: true
-    })
-    expect(windows.some((entry) => entry.title === 'Administrator mode')).toBe(true)
-    expect(matchesSettingsSearch('uac', windows)).toBe(true)
-    expect(remoteWindows.some((entry) => entry.title === 'Administrator mode')).toBe(false)
-  })
-  it('includes the Windows right-click setting on Windows', () => {
-    const entries = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
-    expect(entries.some((entry) => entry.title === 'Right-click to paste')).toBe(true)
-  })
-
-  it('includes the PowerShell version setting on Windows', () => {
-    const entries = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
-    expect(entries.some((entry) => entry.title === 'PowerShell Version')).toBe(true)
-  })
-
-  it('keeps Windows host entries separate from Windows client entries', () => {
-    const entries = getTerminalPaneSearchEntries({
-      isWindows: false,
-      isWindowsTerminalHost: true,
-      isMac: false
-    })
-
-    expect(entries.some((entry) => entry.title === 'Default Shell')).toBe(true)
-    expect(entries.some((entry) => entry.title === 'PowerShell Version')).toBe(true)
-    expect(entries.some((entry) => entry.title === 'Right-click to paste')).toBe(true)
-  })
-
-  it('omits legacy WSL distribution terminal settings on Windows', () => {
-    const entries = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
-    expect(entries.some((entry) => entry.title === 'WSL Distribution')).toBe(false)
-    expect(matchesSettingsSearch('ubuntu distro', entries)).toBe(false)
-  })
-
   it('includes the right-click setting on macOS and Linux', () => {
-    const entries = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
-    const macEntries = getTerminalPaneSearchEntries({ isWindows: false, isMac: true })
+    const entries = getTerminalPaneSearchEntries({ isMac: false })
+    const macEntries = getTerminalPaneSearchEntries({ isMac: true })
     expect(entries.some((entry) => entry.title === 'Right-click to paste')).toBe(true)
     expect(macEntries.some((entry) => entry.title === 'Right-click to paste')).toBe(true)
   })
 
-  it('omits the PowerShell version setting elsewhere', () => {
-    const entries = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
-    expect(entries.some((entry) => entry.title === 'PowerShell Version')).toBe(false)
-  })
-
   it('includes the Option as Alt setting on macOS', () => {
-    const entries = getTerminalPaneSearchEntries({ isWindows: false, isMac: true })
+    const entries = getTerminalPaneSearchEntries({ isMac: true })
     expect(entries.some((entry) => entry.title === 'Option as Alt')).toBe(true)
   })
 
   it('omits the Option as Alt setting on non-macOS', () => {
-    const entries = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
+    const entries = getTerminalPaneSearchEntries({ isMac: false })
     expect(entries.some((entry) => entry.title === 'Option as Alt')).toBe(false)
   })
 
   it('includes the JIS Yen mapping setting only on macOS', () => {
-    const entriesMac = getTerminalPaneSearchEntries({ isWindows: false, isMac: true })
-    const entriesLinux = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
+    const entriesMac = getTerminalPaneSearchEntries({ isMac: true })
+    const entriesLinux = getTerminalPaneSearchEntries({ isMac: false })
 
     expect(entriesMac.some((entry) => entry.title === 'JIS Yen (¥) to Backslash (\\)')).toBe(true)
     expect(entriesLinux.some((entry) => entry.title === 'JIS Yen (¥) to Backslash (\\)')).toBe(
@@ -80,16 +36,14 @@ describe('getTerminalPaneSearchEntries', () => {
   })
 
   it('includes the Manage Sessions entry on all platforms', () => {
-    const entriesWindows = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
-    const entriesMac = getTerminalPaneSearchEntries({ isWindows: false, isMac: true })
-    const entriesLinux = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
-    expect(entriesWindows.some((entry) => entry.title === 'Manage Sessions')).toBe(true)
+    const entriesMac = getTerminalPaneSearchEntries({ isMac: true })
+    const entriesLinux = getTerminalPaneSearchEntries({ isMac: false })
     expect(entriesMac.some((entry) => entry.title === 'Manage Sessions')).toBe(true)
     expect(entriesLinux.some((entry) => entry.title === 'Manage Sessions')).toBe(true)
   })
 
   it('indexes terminal scrollback as rows rather than MB size', () => {
-    const entries = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
+    const entries = getTerminalPaneSearchEntries({ isMac: false })
     const scrollbackEntry = entries.find((entry) => entry.title === 'Scrollback Rows')
 
     expect(scrollbackEntry).toBeDefined()
@@ -97,23 +51,17 @@ describe('getTerminalPaneSearchEntries', () => {
     expect(entries.some((entry) => entry.title === 'Scrollback Size')).toBe(false)
   })
 
-  it('indexes the Unix terminal shell profile without exposing it on Windows', () => {
-    const unixEntries = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
-    const windowsEntries = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
+  it('indexes the terminal shell profile', () => {
+    const unixEntries = getTerminalPaneSearchEntries({ isMac: false })
     const shellEntry = unixEntries.find((entry) => entry.title === 'Terminal shell')
 
     expect(shellEntry).toBeDefined()
     expect(matchesSettingsSearch('rcfile', [shellEntry!])).toBe(true)
-    expect(windowsEntries.some((entry) => entry.title === 'Terminal shell')).toBe(false)
   })
 
   it('includes the OSC 52 clipboard setting on all platforms', () => {
-    const entriesWindows = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
-    const entriesMac = getTerminalPaneSearchEntries({ isWindows: false, isMac: true })
-    const entriesLinux = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
-    expect(
-      entriesWindows.some((entry) => entry.title === 'Allow TUI Clipboard Writes (OSC 52)')
-    ).toBe(true)
+    const entriesMac = getTerminalPaneSearchEntries({ isMac: true })
+    const entriesLinux = getTerminalPaneSearchEntries({ isMac: false })
     expect(entriesMac.some((entry) => entry.title === 'Allow TUI Clipboard Writes (OSC 52)')).toBe(
       true
     )
@@ -123,10 +71,9 @@ describe('getTerminalPaneSearchEntries', () => {
   })
 
   it('includes the running-terminal close confirmation setting on all platforms', () => {
-    const entriesWindows = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
-    const entriesMac = getTerminalPaneSearchEntries({ isWindows: false, isMac: true })
-    const entriesLinux = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
-    const hasEntry = (entries: typeof entriesWindows): boolean =>
+    const entriesMac = getTerminalPaneSearchEntries({ isMac: true })
+    const entriesLinux = getTerminalPaneSearchEntries({ isMac: false })
+    const hasEntry = (entries: typeof entriesMac): boolean =>
       entries.some(
         (entry) =>
           entry.title === 'Ask Before Closing Running Terminals' &&
@@ -135,17 +82,14 @@ describe('getTerminalPaneSearchEntries', () => {
           matchesSettingsSearch('close', [entry])
       )
 
-    expect(hasEntry(entriesWindows)).toBe(true)
     expect(hasEntry(entriesMac)).toBe(true)
     expect(hasEntry(entriesLinux)).toBe(true)
   })
 
   it('keeps terminal appearance settings in the Appearance search index', () => {
-    const entriesWindows = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
-    const entriesMac = getTerminalPaneSearchEntries({ isWindows: false, isMac: true })
-    const entriesLinux = getTerminalPaneSearchEntries({ isWindows: false, isMac: false })
+    const entriesMac = getTerminalPaneSearchEntries({ isMac: true })
+    const entriesLinux = getTerminalPaneSearchEntries({ isMac: false })
 
-    expect(entriesWindows.some((entry) => entry.title === 'Import from Ghostty')).toBe(false)
     expect(entriesMac.some((entry) => entry.title === 'Font Size')).toBe(false)
     expect(entriesLinux.some((entry) => entry.title === 'Dark Theme')).toBe(false)
     expect(

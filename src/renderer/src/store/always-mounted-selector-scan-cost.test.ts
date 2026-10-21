@@ -6,18 +6,15 @@
  */
 import { describe, expect, it } from 'vitest'
 import type { Repo } from '../../../shared/repo-types'
-import type { TerminalTab } from '../../../shared/terminal-tab-types'
 import type { Worktree } from '../../../shared/worktree/types'
 import { WORKTREE_ID_SEPARATOR } from '../../../shared/worktree/id'
 import { getLocalPreflightContext } from '../lib/local-preflight-context'
-import { getProjectRuntimeSessionSummary } from '../components/settings/repository-runtime-session-summary'
 import type { AppState } from './types'
 import { selectRepoByIdForActiveWorkspace } from './selectors'
 
 // The user scale that motivated this: 10 repos, 423 worktrees, 382 open tabs.
 const REPO_COUNT = 10
 const WORKTREES_PER_REPO = 42
-const TABS_PER_WORKTREE = 1
 const STORE_WRITES = 200
 
 type ReadCounter = { count: number }
@@ -199,97 +196,5 @@ describe('selectRepoByIdForActiveWorkspace', () => {
     expect(selectRepoByIdForActiveWorkspace(state, 'repo-1')).toBe(
       selectRepoByIdForActiveWorkspace(state, 'repo-1')
     )
-  })
-})
-
-describe('project runtime session summary', () => {
-  function makeRuntimeSessionState(counter: ReadCounter): AppState {
-    const tabsByWorktree: Record<string, TerminalTab[]> = {}
-    for (let repoIndex = 0; repoIndex < REPO_COUNT; repoIndex += 1) {
-      for (let index = 0; index < WORKTREES_PER_REPO; index += 1) {
-        const worktreeId = `repo-${repoIndex}${WORKTREE_ID_SEPARATOR}/tmp/wt-${repoIndex}-${index}`
-        tabsByWorktree[worktreeId] = Array.from(
-          { length: TABS_PER_WORKTREE },
-          (_unused, tabIndex) => {
-            const id = `tab-${repoIndex}-${index}-${tabIndex}`
-            return {
-              get id() {
-                counter.count += 1
-                return id
-              },
-              ptyId: `pty-${id}`,
-              worktreeId
-            } as TerminalTab
-          }
-        )
-      }
-    }
-    return {
-      tabsByWorktree,
-      ptyIdsByTabId: {},
-      agentStatusByPaneKey: {}
-    } as unknown as AppState
-  }
-
-  it('reuses the tab index across repos and store writes', () => {
-    const counter: ReadCounter = { count: 0 }
-    const state = makeRuntimeSessionState(counter)
-    const tabCount = REPO_COUNT * WORKTREES_PER_REPO * TABS_PER_WORKTREE
-    counter.count = 0
-
-    // One RepositoryPane per project, all re-running on every store write.
-    for (let write = 0; write < STORE_WRITES; write += 1) {
-      for (let repoIndex = 0; repoIndex < REPO_COUNT; repoIndex += 1) {
-        expect(getProjectRuntimeSessionSummary(state, `repo-${repoIndex}`)).toEqual({
-          liveTerminalCount: WORKTREES_PER_REPO * TABS_PER_WORKTREE,
-          activeTaskCount: 0
-        })
-      }
-    }
-
-    // The shared tab index plus one pass over each repo's own tabs.
-    expect(counter.count).toBeLessThanOrEqual(tabCount * 3)
-  })
-
-  it('returns an identical summary for repeated reads of one snapshot', () => {
-    const state = makeRuntimeSessionState({ count: 0 })
-    expect(getProjectRuntimeSessionSummary(state, 'repo-0')).toBe(
-      getProjectRuntimeSessionSummary(state, 'repo-0')
-    )
-  })
-
-  it('recomputes when a tab slice is replaced', () => {
-    const state = makeRuntimeSessionState({ count: 0 })
-    const first = getProjectRuntimeSessionSummary(state, 'repo-0')
-    const worktreeId = `repo-0${WORKTREE_ID_SEPARATOR}/tmp/wt-0-0`
-    const next = getProjectRuntimeSessionSummary(
-      {
-        ...state,
-        tabsByWorktree: {
-          [worktreeId]: [{ id: 'tab-new', ptyId: 'pty-new', worktreeId } as TerminalTab]
-        }
-      } as unknown as AppState,
-      'repo-0'
-    )
-
-    expect(first.liveTerminalCount).toBe(WORKTREES_PER_REPO * TABS_PER_WORKTREE)
-    expect(next.liveTerminalCount).toBe(1)
-  })
-
-  it('counts running agents against the owning project only', () => {
-    const state = makeRuntimeSessionState({ count: 0 })
-    const summary = getProjectRuntimeSessionSummary(
-      {
-        ...state,
-        agentStatusByPaneKey: {
-          'tab-0-0-0:leaf': { state: 'working', tabId: 'tab-0-0-0' },
-          'tab-1-0-0:leaf': { state: 'working', tabId: 'tab-1-0-0' },
-          'tab-0-1-0:leaf': { state: 'done', tabId: 'tab-0-1-0' }
-        }
-      } as unknown as AppState,
-      'repo-0'
-    )
-
-    expect(summary.activeTaskCount).toBe(1)
   })
 })

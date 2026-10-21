@@ -42,9 +42,6 @@ vi.mock('@/components/settings/GeneralSupportSection', () => ({
 vi.mock('@/components/settings/ReleaseChannelSection', () => ({
   ReleaseChannelSection: () => <div>Release picker open</div>
 }))
-vi.mock('@/components/settings/DefaultWindowsProjectRuntimeSetting', () => ({
-  DefaultWindowsProjectRuntimeSetting: () => null
-}))
 beforeEach(() => {
   vi.clearAllMocks()
   fake.query = ''
