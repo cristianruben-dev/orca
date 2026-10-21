@@ -202,7 +202,6 @@ export const SETTINGS_CHANGED_WHITELIST = [
   'openLinksInAppModifierInverts',
   'terminalLinkActionPopoverEnabled',
   'experimentalMobile',
-  'experimentalPet',
   'experimentalNativeChat',
   'experimentalActivity',
   'experimentalAgentDashboardPopout',
