@@ -8,7 +8,7 @@ import {
   writeManagedScriptRemote
 } from '../agent-hooks/installer-utils-remote'
 import { buildInstalledGrokConfig } from './grok-hook-config'
-import { GROK_HOME_ENVELOPE_MAX_LENGTH } from './windows-grok-hook-script'
+import { GROK_HOME_ENVELOPE_MAX_LENGTH } from './grok-hook-script'
 
 function status(configPath: string, detail: string | null = null): AgentHookInstallStatus {
   return {
