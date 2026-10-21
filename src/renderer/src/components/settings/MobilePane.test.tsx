@@ -157,11 +157,6 @@ vi.mock('./MobilePairedDevicesSection', () => ({
   }
 }))
 vi.mock('./MobileAutoRestoreFitSection', () => ({ MobileAutoRestoreFitSection: () => <div /> }))
-vi.mock('../mobile/WindowsFirewallNotice', () => ({
-  WindowsFirewallNotice: (props: { usingRelay?: boolean }) => (
-    <div data-testid="firewall-notice">{String(props.usingRelay)}</div>
-  )
-}))
 
 import { MobilePane } from './MobilePane'
 
@@ -479,17 +474,6 @@ describe('MobilePane pairing connection mode', () => {
     expect(updateSettings).not.toHaveBeenCalled()
     expect(getPairingQR).not.toHaveBeenCalled()
     expect(screen.getByTestId('qr')).toHaveTextContent('base64,qr')
-  })
-
-  it('keeps the firewall notice on Relay, which still uses the direct LAN path', async () => {
-    const user = userEvent.setup()
-    render(<MobilePane />)
-
-    expect(screen.getByTestId('mode')).toHaveTextContent('automatic')
-    expect(screen.getByTestId('firewall-notice')).toHaveTextContent('true')
-
-    await user.click(screen.getByRole('button', { name: 'choose-local' }))
-    expect(screen.getByTestId('firewall-notice')).toHaveTextContent('false')
   })
 
   it('keeps the current pairing code when only custom address intent changes', async () => {

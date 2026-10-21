@@ -7,7 +7,6 @@ import { ONBOARDING_FINAL_STEP } from '../../../../shared/onboarding-defaults'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { OnboardingState } from '../../../../shared/onboarding-state-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
-import { buildWindowsTerminalSnapshotPayload } from './windows-terminal-onboarding-telemetry'
 import { persistStep, type PersistCurrentStepResult } from './use-onboarding-flow-persistence'
 import { STEPS, type StepNumber } from './use-onboarding-flow-types'
 import {
@@ -84,17 +83,6 @@ export function useOnboardingFlowActions({
       })
       if (currentStep.id === 'integrations') {
         trackTaskSourcesSnapshot('continue', durationMs, advancedVia)
-      }
-      if (currentStep.id === 'windows_terminal') {
-        track(
-          'onboarding_windows_terminal_snapshot',
-          buildWindowsTerminalSnapshotPayload({
-            settings,
-            exitAction: 'continue',
-            durationMs,
-            advancedVia
-          })
-        )
       }
     },
     [
@@ -212,17 +200,6 @@ export function useOnboardingFlowActions({
       })
       if (stepId === 'integrations') {
         trackTaskSourcesSnapshot('skip_to_project_setup', durationMs, 'button')
-      }
-      if (stepId === 'windows_terminal') {
-        track(
-          'onboarding_windows_terminal_snapshot',
-          buildWindowsTerminalSnapshotPayload({
-            settings,
-            exitAction: 'skip_to_project_setup',
-            durationMs,
-            advancedVia: 'button'
-          })
-        )
       }
       openModal('add-repo')
     } finally {
