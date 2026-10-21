@@ -19,18 +19,12 @@ import { resolveCliCommand } from '../../src/shared/node-cli-command-resolution.
 import { removeTreeSync } from '../../src/shared/windows-transient-lock-removal.ts'
 import { resolvePnpmCliInvocation } from './pnpm-cli-invocation.mjs'
 import { copyScriptWithLocalModules } from './script-module-dependencies.mjs'
-import {
-  nodeGypRebuildInvocation,
-  nodeGypRebuildTimeoutMs
-} from './windows-process-tree-gyp-rebuild.mjs'
+import { nodeGypRebuildInvocation, nodeGypRebuildTimeoutMs } from './shared-native-build.mjs'
 
 const sourceScriptPath = fileURLToPath(new URL('./ensure-native-runtime.mjs', import.meta.url))
 // The import walk sees `from './x.mjs'` only, so the createRequire'd CJS
 // siblings have to be named. Without them the temp project cannot even load.
-const REQUIRED_CJS_SIBLINGS = [
-  'node-pty-job-ownership.cjs',
-  'windows-process-tree-creation-time.cjs'
-]
+const REQUIRED_CJS_SIBLINGS = ['node-pty-job-ownership.cjs']
 
 describe('ensure-native-runtime', () => {
   it('rechecks Node native modules in fresh child processes after rebuilding', () => {
@@ -273,8 +267,6 @@ describe('ensure-native-runtime', () => {
 
 function mkTempProject() {
   const projectDir = mkdtempSync(join(tmpdir(), 'orca-native-runtime-'))
-  // Walked, not listed: the script imports windows-process-tree-gyp-rebuild.mjs, and a fixture
-  // missing it fails every case with a module-resolution error instead of the defect under test.
   copyScriptWithLocalModules(sourceScriptPath, join(projectDir, 'config', 'scripts'))
   const processPackage = join(projectDir, 'node_modules', '@orca', 'process-host')
   mkdirSync(processPackage, { recursive: true })

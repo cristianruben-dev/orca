@@ -47,11 +47,7 @@ const WORKSPACE_WINDOWS_ADDON_BINARIES = [
   ['@orca/windows-registry', 'build/Release/orca_windows_registry.node'],
   ['@orca/windows-security', 'build/Release/orca_windows_security.node']
 ]
-const WINDOWS_PACKAGED_RUNTIME_PACKAGE_ROOTS = [
-  '@vscode/windows-process-tree',
-  '@orca/windows-registry',
-  '@orca/windows-security'
-]
+const WINDOWS_PACKAGED_RUNTIME_PACKAGE_ROOTS = []
 
 const NODE_PTY_PREBUILD_PREFIX_BY_PLATFORM = {
   darwin: 'darwin-',
@@ -625,12 +621,7 @@ function assertPackagedNativeVariantsInstalled(electronPlatformName, electronArc
     }
   }
 
-  // Why one package: @vscode/windows-process-tree is the only os: win32 npm addon;
-  // the @orca/windows-* addons are workspace links present on every host, so their presence proves nothing.
   const missingWindowsAddons = []
-  if (electronPlatformName === 'win32' && !isInstalled('@vscode/windows-process-tree')) {
-    missingWindowsAddons.push('@vscode/windows-process-tree')
-  }
   // Why the binary, not the package: the link exists everywhere, and a missing or foreign-arch
   // .node would otherwise surface only at runtime (secure files unrestricted, orcad refusing to start).
   if (electronPlatformName === 'win32') {

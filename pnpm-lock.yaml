@@ -172,7 +172,6 @@ packageExtensionsChecksum: sha256-TrarseUCmMKP0lVjkfyLP2TAvkGZMZzvzPxjKY48nrY=
 pnpmfileChecksum: sha256-6l6qdgUHKyTLYIQLx/UGfGRnEiFXxIaSlGMgK4mttEw=
 
 patchedDependencies:
-  '@vscode/windows-process-tree@0.8.0': a09f2e8b2b4e73ef20c317af91f9e06c09abf62fa2c891d99b16f53047f596fd
   '@xterm/addon-image@0.10.0-beta.301': f088c9207dac42844a542b9da8078be52351cee60585725ef189b9fd30f33f34
   '@xterm/addon-ligatures@0.11.0-beta.301': 47405b9994b5acf1b4e90b49250358c1ca03649854d59560e7732b72fe336920
   '@xterm/addon-search@0.17.0-beta.301': eee5338dd2621ece46e79c61ec06766cd7fadaf79ffdb24e2a8ab68e97ef31f0
@@ -642,9 +641,6 @@ importers:
         specifier: ^5.0.15
         version: 5.0.15(@types/react@19.2.18)(@types/use-sync-external-store@0.0.6)(react@19.2.8)(use-sync-external-store@1.6.0(@types/react@19.2.18)(react@19.2.8))
     optionalDependencies:
-      '@vscode/windows-process-tree':
-        specifier: 0.8.0
-        version: 0.8.0(patch_hash=a09f2e8b2b4e73ef20c317af91f9e06c09abf62fa2c891d99b16f53047f596fd)
       sherpa-onnx-darwin-arm64:
         specifier: 1.12.37
         version: 1.12.37
@@ -655,9 +651,6 @@ importers:
         specifier: 1.12.37
         version: 1.12.37
       sherpa-onnx-linux-x64:
-        specifier: 1.12.37
-        version: 1.12.37
-      sherpa-onnx-win-x64:
         specifier: 1.12.37
         version: 1.12.37
 
@@ -4376,9 +4369,6 @@ packages:
   '@vscode/ripgrep-universal@1.18.0':
     resolution: {integrity: sha512-kgrAVy1L/v/8erAjo+I720ifTf7o4rvYUwgsuEu97XAEBtPT9sk3HhcSgFpxMydvNmwdJtXo9/AVee7JjocTrg==}
 
-  '@vscode/windows-process-tree@0.8.0':
-    resolution: {integrity: sha512-TI+h2GRwX+igD/YYJMQQVAFcsCNSg7Te2yYxQpKMzwto5RsJ8d2KKgOeur/p/6sAOQwZvopiTDOClyTHEn9MhQ==}
-
   '@xmldom/xmldom@0.8.15':
     resolution: {integrity: sha512-/5NV/vDALVFDXgLmfsy9TRCBlKwO2LNBFzpzvb9iIj+jR+eSc6DLYYvVOdivT/jm7MtU6TebYuRmzEOI7w40UA==}
     engines: {node: '>=10.0.0'}
@@ -6802,10 +6792,6 @@ packages:
     resolution: {integrity: sha512-vLBWCKb+7LWsX+TbfzWOkw0W81m377tyx3hOweBTjO43CXZnRGS1/JPWs20fr0PgZyDXk6ROYrylsEycK8raDA==}
     engines: {node: '>=22.12.0'}
 
-  node-addon-api@7.1.0:
-    resolution: {integrity: sha512-mNcltoe1R8o7STTegSOHdnJNN7s5EUvhoS7ShnTHDyOSd+8H+UdWODq6qSv67PjC8Zc5JRT8+oLAMCr0SIXw7g==}
-    engines: {node: ^16 || ^18 || >= 20}
-
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
 
@@ -7679,11 +7665,6 @@ packages:
     resolution: {integrity: sha512-WF69clWjTlBu6NIBdL8OLEEN4NwOlYjjB/AjCMs29pB6gtSzKJEKIjmTATfaSSExTGPeXsOriCXcMdHaMH4WNg==}
     cpu: [x64]
     os: [linux]
-
-  sherpa-onnx-win-x64@1.12.37:
-    resolution: {integrity: sha512-1h1UrJxzA1vkOO2G8JqRQkF9SfEhM/LYW+yFki5izCY5N+eaaxYKdZLmVZI3KAhxk28pkE6dnMETYi0nj2/Cuw==}
-    cpu: [x64]
-    os: [win32]
 
   shiki@4.5.0:
     resolution: {integrity: sha512-OcRW72ngQvc+MSVWBRIovC/BTW589iUE/Vxav7VeM4RcY9MUjqB+IR6ILG1k9nuW6LiG/nct9uma4/MBtnZbmQ==}
@@ -11581,11 +11562,6 @@ snapshots:
 
   '@vscode/ripgrep-universal@1.18.0': {}
 
-  '@vscode/windows-process-tree@0.8.0(patch_hash=a09f2e8b2b4e73ef20c317af91f9e06c09abf62fa2c891d99b16f53047f596fd)':
-    dependencies:
-      node-addon-api: 7.1.0
-    optional: true
-
   '@xmldom/xmldom@0.8.15': {}
 
   '@xterm/addon-fit@0.12.0-beta.301(@xterm/xterm@6.1.0-beta.304(patch_hash=87de83f62154c0f2c31eb17d14b881e139f3368f8be1e9e2951bfeba16d86156))':
@@ -14393,9 +14369,6 @@ snapshots:
     dependencies:
       semver: 7.8.1
 
-  node-addon-api@7.1.0:
-    optional: true
-
   node-addon-api@7.1.1: {}
 
   node-api-version@0.2.1:
@@ -15502,9 +15475,6 @@ snapshots:
     optional: true
 
   sherpa-onnx-linux-x64@1.12.37:
-    optional: true
-
-  sherpa-onnx-win-x64@1.12.37:
     optional: true
 
   shiki@4.5.0:

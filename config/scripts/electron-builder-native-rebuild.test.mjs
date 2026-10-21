@@ -83,16 +83,6 @@ describe('electron-builder native rebuild hook', () => {
     expect(calls).toEqual([
       [
         process.execPath,
-        ['config/scripts/build-windows-cli-launcher.mjs'],
-        expect.objectContaining({ stdio: 'inherit' })
-      ],
-      [
-        process.execPath,
-        ['config/scripts/build-windows-agent-hook.mjs', '--arch', 'x64'],
-        expect.objectContaining({ stdio: 'inherit' })
-      ],
-      [
-        process.execPath,
         ['config/scripts/rebuild-native-deps.mjs', '--platform=win32', '--arch=x64', '--force'],
         expect.objectContaining({ stdio: 'inherit' })
       ]

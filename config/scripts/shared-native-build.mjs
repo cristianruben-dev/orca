@@ -17,13 +17,15 @@ import { stageNodeAddonApi } from './orcad-prebuild-node-gyp.mjs'
 import { describeProcessFailure } from './process-failure-message.mjs'
 import { publishSharedTree, sharedTreeStagingPath } from './shared-tree-publish.mjs'
 import { nativeBuildEntryDir } from './native-build-entry.cjs'
-import {
-  ensureWindowsProcessTreeCommandLinePatch,
-  inspectWindowsProcessTreeAddon,
-  nodeGypRebuildInvocation,
-  nodeGypRebuildTimeoutMs,
-  stageWindowsProcessTreeNodeAddonApiHeaders
-} from './windows-process-tree-gyp-rebuild.mjs'
+export const nodeGypRebuildTimeoutMs = (_moduleName) => 120_000
+
+export function nodeGypRebuildInvocation(arch, cwd, nodeGypEntry) {
+  const entry = nodeGypEntry || require.resolve('node-gyp/bin/node-gyp.js')
+  return {
+    args: [entry, 'rebuild', `--arch=${arch}`],
+    cwd
+  }
+}
 
 const require = createRequire(import.meta.url)
 const { assertNodePtySourceDeniesMsysBreakaway } = require('./node-pty-job-ownership.cjs')
@@ -45,12 +47,6 @@ export function nativeBuildEnvironment(env = process.env, platform = process.pla
  * (Node, or Electron as Node), the only proof an addon is usable.
  */
 export function checkNativeBuildDirLoads(moduleName, dir, { executable = process.execPath } = {}) {
-  if (
-    moduleName === '@vscode/windows-process-tree' &&
-    inspectWindowsProcessTreeAddon(join(dir, 'windows_process_tree.node')) !== 'clean'
-  ) {
-    return `${dir} has no addon built from the patched command-line reader`
-  }
   let result
   try {
     result = runProcessSync({
@@ -70,11 +66,9 @@ export function checkNativeBuildDirLoads(moduleName, dir, { executable = process
 /** For a cross-host target nothing here can load: the artifacts must exist and match the arch. */
 export function checkNativeBuildDirArtifacts(moduleName, dir, { platform, arch }) {
   const files =
-    moduleName === '@vscode/windows-process-tree'
-      ? ['windows_process_tree.node']
-      : platform === 'win32'
-        ? ['conpty.node', ...NODE_PTY_CONPTY_RUNTIME_FILES.map((name) => join('conpty', name))]
-        : ['pty.node', ...(platform === 'darwin' ? ['spawn-helper'] : [])]
+    platform === 'win32'
+      ? ['conpty.node', ...NODE_PTY_CONPTY_RUNTIME_FILES.map((name) => join('conpty', name))]
+      : ['pty.node', ...(platform === 'darwin' ? ['spawn-helper'] : [])]
   const missing = files.find((file) => !existsSync(join(dir, file)))
   if (missing) {
     return `${join(dir, missing)} is missing`
@@ -131,14 +125,7 @@ export function ensureSharedNativeBuild({
     })
     const stagingDir = sharedTreeStagingPath(entryDir)
     mkdirSync(dirname(entryDir), { recursive: true })
-    cpSync(releaseDir, stagingDir, {
-      recursive: true,
-      // windows-process-tree leaves MSBuild intermediates beside its one runtime file.
-      filter: (path) =>
-        moduleName !== '@vscode/windows-process-tree' ||
-        path === releaseDir ||
-        path.endsWith('.node')
-    })
+    cpSync(releaseDir, stagingDir, { recursive: true })
     const stagedReason = checkBuildDir(stagingDir)
     if (stagedReason !== null) {
       rmSync(stagingDir, { recursive: true, force: true })
@@ -173,10 +160,6 @@ function compileInScratchCopy({ moduleName, physicalDir, sourceDir, arch, nodeGy
     if (process.platform === 'win32') {
       assertNodePtySourceDeniesMsysBreakaway({ nodePtyDir: sourceDir })
     }
-  } else if (moduleName === '@vscode/windows-process-tree') {
-    // Repairs land in the private copy: the shared slot's source stays exactly as pnpm wrote it.
-    ensureWindowsProcessTreeCommandLinePatch(sourceDir)
-    stageWindowsProcessTreeNodeAddonApiHeaders(sourceDir, physicalDir)
   }
 
   log(`Building ${moduleName} for ${arch} in ${sourceDir}.`)
