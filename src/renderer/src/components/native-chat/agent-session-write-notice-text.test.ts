@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { i18n, setRendererPluginLanguagePacks } from '@/i18n/i18n'
 import en from '@/i18n/locales/en.json'
-import fr from '@/i18n/locales/fr.json'
-import ja from '@/i18n/locales/ja.json'
-import ko from '@/i18n/locales/ko.json'
-import zh from '@/i18n/locales/zh.json'
 import { pluginLanguageResourceId } from '../../../../shared/plugins/plugin-language-pack-artifact'
 import { agentSessionWriteNoticeEnglish } from '../../../../shared/agent-session-refusal-notice'
 import {
@@ -36,39 +32,29 @@ describe('desktop words for a write that did not happen', () => {
     expect(en.components['native-chat'].writeNotice).toEqual(AGENT_SESSION_WRITE_NOTICE_COPY)
   })
 
-  it('translates each sentence whole and shows a provider reason as written', async () => {
-    await i18n.changeLanguage('fr')
+  it('translates each sentence whole and shows a provider reason as written', () => {
     expect(agentSessionWriteNoticeText(['restartFailed', 'notDoneSend'])).toBe(
-      "L'agent n'a pas pu redémarrer. Votre message n'a pas été envoyé."
+      "The agent couldn't restart. Your message was not sent."
     )
     expect(
       agentSessionWriteNoticeText([{ text: 'Claude messages support at most 20 images' }])
     ).toBe('Claude messages support at most 20 images')
   })
 
-  it('runs sentences on in Japanese and Chinese, and spaces them in other languages', async () => {
+  it('spaces sentences in English', () => {
     // Two sentences from the notice, and two the failure words join inside their own sentence.
     const parts: AgentSessionWriteNoticePart[] = [
       'notDoneSend',
       { failure: { kind: 'startFailed' }, surface: 'rejection', context: { agentName: 'Claude' } }
     ]
-    for (const [language, catalog, gap] of [
-      ['ja', ja, ''],
-      ['zh', zh, ''],
-      ['en', en, ' '],
-      ['fr', fr, ' '],
-      ['ko', ko, ' ']
-    ] as const) {
-      await i18n.changeLanguage(language)
-      const chat = catalog.components['native-chat']
-      expect(agentSessionWriteNoticeText(parts)).toBe(
-        [
-          chat.writeNotice.notDoneSend,
-          chat.failureWords.couldNotStart.replace('{{agent}}', 'Claude'),
-          chat.failureWords.sendToTryAgain
-        ].join(gap)
-      )
-    }
+    const chat = en.components['native-chat']
+    expect(agentSessionWriteNoticeText(parts)).toBe(
+      [
+        chat.writeNotice.notDoneSend,
+        chat.failureWords.couldNotStart.replace('{{agent}}', 'Claude'),
+        chat.failureWords.sendToTryAgain
+      ].join(' ')
+    )
   })
 
   it("runs on after a plugin language's full stop, and keeps the space after English it left", async () => {

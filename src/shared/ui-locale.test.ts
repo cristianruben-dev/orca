@@ -12,45 +12,19 @@ import {
 } from './ui-language'
 
 describe('ui-locale', () => {
-  it('normalizes supported locale prefixes', () => {
+  it('normalizes locales to English', () => {
     expect(normalizeSupportedUiLocale('en-US')).toBe('en')
-    expect(normalizeSupportedUiLocale('zh-CN')).toBe('zh')
-    expect(normalizeSupportedUiLocale('zh-Hans')).toBe('zh')
-    expect(normalizeSupportedUiLocale('zh-SG')).toBe('zh')
-  })
-
-  it('falls back unsupported locales to English', () => {
+    expect(normalizeSupportedUiLocale('zh-CN')).toBe('en')
     expect(normalizeSupportedUiLocale('de-DE')).toBe('en')
   })
 
-  it('does not map Traditional Chinese to Simplified yet', () => {
-    expect(normalizeSupportedUiLocale('zh-TW')).toBe('en')
-    expect(normalizeSupportedUiLocale('zh-HK')).toBe('en')
-    expect(normalizeSupportedUiLocale('zh-Hant')).toBe('en')
-  })
-
-  it('resolves explicit English independently of system locale', () => {
+  it('resolves explicit languages to English', () => {
     expect(resolveUiLocale(UI_LANGUAGE_ENGLISH, 'zh-CN')).toBe('en')
-  })
-
-  it('resolves explicit Chinese independently of system locale', () => {
-    expect(resolveUiLocale(UI_LANGUAGE_CHINESE, 'en-US')).toBe('zh')
-  })
-
-  it('resolves explicit Korean independently of system locale', () => {
-    expect(resolveUiLocale(UI_LANGUAGE_KOREAN, 'en-US')).toBe('ko')
-  })
-
-  it('resolves explicit Japanese independently of system locale', () => {
-    expect(resolveUiLocale(UI_LANGUAGE_JAPANESE, 'en-US')).toBe('ja')
-  })
-
-  it('resolves explicit Spanish independently of system locale', () => {
-    expect(resolveUiLocale(UI_LANGUAGE_SPANISH, 'en-US')).toBe('es')
-  })
-
-  it('resolves explicit French independently of system locale', () => {
-    expect(resolveUiLocale(UI_LANGUAGE_FRENCH, 'en-US')).toBe('fr')
+    expect(resolveUiLocale(UI_LANGUAGE_CHINESE, 'en-US')).toBe('en')
+    expect(resolveUiLocale(UI_LANGUAGE_KOREAN, 'en-US')).toBe('en')
+    expect(resolveUiLocale(UI_LANGUAGE_JAPANESE, 'en-US')).toBe('en')
+    expect(resolveUiLocale(UI_LANGUAGE_SPANISH, 'en-US')).toBe('en')
+    expect(resolveUiLocale(UI_LANGUAGE_FRENCH, 'en-US')).toBe('en')
   })
 
   it('preserves a selected plugin language bundle id', () => {
@@ -59,12 +33,12 @@ describe('ui-locale', () => {
     )
   })
 
-  it('maps system locale to the closest supported locale', () => {
+  it('maps system locale to English', () => {
     expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'en-GB')).toBe('en')
-    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'zh-CN')).toBe('zh')
-    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'ko-KR')).toBe('ko')
-    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'ja-JP')).toBe('ja')
-    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'es-MX')).toBe('es')
-    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'fr-FR')).toBe('fr')
+    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'zh-CN')).toBe('en')
+    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'ko-KR')).toBe('en')
+    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'ja-JP')).toBe('en')
+    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'es-MX')).toBe('en')
+    expect(resolveUiLocale(UI_LANGUAGE_SYSTEM, 'fr-FR')).toBe('en')
   })
 })

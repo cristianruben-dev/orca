@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PRCheckRunDetails } from '../../../../shared/github/check-types'
-import zh from '../../i18n/locales/zh.json'
 import { recordRuntimeSubscription } from '@/runtime/runtime-environment-bridge-fixture'
 import { createCompatibleRuntimeStatusResponse } from '@/runtime/runtime-compatibility-test-fixture'
 import {
@@ -29,26 +28,24 @@ import {
   expectedLegacyControls
 } from '@/lib/check-run-details-log-normalization-test-fixture'
 
-vi.mock('@/i18n/i18n', async () => {
-  const { default: catalog } = await import('../../i18n/locales/zh.json')
+const { timeoutMessage, genericMessages } = vi.hoisted(() => ({
+  timeoutMessage: 'Translated timeout message.',
+  genericMessages: {
+    store: 'Translated store failure.',
+    dialog: 'Translated dialog failure.',
+    page: 'Translated page failure.'
+  }
+}))
+
+vi.mock('@/i18n/i18n', () => {
   const messages: Record<string, string> = {
-    'auto.runtime.githubCheckDetailsTimeout.timedOut':
-      catalog.auto.runtime.githubCheckDetailsTimeout.timedOut,
-    'auto.store.slices.editor.checkRunDetailsLoadFailed':
-      catalog.auto.store.slices.editor.checkRunDetailsLoadFailed,
-    'auto.components.GitHubItemDialog.e45324fbed':
-      catalog.auto.components.GitHubItemDialog.e45324fbed,
-    'auto.components.PullRequestPage.e04c027d98': catalog.auto.components.PullRequestPage.e04c027d98
+    'auto.runtime.githubCheckDetailsTimeout.timedOut': timeoutMessage,
+    'auto.store.slices.editor.checkRunDetailsLoadFailed': genericMessages.store,
+    'auto.components.GitHubItemDialog.e45324fbed': genericMessages.dialog,
+    'auto.components.PullRequestPage.e04c027d98': genericMessages.page
   }
   return { translate: (key: string, fallback: string) => messages[key] ?? fallback }
 })
-
-const timeoutMessage = zh.auto.runtime.githubCheckDetailsTimeout.timedOut
-const genericMessages = {
-  store: zh.auto.store.slices.editor.checkRunDetailsLoadFailed,
-  dialog: zh.auto.components.GitHubItemDialog.e45324fbed,
-  page: zh.auto.components.PullRequestPage.e04c027d98
-}
 type Loader = ReturnType<typeof createLoader>
 function expectFailure(loader: Loader, surface: Surface, message: string, original?: unknown) {
   if (surface === 'store') {

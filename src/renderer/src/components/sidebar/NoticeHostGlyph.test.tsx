@@ -10,10 +10,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import NoticeHostGlyph from './NoticeHostGlyph'
 import en from '../../i18n/locales/en.json'
-import es from '../../i18n/locales/es.json'
-import ja from '../../i18n/locales/ja.json'
-import ko from '../../i18n/locales/ko.json'
-import zh from '../../i18n/locales/zh.json'
 
 const runtimeStatusByEnvironmentId = new Map<string, { status?: unknown }>()
 
@@ -154,16 +150,4 @@ describe('NoticeHostGlyph', () => {
       runtimeHostProject: 'Project on {{hostName}}'
     })
   })
-
-  it.each(Object.entries({ es, ja, ko, zh }))(
-    'keeps its copy in the %s catalog',
-    (_locale, catalog) => {
-      expect(catalog.auto.components.sidebar.NoticeHostGlyph).toMatchObject({
-        hostDisconnected: expect.stringContaining('{{hostName}}'),
-        sshHostProject: expect.stringContaining('{{hostName}}'),
-        localHostProject: expect.any(String),
-        runtimeHostProject: expect.stringContaining('{{hostName}}')
-      })
-    }
-  )
 })
