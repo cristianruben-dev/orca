@@ -28,8 +28,6 @@ export class OrcadStdioBridgeUnavailableError extends Error {
 }
 
 export const ORCAD_TUNNEL_UNAVAILABLE_REASON = 'ssh_tunnel_unavailable'
-export const ORCAD_WINDOWS_LAUNCH_REFUSED_CODE = 'orcad_windows_launch_refused'
-export const ORCAD_WINDOWS_COMMAND_LINE_UNSAFE_CODE = 'orcad_windows_command_line_unsafe'
 
 export type OrcadHostUnavailableReason =
   | 'unsupported_host'
@@ -49,18 +47,14 @@ const UNAVAILABLE_BY_ERROR_NAME: Record<string, OrcadHostUnavailableReason> = {
   RemoteNodeRuntimeSelfTestError: 'runtime_self_test',
   RemoteNodeRuntimeNoexecError: 'runtime_noexec',
   RemoteNodeRuntimeSecurityModifiedError: 'security_software',
-  OrcadStdioBridgeUnavailableError: ORCAD_TUNNEL_UNAVAILABLE_REASON,
-  OrcadWindowsLaunchRefusedError: 'unsupported_host',
-  OrcadWindowsCommandLineError: 'unsupported_host'
+  OrcadStdioBridgeUnavailableError: ORCAD_TUNNEL_UNAVAILABLE_REASON
 }
 
-// Why only these deferrals: the candidate's native preflight (libc floor, missing libraries), its
-// PTY self-test and a Windows launch refusal fail the same way on every retry; races don't.
+// Why only these deferrals: the candidate's native preflight (libc floor, missing libraries)
+// and its PTY self-test fail the same way on every retry; races don't.
 const UNAVAILABLE_BY_DEFERRAL_CODE: Record<string, OrcadHostUnavailableReason> = {
   orcad_candidate_preflight_failed: 'native_preflight',
-  orcad_activation_pty_self_test_failed: 'native_preflight',
-  [ORCAD_WINDOWS_LAUNCH_REFUSED_CODE]: 'unsupported_host',
-  [ORCAD_WINDOWS_COMMAND_LINE_UNSAFE_CODE]: 'unsupported_host'
+  orcad_activation_pty_self_test_failed: 'native_preflight'
 }
 
 /** Host settings the user can change, so a later connect checks again instead of remembering it. */
@@ -68,13 +62,9 @@ export function isOrcadHostUnavailableFixableOnHost(reason: string): boolean {
   return reason === 'runtime_noexec'
 }
 
-/** The deferral code for a candidate launch failure, keeping the permanent Windows refusals. */
-export function orcadCandidateLaunchFailureCode(error: unknown): string {
-  const code = error instanceof Error && 'code' in error ? error.code : undefined
-  return code === ORCAD_WINDOWS_LAUNCH_REFUSED_CODE ||
-    code === ORCAD_WINDOWS_COMMAND_LINE_UNSAFE_CODE
-    ? code
-    : 'orcad_candidate_launch_failed'
+/** The deferral code for a candidate launch failure. */
+export function orcadCandidateLaunchFailureCode(_error: unknown): string {
+  return 'orcad_candidate_launch_failed'
 }
 
 export function classifyOrcadHostUnavailable(failure: unknown): OrcadHostUnavailableReason | null {

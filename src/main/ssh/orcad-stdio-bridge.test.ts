@@ -19,7 +19,6 @@ import {
   spawnLocalBridgeChannel,
   startEchoServer
 } from '../managed-server/lifecycle/orcad-stdio-bridge-test-channel'
-import { ORCAD_WINDOWS_HOST_SCRIPT } from '../managed-server/host-state/orcad-windows-host-script'
 import type { OrcadHostTransport } from './orcad-host-transport'
 import type { RemoteCommandChannel } from '../managed-server/install/remote-install-transport'
 
@@ -145,19 +144,6 @@ describe.runIf(POSIX)('the POSIX stdio bridge command', () => {
     await expect(checkOrcadStdioBridge(conn, posixBridge(echo.port))).rejects.toBeInstanceOf(
       OrcadStdioBridgeUnavailableError
     )
-  })
-})
-
-describe('the Windows host script’s stdio-bridge op', () => {
-  it('frames every byte as base64 lines both ways', async () => {
-    const script = join(scratch, 'orcad-host-script.js')
-    writeFileSync(script, ORCAD_WINDOWS_HOST_SCRIPT)
-    const channel = spawnLocalBridgeChannel(process.execPath, [
-      script,
-      'stdio-bridge',
-      String(echo.port)
-    ])
-    expect((await roundTrip(channel, 'base64')).equals(PAYLOAD)).toBe(true)
   })
 })
 

@@ -1,11 +1,6 @@
 /**
  * Which hosts the orcad launch/lifecycle path actually supports, declared rather than
  * discovered at runtime.
- *
- * The install transaction is host-agnostic — it is the relay's, and the relay runs on
- * Windows. Every managed-orcad operation runs on Windows through the host script
- * (`orcad-windows-host-script.ts`); the guard below remains only on POSIX command builders
- * that the Windows paths never call.
  */
 import { isWindowsRemoteHost, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 
@@ -35,8 +30,6 @@ export const ORCAD_READINESS_MAX_BYTES = 256 * 1024
 
 /** PID of the launched orcad, written into its own version dir at launch. */
 export const ORCAD_PID_FILENAME = '.orcad-pid'
-/** Windows' `.orcad-pid`: `{"pid":N,"creationTimeMs":M|null}`, since a PID alone is no identity there. */
-export const ORCAD_WINDOWS_PROCESS_FILENAME = '.orcad-process.json'
 
 /**
  * A shell function answering whether a PID is a *running* process.

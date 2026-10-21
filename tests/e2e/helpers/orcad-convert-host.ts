@@ -3,10 +3,8 @@
  * OpenSSH host the ssh-windows-hosts lane provisioned and described in a descriptor file.
  */
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
 import type { TestInfo } from '@stablyai/playwright-test'
 import type { SshTargetCreateInput } from '../../../src/shared/ssh-types'
-import { parseWindowsHostCellDescriptor } from '../../../src/main/ssh/ssh-windows-host-cells'
 import {
   blockDockerSshHostTargetTcpForwarding,
   cleanupDockerSshHostTarget,
@@ -84,20 +82,5 @@ export function startOrcadConvertHost(source: string, testInfo: TestInfo): Orcad
         })
     }
   }
-  const descriptor = parseWindowsHostCellDescriptor(readFileSync(source, 'utf8'))
-  return {
-    input: {
-      label,
-      host: descriptor.host,
-      port: descriptor.port,
-      username: descriptor.username,
-      identityFile: descriptor.identityFile,
-      identitiesOnly: true,
-      relayGracePeriodSeconds: 1
-    },
-    // The lane creates this repository as the account before it runs the cell.
-    remoteRepoPath: `${descriptor.home}/orca-convert-repo`,
-    remoteFolderPath: descriptor.home,
-    cleanup: () => {}
-  }
+  throw new Error(`Unsupported convert host source: ${source}`)
 }

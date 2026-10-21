@@ -19,7 +19,6 @@ import {
 } from '../../../shared/orcad-artifacts'
 import { quotePosixShell } from '../../../shared/shell-argument-quoting'
 import {
-  isWindowsRemoteHost,
   joinRemotePath,
   remoteBasename,
   remoteDirname,
@@ -38,7 +37,6 @@ import {
 import type { ServeReadiness } from '../../server/serve-readiness'
 import { selectOrcadSlotRuntimeCommand } from './orcad-remote-runtime'
 import { ORCAD_STOP_REQUEST_FILENAME } from '../../../shared/orcad-stop-request'
-import { orcadWindowsSlotOpCommand } from './orcad-remote-windows-node'
 import {
   captureOrcadLaunchSshSessionCommand,
   recordsOrcadLaunchSshSession,
@@ -229,10 +227,6 @@ export function orcadLivenessProbeCommand(
   host: RemoteHostPlatform,
   remoteInstallDir: string
 ): string {
-  if (isWindowsRemoteHost(host)) {
-    // Windows: PID plus process creation time (PIDs are reused); anything unanswerable is UNKNOWN, never DEAD.
-    return orcadWindowsSlotOpCommand(host, remoteInstallDir, 'liveness', [remoteInstallDir])
-  }
   const pidFile = quotePosixShell(joinRemotePath(host, remoteInstallDir, ORCAD_PID_FILENAME))
   const readiness = quotePosixShell(
     joinRemotePath(host, remoteInstallDir, ORCAD_READINESS_FILENAME)

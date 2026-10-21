@@ -7,13 +7,6 @@ import {
   type OrcadReadinessParse
 } from './orcad-remote-launch'
 import {
-  readWindowsOrcadLaunchReport,
-  readWindowsOrcadSlotRuntime,
-  readWindowsOrcadSlotEntry,
-  windowsOrcadLaunchCommand,
-  windowsOrcadLaunchRuntimeCommand
-} from './orcad-remote-launch-windows'
-import {
   ORCAD_READINESS_WAIT_MAX_SECONDS,
   orcadReadinessWaitCommand,
   parseOrcadReadinessWaitOutput
@@ -30,9 +23,7 @@ import {
   OrcadFenceLostError,
   posixOrcadFenceGuard
 } from '../activation/orcad-activation-fence-scope'
-import { orcadWindowsHomeOpCommand } from './orcad-remote-windows-node'
-import { ORCAD_WINDOWS_FENCE_ARG } from '../host-state/orcad-windows-host-fence-ops'
-import { isWindowsRemoteHost, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
+import type { RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 
 // Only between host-side waits, so a host that answers early cannot turn this into a tight loop.
 const READINESS_RETRY_PAUSE_MS = 1_000
@@ -41,7 +32,6 @@ export type OrcadRemoteExecTarget = {
   conn: OrcadHostTransport
   host: RemoteHostPlatform
   signal?: AbortSignal
-  /** Locates the runtime store for host-record scripts; required on Windows, unused elsewhere. */
   remoteHome?: string
 }
 
@@ -54,21 +44,14 @@ export async function execOrcadRemote(
   const fence = currentOrcadFence()
   const run = (line: string): Promise<string> =>
     execCommand(target.conn, line, {
-      wrapCommand: target.host.commandDialect !== 'powershell',
+      wrapCommand: true,
       signal
     })
   try {
     if (!fence) {
       return await run(command)
     }
-    if (!isWindowsRemoteHost(target.host)) {
-      return await run(`${posixOrcadFenceGuard(fence)} ${command}`)
-    }
-    // A host op checks inside the host script; anything else is checked by one op just before it.
-    if (!command.includes(ORCAD_WINDOWS_FENCE_ARG) && target.remoteHome) {
-      await run(orcadWindowsHomeOpCommand(target.host, target.remoteHome, 'fence-check', []))
-    }
-    return await run(command)
+    return await run(`${posixOrcadFenceGuard(fence)} ${command}`)
   } catch (error) {
     if (isUnconfirmedSshCommandTermination(error)) {
       throw error
@@ -106,30 +89,15 @@ export async function launchOrcadAndAwaitReadiness(
   },
   spec: OrcadLaunchSpec
 ): Promise<OrcadReadinessParse> {
-  if (isWindowsRemoteHost(target.host)) {
-    const slotAnswer = await execOrcadRemote(
-      target,
-      windowsOrcadLaunchRuntimeCommand(target.host, spec.remoteInstallDir)
+  await execOrcadRemote(
+    target,
+    orcadLaunchCommand(
+      target.host,
+      spec,
+      target.conn.orcadLaunchDetach ?? 'nohup',
+      (await target.conn.orcadLaunchEnv?.()) ?? []
     )
-    const slotRuntime = readWindowsOrcadSlotRuntime(slotAnswer)
-    const slotEntry = readWindowsOrcadSlotEntry(slotAnswer, target.host, spec.remoteInstallDir)
-    readWindowsOrcadLaunchReport(
-      await execOrcadRemote(
-        target,
-        windowsOrcadLaunchCommand(target.host, spec, slotRuntime, slotEntry)
-      )
-    )
-  } else {
-    await execOrcadRemote(
-      target,
-      orcadLaunchCommand(
-        target.host,
-        spec,
-        target.conn.orcadLaunchDetach ?? 'nohup',
-        (await target.conn.orcadLaunchEnv?.()) ?? []
-      )
-    )
-  }
+  )
   const deadline = Date.now() + (target.readinessTimeoutMs ?? ORCAD_STARTUP_READINESS_TIMEOUT_MS)
   const sleep = target.sleep ?? ((ms: number) => new Promise((r) => setTimeout(r, ms)))
   let last = parseOrcadReadinessOutput('')

@@ -24,7 +24,7 @@ export const RUNTIME_STORE_ENTRY_NAME = new RegExp(
 export const RUNTIME_STORE_TOMBSTONE_NAME = new RegExp(
   `^${RUNTIME_STORE_TOMBSTONE_PREFIX.replace(/\./g, '\\.')}${ORCAD_NODE_RUNTIME_DIR_PREFIX}([0-9a-f]{64})\\.[0-9]+\\.([0-9]+)$`
 )
-// Why `[/\\]`: Windows process paths use backslashes (see remote-node-runtime-store-windows.ts).
+// Matches runtime store entries and tombstones in process paths.
 const HELD_PATH = new RegExp(
   `[/\\\\]${ORCAD_RUNTIMES_DIRNAME}[/\\\\](?:${RUNTIME_STORE_TOMBSTONE_PREFIX.replace(/\./g, '\\.')})?${ORCAD_NODE_RUNTIME_DIR_PREFIX}([0-9a-f]{64})[./\\\\]`,
   'i'

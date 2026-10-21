@@ -9,7 +9,7 @@ import type { OrcadStdioBridge } from '../../ssh/orcad-stdio-bridge'
 import { ORCAD_STDIO_BRIDGE_MAX_CHANNELS } from './orcad-stdio-bridge-listener'
 import { OrcadStdioBridgePortForwardProvider } from './orcad-stdio-bridge-provider'
 import { spawnLocalBridgeChannel, startEchoServer } from './orcad-stdio-bridge-test-channel'
-import { ORCAD_WINDOWS_HOST_SCRIPT } from '../host-state/orcad-windows-host-script'
+import { ORCAD_STDIO_BRIDGE_FUNCTION } from './orcad-stdio-bridge-script'
 import type { SshConnection } from '../../ssh/connection/ssh-connection'
 import type { StartedPortForward } from '../../ssh/port-forwarding/ssh-port-forward-provider'
 import type { RemoteCommandChannel } from '../install/remote-install-transport'
@@ -23,8 +23,11 @@ const clients: Socket[] = []
 beforeAll(async () => {
   echo = await startEchoServer()
   scratch = mkdtempSync(join(tmpdir(), 'orcad-stdio-provider-'))
-  script = join(scratch, 'orcad-host-script.js')
-  writeFileSync(script, ORCAD_WINDOWS_HOST_SCRIPT)
+  script = join(scratch, 'orcad-bridge-script.js')
+  writeFileSync(
+    script,
+    `${ORCAD_STDIO_BRIDGE_FUNCTION}\norcadStdioBridge(Number(process.argv[2]), 'base64')\n`
+  )
 })
 
 afterEach(async () => {
@@ -43,9 +46,9 @@ afterAll(() => {
 const conn = { getClient: () => ({}) } as unknown as SshConnection
 const bridge: OrcadStdioBridge = { command: 'bridge', mode: 'base64', wrapCommand: false }
 
-/** The real bridge, run locally through the Windows host script's base64 framing. */
+/** The real bridge, run locally through the stdio bridge function's base64 framing. */
 const localBridge = (): RemoteCommandChannel =>
-  spawnLocalBridgeChannel(process.execPath, [script, 'stdio-bridge', String(echo.port)])
+  spawnLocalBridgeChannel(process.execPath, [script, String(echo.port)])
 
 async function startProvider(
   overrides: Partial<ConstructorParameters<typeof OrcadStdioBridgePortForwardProvider>[0]> = {}

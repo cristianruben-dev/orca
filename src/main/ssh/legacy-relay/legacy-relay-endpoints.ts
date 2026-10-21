@@ -17,17 +17,10 @@ import { readRemoteHomeCommand } from '../ssh-remote-commands'
 import { resolveRemoteNodePath } from '../ssh-remote-node-resolution'
 import { detectRemoteHostPlatform } from '../ssh-remote-platform-detection'
 import {
-  isWindowsRemoteHost,
   normalizeRemoteHome,
   validateRemoteHome,
   type RemoteHostPlatform
 } from '../ssh-remote-platform'
-import {
-  parseWindowsRelayInventory,
-  windowsRelayInventoryCommand
-} from './ssh-host-relay-windows-inventory'
-import { windowsCensusNodePath } from './ssh-host-relay-windows-census'
-import { windowsRelayConnectCommand } from './ssh-relay-windows-launch-command'
 
 const MAX_ENDPOINTS = 32
 
@@ -98,18 +91,15 @@ export async function listLegacyRelayEndpoints(
     if (!host) {
       return { kind: 'unverifiable' }
     }
-    const windows = isWindowsRemoteHost(host)
     const remoteHome = normalizeRemoteHome(
-      await execCommand(conn, readRemoteHomeCommand(host), { signal, wrapCommand: !windows }),
+      await execCommand(conn, readRemoteHomeCommand(host), { signal, wrapCommand: true }),
       host
     )
     if (!validateRemoteHome(remoteHome, host)) {
       return { kind: 'unverifiable' }
     }
     const sockName = relaySocketNameForInstanceId(targetId)
-    return windows
-      ? await listWindowsEndpoints(conn, host, remoteHome, sockName, signal)
-      : await listPosixEndpoints(conn, host, remoteHome, sockName, signal)
+    return await listPosixEndpoints(conn, host, remoteHome, sockName, signal)
   } catch {
     return { kind: 'unverifiable' }
   }
@@ -157,66 +147,12 @@ async function listPosixEndpoints(
   return { kind: 'listed', endpoints, exhaustive: true }
 }
 
-/** Pipes have no inode to list, so this account's version directories name which pipe is ours. */
-async function listWindowsEndpoints(
-  conn: SshConnection,
-  host: RemoteHostPlatform,
-  remoteHome: string,
-  sockName: string,
-  signal: AbortSignal | undefined
-): Promise<LegacyRelayEndpointListing> {
-  const nodePath = await windowsCensusNodePath(conn, host, remoteHome, signal)
-  if (!nodePath) {
-    return { kind: 'unverifiable' }
-  }
-  const inventory = parseWindowsRelayInventory(
-    host,
-    remoteHome,
-    [sockName],
-    await execCommand(conn, windowsRelayInventoryCommand(host, nodePath, remoteHome), {
-      signal,
-      wrapCommand: false
-    })
-  )
-  if (!inventory || inventory.pipes.length > MAX_ENDPOINTS) {
-    return { kind: 'unverifiable' }
-  }
-  const credentialName = `${sockName}.credential`.toLowerCase()
-  const endpoints: LegacyRelayEndpoint[] = []
-  // A pipe no version directory here names could still be ours, so its absence proves nothing.
-  let exhaustive = true
-  for (const pipe of inventory.pipes) {
-    const owner = inventory.owners.get(pipe.toLowerCase())
-    if (!owner) {
-      exhaustive = false
-      continue
-    }
-    if (!owner.credentialFile.toLowerCase().endsWith(credentialName)) {
-      continue
-    }
-    endpoints.push({
-      endpoint: pipe,
-      connectCommand: windowsRelayConnectCommand(
-        host,
-        nodePath,
-        owner.dir,
-        pipe,
-        owner.credentialFile
-      ),
-      wrapCommand: false,
-      host,
-      nodePath
-    })
-  }
-  return { kind: 'listed', endpoints, exhaustive }
-}
-
-/** A dead socket is the one failed open that proves its relay gone; Windows pipes never are. */
+/** A dead socket is the one failed open that proves its relay gone. */
 export async function posixEndpointExited(
   conn: SshConnection,
   endpoint: LegacyRelayEndpoint
 ): Promise<boolean> {
-  if (isWindowsRemoteHost(endpoint.host) || !endpoint.nodePath) {
+  if (!endpoint.nodePath) {
     return false
   }
   const incumbent = await probeRelayEndpointIncumbent(

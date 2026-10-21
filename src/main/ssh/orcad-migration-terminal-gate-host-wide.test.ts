@@ -5,8 +5,7 @@ import type * as ExecCommandModule from './remote-exec/remote-exec-command'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SshConnection } from './connection/ssh-connection'
 import { relaySocketNameForInstanceId } from './legacy-relay/ssh-relay-instance-id'
-import { windowsRelayPipePathsForSocketName } from './legacy-relay/ssh-relay-endpoints'
-import { getRemoteHostPlatform, joinRemotePath } from './ssh-remote-platform'
+import { getRemoteHostPlatform } from './ssh-remote-platform'
 
 const {
   execCommand,
@@ -39,19 +38,9 @@ vi.mock('./ssh-remote-commands', async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
   listRemoteInstallBaseDirsCommand: () => 'LIST'
 }))
-vi.mock('./legacy-relay/ssh-host-relay-windows-inventory', async (importOriginal) => ({
-  ...(await importOriginal<Record<string, unknown>>()),
-  windowsRelayInventoryCommand: () => 'INVENTORY',
-  windowsPipeAccessCommand: () => 'ACCESS'
-}))
-vi.mock('./legacy-relay/ssh-relay-windows-launch-command', () => ({
-  windowsRelayConnectCommand: (_h: unknown, _n: string, _d: string, pipe: string) =>
-    `BRIDGE ${pipe}`
-}))
 
 import { assessOrcadMigrationTerminals } from './orcad-migration-terminal-gate'
 import { censusHostRelayEndpoints } from './legacy-relay/ssh-host-relay-endpoint-census'
-import { censusWindowsHostRelays } from './legacy-relay/ssh-host-relay-windows-census'
 import { hostTerminalProofFromCensus } from './legacy-relay/ssh-host-relay-terminals-on-connect'
 
 // The censuses only hand the connection to the mocked exec, probe and bridge.
@@ -93,55 +82,6 @@ describe('a desktop converting while another desktop runs a shell on the account
     })
 
     countRelayEndpointPtys.mockResolvedValue(0)
-    await expect(assessOrcadMigrationTerminals(noLeases, 'desktop-a', census)).resolves.toEqual({
-      verdict: 'exited',
-      provenPtyIds: []
-    })
-  })
-
-  it('never reads exited on a Windows host where only desktop B’s pipe runs a shell', async () => {
-    const host = getRemoteHostPlatform('win32-x64')
-    const version = 'relay-0.1.0+aaaaaaaaaaaa'
-    const dir = joinRemotePath(host, 'C:\\Users\\dev', '.orca-remote', version)
-    const sockA = relaySocketNameForInstanceId('desktop-a')
-    const sockB = relaySocketNameForInstanceId('desktop-b')
-    const [aPipe] = windowsRelayPipePathsForSocketName(host, dir, sockA)
-    const [bPipe] = windowsRelayPipePathsForSocketName(host, dir, sockB)
-    const bare = (pipe: string): string => pipe.slice('\\\\.\\pipe\\'.length)
-    execCommand.mockImplementation(async (_c: unknown, command: string) =>
-      command === 'LIST'
-        ? `${version}\r\n`
-        : JSON.stringify({
-            pipes: [bare(aPipe), bare(bPipe)],
-            dirs: {
-              [version]: {
-                credentials: [`${sockA}.credential`, `${sockB}.credential`],
-                markers: {}
-              }
-            }
-          })
-    )
-    countRelayPtysOverBridge.mockImplementation(async (_c: unknown, command: string) =>
-      command === `BRIDGE ${bPipe}` ? 1 : 0
-    )
-    const census = async () =>
-      hostTerminalProofFromCensus(
-        await censusWindowsHostRelays(conn, {
-          host,
-          remoteHome: 'C:\\Users\\dev',
-          targetId: 'desktop-a',
-          nodePath: async () => 'C:\\node\\node.exe'
-        })
-      )
-
-    await expect(assessOrcadMigrationTerminals(noLeases, 'desktop-a', census)).resolves.toEqual({
-      verdict: 'bridged',
-      relayVerdict: 'live',
-      bridgedPtyIds: [],
-      hostTerminals: 1
-    })
-
-    countRelayPtysOverBridge.mockResolvedValue(0)
     await expect(assessOrcadMigrationTerminals(noLeases, 'desktop-a', census)).resolves.toEqual({
       verdict: 'exited',
       provenPtyIds: []

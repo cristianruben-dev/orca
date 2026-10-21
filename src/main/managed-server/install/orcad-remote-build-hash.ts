@@ -2,13 +2,10 @@
 import { ORCAD_LAUNCHER_FILENAME } from '../../../shared/orcad-artifacts'
 import { quotePosixShell } from '../../../shared/shell-argument-quoting'
 import { execOrcadRemote, type OrcadRemoteExecTarget } from './orcad-remote-runtime-control'
-import { orcadWindowsSlotOpCommand } from './orcad-remote-windows-node'
-import { ORCAD_BUILD_HASH_MARKER as BUILD_HASH_MARKER } from '../host-state/orcad-windows-host-script'
-import {
-  isWindowsRemoteHost,
-  joinRemotePath,
-  type RemoteHostPlatform
-} from '../../ssh/ssh-remote-platform'
+import { assertPosixOrcadHost } from './orcad-remote-host-support'
+import { joinRemotePath, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
+
+export const BUILD_HASH_MARKER = '__ORCAD_BUILD_HASH__'
 
 export async function readRemoteOrcadBuildHash(
   target: OrcadRemoteExecTarget,
@@ -29,11 +26,7 @@ export function remoteOrcadBuildHashCommand(
   host: RemoteHostPlatform,
   remoteInstallDir: string
 ): string {
-  if (isWindowsRemoteHost(host)) {
-    return orcadWindowsSlotOpCommand(host, remoteInstallDir, 'build-hash', [
-      joinRemotePath(host, remoteInstallDir, ORCAD_LAUNCHER_FILENAME)
-    ])
-  }
+  assertPosixOrcadHost(host)
   const path = quotePosixShell(joinRemotePath(host, remoteInstallDir, ORCAD_LAUNCHER_FILENAME))
   // Why both tools: GNU/busybox ship sha256sum, macOS ships shasum; either prints the digest first.
   return [

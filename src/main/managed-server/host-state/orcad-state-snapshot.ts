@@ -24,12 +24,7 @@ import {
   type OrcadFence
 } from '../activation/orcad-activation-fence-scope'
 import { quotePosixShell } from '../../../shared/shell-argument-quoting'
-import {
-  isWindowsRemoteHost,
-  joinRemotePath,
-  type RemoteHostPlatform
-} from '../../ssh/ssh-remote-platform'
-import type { OrcadWindowsHostStateOp } from './orcad-windows-host-state-ops'
+import { joinRemotePath, type RemoteHostPlatform } from '../../ssh/ssh-remote-platform'
 import { pruneOrcadSnapshotsScript } from './orcad-state-snapshot-space'
 import {
   ORCAD_SNAPSHOT_FAILURE,
@@ -40,7 +35,6 @@ import {
   ORCAD_STATE_MUTATION_LOCK_DIRNAME,
   ORCAD_STATE_RESTORE_STAGE_DIRNAME
 } from './orcad-state-snapshot-members'
-import { orcadWindowsHostOpCommand } from '../install/orcad-remote-windows-node'
 import {
   posixStateMutationGroupRecord,
   posixStateMutationPidRecord
@@ -59,19 +53,6 @@ function plainMemberWords(): string {
     }
   }
   return ORCAD_SNAPSHOT_MEMBERS.join(' ')
-}
-
-/** The Windows host-script op, or null on POSIX; `baseDir` is `~/.orca-remote`. */
-function windowsStateCommand(
-  host: RemoteHostPlatform,
-  baseDir: string,
-  op: OrcadWindowsHostStateOp,
-  args: string[]
-): string | null {
-  if (!isWindowsRemoteHost(host)) {
-    return null
-  }
-  return orcadWindowsHostOpCommand(host, baseDir, op, args)
 }
 
 /** Past this the host kills a capture, restore or clear; the client waits a minute longer. */
@@ -164,16 +145,12 @@ export function orcadRollbackRescueDirName(fullVersion: string, takenAtMs: numbe
  * and removes its partial archive, which would otherwise fill the disk a retry needs (#30491).
  */
 export function captureOrcadStateSnapshotCommand(
-  host: RemoteHostPlatform,
+  _host: RemoteHostPlatform,
   userDataDir: string,
   snapshotDir: string,
   baseDir: string,
   prune?: { snapshotsRoot: string; keep: readonly string[] }
 ): string {
-  const windows = windowsStateCommand(host, baseDir, 'snapshot-capture', [userDataDir, snapshotDir])
-  if (windows) {
-    return windows
-  }
   return serializedStateMutationCommand(
     baseDir,
     [
@@ -222,12 +199,8 @@ export function parseOrcadSnapshotCapture(output: string): OrcadSnapshotCapture 
 export function probeOrcadStateSnapshotCommand(
   host: RemoteHostPlatform,
   snapshotDir: string,
-  baseDir: string
+  _baseDir: string
 ): string {
-  const windows = windowsStateCommand(host, baseDir, 'snapshot-probe', [snapshotDir])
-  if (windows) {
-    return windows
-  }
   const archive = quotePosixShell(joinRemotePath(host, snapshotDir, 'state.tar'))
   return `test -f ${archive} && echo PRESENT || echo ABSENT`
 }
@@ -261,10 +234,6 @@ export function restoreOrcadStateSnapshotCommand(
   snapshotDir: string,
   baseDir: string
 ): string {
-  const windows = windowsStateCommand(host, baseDir, 'snapshot-restore', [userDataDir, snapshotDir])
-  if (windows) {
-    return windows
-  }
   const members = plainMemberWords()
   return serializedStateMutationCommand(
     baseDir,
@@ -291,14 +260,10 @@ export function restoreOrcadStateSnapshotCommand(
 
 /** Restore an originally empty state root after a candidate populated it. */
 export function clearOrcadStateSnapshotMembersCommand(
-  host: RemoteHostPlatform,
+  _host: RemoteHostPlatform,
   userDataDir: string,
   baseDir: string
 ): string {
-  const windows = windowsStateCommand(host, baseDir, 'snapshot-clear', [userDataDir])
-  if (windows) {
-    return windows
-  }
   return serializedStateMutationCommand(
     baseDir,
     [
@@ -326,15 +291,11 @@ export function parseOrcadSnapshotRestore(output: string): OrcadSnapshotRestore 
 
 /** Compare after stopping the candidate; a changed root cannot be handed to an older build. */
 export function compareOrcadStateSnapshotCommand(
-  host: RemoteHostPlatform,
+  _host: RemoteHostPlatform,
   userDataDir: string,
   snapshotDir: string,
-  baseDir: string
+  _baseDir: string
 ): string {
-  const windows = windowsStateCommand(host, baseDir, 'snapshot-compare', [userDataDir, snapshotDir])
-  if (windows) {
-    return windows
-  }
   const unknown = '{ echo UNKNOWN; exit 0; };'
   return [
     `root=${quotePosixShell(userDataDir)}; dir=${quotePosixShell(snapshotDir)};`,

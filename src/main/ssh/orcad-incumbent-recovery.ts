@@ -7,7 +7,6 @@
  * can count the terminals it started, so the snapshot may no longer describe them.
  */
 import { execOrcadStateMutation } from '../managed-server/host-state/orcad-state-mutation-exec'
-import { orcadRemoteBaseDir } from '../managed-server/install/orcad-remote-windows-node'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { RELAY_REMOTE_DIR } from './remote-exec/remote-frame-protocol'
 import { ORCAD_STATE_SNAPSHOT_DIR } from '../managed-server/activation/orcad-activation-record'
@@ -27,8 +26,12 @@ import {
   type OrcadSlotIdentity,
   type OrcadSlotOptions
 } from './orcad-recovery-slot'
-import { joinRemotePath } from './ssh-remote-platform'
+import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import { ORCAD_RECOVERY_CHANGED_STATE_CODE } from '../../shared/orcad-managed-runtime'
+
+function orcadRemoteBaseDir(host: RemoteHostPlatform, remoteHome: string): string {
+  return joinRemotePath(host, remoteHome, RELAY_REMOTE_DIR)
+}
 
 export type OrcadIncumbentRecoveryOptions = OrcadSlotOptions & {
   /** The operator accepted restoring the snapshot over state a launched build changed. */

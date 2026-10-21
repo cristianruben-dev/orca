@@ -21,20 +21,12 @@ import {
   type OrcadRemoteExecTarget
 } from '../managed-server/install/orcad-remote-runtime-control'
 import {
-  installOrcadWindowsHostScript,
-  orcadWindowsHostOpCommand
-} from '../managed-server/install/orcad-remote-windows-node'
-import {
   ORCAD_EXITED_OWN_LOCK_QUIET_SECONDS,
   ORCAD_STATE_MUTATION_LOCK_DIRNAME
 } from '../managed-server/host-state/orcad-state-snapshot-members'
-import { CMD_EXE_COMMAND_LINE_MAX_CHARS } from '../providers/windows-shell-args'
 import { quotePosixShell } from '../../shared/shell-argument-quoting'
 import type { InstallLockExitedOwnerProof } from '../managed-server/install/remote-install-lock'
-import { isWindowsRemoteHost, joinRemotePath } from './ssh-remote-platform'
-
-// Keeps the Windows command line short; an older token left out only waits out the stale window.
-const MAX_WINDOWS_CANDIDATES = 16
+import { joinRemotePath } from './ssh-remote-platform'
 
 /** `baseDir` is `~/.orca-remote`; `guardsStateMutation` means a live state mutation there keeps the lock. */
 export type ExitedOwnLockScope = { baseDir: string; guardsStateMutation: boolean }
@@ -62,9 +54,7 @@ export async function findExitedOwnLockToken(
     return null
   }
   try {
-    const token = isWindowsRemoteHost(target.host)
-      ? await findOnWindows(target, lockDir, scope, exited.slice(-MAX_WINDOWS_CANDIDATES))
-      : await findOnPosix(target, lockDir, scope, exited)
+    const token = await findOnPosix(target, lockDir, scope, exited)
     return token !== null && exited.includes(token) ? token : null
   } catch {
     // Unanswered: the stale window still applies.
@@ -95,28 +85,6 @@ async function findOnPosix(
   }
   const command = exitedOwnLockCheckCommand({ lockDir, token }, mutationLockOf(target, scope))
   return (await execOrcadRemote(target, command)).trim() === 'EXITED_OWNER' ? token : null
-}
-
-/** The host script reads the owner itself, so one node.exe answers with the token it found. */
-async function findOnWindows(
-  target: OrcadRemoteExecTarget,
-  lockDir: string,
-  scope: ExitedOwnLockScope,
-  exited: string[]
-): Promise<string | null> {
-  const command = orcadWindowsHostOpCommand(target.host, scope.baseDir, 'fence-exited-owner', [
-    lockDir,
-    scope.guardsStateMutation ? '1' : '0',
-    ...exited
-  ])
-  // Too long for sshd's cmd.exe: no proof, so the stale window applies.
-  if (command.length > CMD_EXE_COMMAND_LINE_MAX_CHARS) {
-    return null
-  }
-  await installOrcadWindowsHostScript(target, scope.baseDir)
-  const output = await execOrcadRemote(target, command)
-  const match = /^EXITED_OWNER (\S+)$/u.exec(output.trim().split(/\r?\n/u).at(-1) ?? '')
-  return match ? match[1] : null
 }
 
 function exitedOwnLockCheckCommand(

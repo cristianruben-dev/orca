@@ -3,8 +3,6 @@ import {
   OrcadHostUnsupportedError,
   OrcadStdioBridgeUnavailableError
 } from '../orcad/orcad-host-unavailable'
-import { resolveOrcadRemoteContext } from '../managed-server/install/orcad-remote-context'
-import { orcadWindowsHomeOpCommand } from '../managed-server/install/orcad-remote-windows-node'
 import {
   orcadPosixStdioBridgeCommand,
   type OrcadStdioBridgeMode
@@ -13,7 +11,7 @@ import {
   OrcadStdioBridgeDecoder,
   type OrcadStdioBridgeSignal
 } from '../managed-server/lifecycle/orcad-stdio-bridge-stream'
-import { isWslOrcadHostTarget, type OrcadHostTransport } from './orcad-host-transport'
+import type { OrcadHostTransport } from './orcad-host-transport'
 import type { RemoteCommandChannel } from '../managed-server/install/remote-install-transport'
 import { isWindowsRemoteHost } from './ssh-remote-platform'
 import { detectRemoteHostPlatform } from './ssh-remote-platform-detection'
@@ -34,24 +32,10 @@ export async function resolveOrcadStdioBridge(
   port: number
 ): Promise<OrcadStdioBridge> {
   const host = await detectRemoteHostPlatform(conn)
-  if (!host) {
+  if (!host || isWindowsRemoteHost(host)) {
     throw new OrcadHostUnsupportedError('Orca’s server doesn’t support this SSH host’s platform.')
   }
-  if (!isWindowsRemoteHost(host)) {
-    return { command: orcadPosixStdioBridgeCommand(port), mode: 'raw', wrapCommand: true }
-  }
-  const target = conn.getTarget()
-  // A WSL distro is a Linux host, so a Windows answer from it is not one this path can serve.
-  if (isWslOrcadHostTarget(target)) {
-    throw new OrcadHostUnsupportedError('This WSL distro reported a Windows host platform.')
-  }
-  // Stages this client's pinned node.exe and host script, which an app update may have changed.
-  const context = await resolveOrcadRemoteContext(target, conn, undefined, host)
-  return {
-    command: orcadWindowsHomeOpCommand(host, context.remoteHome, 'stdio-bridge', [String(port)]),
-    mode: 'base64',
-    wrapCommand: host.commandDialect !== 'powershell'
-  }
+  return { command: orcadPosixStdioBridgeCommand(port), mode: 'raw', wrapCommand: true }
 }
 
 export function openOrcadStdioBridgeChannel(

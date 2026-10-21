@@ -7,7 +7,6 @@ import { remoteInstallGcTombstoneRegex, type RemoteInstallModel } from './remote
 import { removeRemoteTreeCommand } from '../../ssh/ssh-remote-commands'
 import {
   getRemoteHostPlatform,
-  isWindowsRemoteHost,
   joinRemotePath,
   type RemoteHostPlatform
 } from '../../ssh/ssh-remote-platform'
@@ -27,7 +26,7 @@ export async function cleanupRemoteInstallGcTombstones(
   for (const name of entries.filter((entry) => tombstoneRegex.test(entry))) {
     const tombstone = joinRemotePath(host, baseDir, name)
     await execCommand(conn, removeRemoteTreeCommand(host, tombstone), {
-      wrapCommand: !isWindowsRemoteHost(host)
+      wrapCommand: true
     }).catch((err) => {
       if (isUnconfirmedSshCommandTermination(err)) {
         throw err
