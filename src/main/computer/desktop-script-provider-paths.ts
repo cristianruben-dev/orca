@@ -1,14 +1,11 @@
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-export type DesktopScriptPlatform = 'linux' | 'windows'
+export type DesktopScriptPlatform = 'linux'
 
 export function desktopScriptPlatform(): DesktopScriptPlatform | null {
   if (process.platform === 'linux') {
     return 'linux'
-  }
-  if (process.platform === 'win32') {
-    return 'windows'
   }
   return null
 }
@@ -24,10 +21,9 @@ export function resolveDesktopScriptProviderPath(
     return null
   }
 
-  const filename = platform === 'windows' ? 'runtime.ps1' : 'runtime.py'
-  const directory = platform === 'windows' ? 'computer-use-windows' : 'computer-use-linux'
-  const sourceDirectory =
-    platform === 'windows' ? 'native/computer-use-windows' : 'native/computer-use-linux'
+  const filename = 'runtime.py'
+  const directory = 'computer-use-linux'
+  const sourceDirectory = 'native/computer-use-linux'
   const packaged = [join(process.resourcesPath ?? '', directory, filename)]
   const dev = [
     join(process.cwd(), sourceDirectory, filename),

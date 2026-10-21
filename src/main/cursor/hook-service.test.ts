@@ -6,7 +6,6 @@ import { dirname, join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { createServer, type Server } from 'node:http'
 import { runProcess } from '@orca/process-host'
-import { findGitBash } from '../agent-hooks/windows-git-bash-path.test-fixture'
 
 const { homedirMock } = vi.hoisted(() => ({
   homedirMock: vi.fn<() => string>()
@@ -347,43 +346,5 @@ describe('CursorHookService', () => {
         await new Promise<void>((resolve) => server.close(() => resolve()))
       }
     }
-  )
-
-  it.skipIf(process.platform !== 'win32')(
-    'emits parseable JSON through cmd.exe and Git Bash (#14825/#15462)',
-    () => {
-      expect(new CursorHookService().install().state).toBe('installed')
-      const config = readInstalledCursorHooks(homeDir)
-      const gitBash = findGitBash()
-      const shells = [
-        { name: 'cmd.exe', executable: 'cmd.exe', args: ['/d', '/c'] },
-        { name: 'Git Bash', executable: gitBash, args: ['-c'] }
-      ]
-      for (const eventName of ['beforeSubmitPrompt', 'preToolUse'] as const) {
-        const command = requireRegisteredCommand(config, eventName)
-        for (const shell of shells) {
-          const result = spawnSync(shell.executable, [...shell.args, command], {
-            encoding: 'utf8',
-            input: JSON.stringify({ hook_event_name: eventName, tool_name: 'Write' }),
-            timeout: HOOK_RUN_TIMEOUT_MS,
-            env: {
-              ...process.env,
-              ORCA_AGENT_HOOK_ENDPOINT: '',
-              ORCA_AGENT_HOOK_PORT: '',
-              ORCA_AGENT_HOOK_TOKEN: '',
-              ORCA_PANE_KEY: '',
-              USERPROFILE: homeDir
-            }
-          })
-          expect(result.error, `${eventName} ${shell.name}`).toBeUndefined()
-          expect(result.status, `${eventName} ${shell.name} exit`).toBe(0)
-          expect(result.stderr, `${eventName} ${shell.name} stderr`).toBe('')
-          expect(JSON.parse(result.stdout), `${eventName} ${shell.name} stdout`).toEqual(
-            EXPECTED_CURSOR_HOOK_STDOUT[eventName]
-          )
-        }
-      }
-    },
-    HOOK_CASE_TIMEOUT_MS
   )
 })

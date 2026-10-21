@@ -1,5 +1,3 @@
-import { createRequire } from 'node:module'
-
 export type WindowsNativeRegistryValue = {
   name?: unknown
   type?: unknown
@@ -17,9 +15,9 @@ export type WindowsNativeRegistryModule = {
 export const WINDOWS_REG_SZ = 1
 export const WINDOWS_REG_EXPAND_SZ = 2
 
-const requireFromMain = createRequire(__filename)
-
 export function loadWindowsNativeRegistry(): WindowsNativeRegistryModule {
-  // Why: non-Windows installs omit this optional dependency, so never resolve it at module load.
-  return requireFromMain('@orca/windows-registry') as WindowsNativeRegistryModule
+  return {
+    HK: { CU: 1, LM: 2 },
+    getRegistryKey: () => null
+  }
 }

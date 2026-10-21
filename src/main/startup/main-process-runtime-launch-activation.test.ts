@@ -66,16 +66,6 @@ vi.mock('./main-process-pty-startup', () => ({
 }))
 vi.mock('./codex-launch-preparation', () => ({ prepareCodexRuntimeHomeForLaunch: vi.fn() }))
 vi.mock('./codex-session-resume-launch', () => ({ prepareCodexSessionResumeForLaunch: vi.fn() }))
-vi.mock('./windows-install-dir-acl-recovery', () => ({
-  // The awaited gap before the first window, where a second-instance launch can land.
-  repairKnownPoisonedInstallDirBeforeWindow: vi.fn(async () => {
-    launchHooks.duringInstallDirRepair()
-    if (launchHooks.failBeforeWindow) {
-      throw new Error('install-dir repair failed')
-    }
-    return 'not-marked'
-  })
-}))
 vi.mock('./serve-signal-handlers', () => ({ registerServeSignalHandlers: vi.fn() }))
 vi.mock('./serve-native-quit-guard', () => ({ installServeNativeQuitGuard: vi.fn() }))
 vi.mock('../runtime/runtime-rpc-startup-failure', () => ({
@@ -201,7 +191,12 @@ describe('desktop startup activation', () => {
     } as unknown as NonNullable<typeof state.runtime>
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the launch only calls whenReady().
     state.windowsShellPathHydration = {
-      whenReady: () => Promise.resolve()
+      whenReady: async () => {
+        launchHooks.duringInstallDirRepair()
+        if (launchHooks.failBeforeWindow) {
+          throw new Error('install-dir repair failed')
+        }
+      }
     } as unknown as NonNullable<typeof state.windowsShellPathHydration>
     state.initialProxyApplicationReady = Promise.resolve()
     // Built the way preflight builds it for a desktop launch.
@@ -224,8 +219,7 @@ describe('desktop startup activation', () => {
 
   it.each([
     ['darwin', false],
-    ['linux', false],
-    ['win32', true]
+    ['linux', false]
   ] as const)(
     'focuses the startup window when a second instance lands before it exists (%s)',
     async (platform, isPackaged) => {

@@ -9,27 +9,17 @@ import {
   isUnreadableError,
   writeSecureFile
 } from './secure-file'
-import {
-  setWindowsSecurityForTests,
-  resetWindowsSecurityLoadForTests
-} from './windows-security-addon'
-import { createFakeWindowsSecurity } from './windows-security-addon.test-fixture'
-
-const posixModeIt = process.platform === 'win32' ? it.skip : it
 
 describe('POSIX secure files', () => {
   const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
   const tempDirs: string[] = []
 
   beforeEach(() => {
-    resetWindowsSecurityLoadForTests()
     __resetSecureFileHardenedPathsForTests()
   })
 
   afterEach(() => {
-    resetWindowsSecurityLoadForTests()
     __resetSecureFileHardenedPathsForTests()
-    setWindowsSecurityForTests(null)
     if (originalPlatform) {
       Object.defineProperty(process, 'platform', originalPlatform)
     }
@@ -44,19 +34,7 @@ describe('POSIX secure files', () => {
     return dir
   }
 
-  it('never touches the Windows ACL addon off win32', () => {
-    Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
-    const fake = createFakeWindowsSecurity()
-    setWindowsSecurityForTests(fake)
-    const targetPath = join(tempDir(), 'secret.json')
-
-    writeSecureFile(targetPath, 'contents')
-    hardenExistingSecureFile(targetPath)
-
-    expect(fake.calls).toEqual([])
-  })
-
-  posixModeIt('restricts the published file and its directory by mode', () => {
+  it('restricts the published file and its directory by mode', () => {
     Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
     const userDataPath = tempDir()
     const targetPath = join(userDataPath, 'secret.json')
@@ -67,7 +45,7 @@ describe('POSIX secure files', () => {
     expect(statMode(userDataPath)).toBe(0o700)
   })
 
-  posixModeIt('re-hardens a POSIX directory when its metadata changes after caching', () => {
+  it('re-hardens a POSIX directory when its metadata changes after caching', () => {
     Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
     const userDataPath = tempDir()
     const targetPath = join(userDataPath, 'secret.json')
@@ -82,7 +60,7 @@ describe('POSIX secure files', () => {
     expect(statMode(userDataPath)).toBe(0o700)
   })
 
-  posixModeIt('LRU-bounds POSIX hardening entries while keeping recent paths cached', () => {
+  it('LRU-bounds POSIX hardening entries while keeping recent paths cached', () => {
     Object.defineProperty(process, 'platform', { configurable: true, value: 'linux' })
     __resetSecureFileHardenedPathsForTests({
       maxEntries: 2,

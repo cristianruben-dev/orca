@@ -1,10 +1,8 @@
 import type { SpawnedProcess } from '@orca/process-host/process-spec'
-import { delimiter, win32 as pathWin32 } from 'node:path'
+import { delimiter } from 'node:path'
 import { spawnProcess } from '@orca/process-host'
 import type { ShellHydrationFailureReason } from '../../shared/shell-path-hydration-types'
-import { resolveWindowsShellStartupFamily } from '../../shared/windows-terminal-shell'
 import { SHELL_PATH_DELIMITER as DELIMITER, shellPathProbe } from './shell-path-probe'
-import { WindowsShellPathOwnership, createWindowsPathKey } from './windows-shell-path-ownership'
 
 // Why: GUI-launched Electron can miss PATH entries added by shell profiles.
 // Tools installed into ~/.opencode/bin, ~/.cargo/bin, pyenv/volta/fnm
@@ -56,49 +54,26 @@ let probeQueue = Promise.resolve()
 // ordering left for a later refactor to break. Windows keys it `Path`, and a Git Bash
 // user whose nvm uses the POSIX ~/.nvm/versions/node layout is seeded there too, so
 // capture the key alongside the value.
-const LAUNCH_PATH_KEY =
-  process.platform === 'win32' && process.env.Path !== undefined ? 'Path' : 'PATH'
+const LAUNCH_PATH_KEY = 'PATH'
 const LAUNCH_PATH = process.env[LAUNCH_PATH_KEY] ?? null
 // Why: rc files that exec into a multiplexer or start a heavy prompt can outrun the
 // probe budget. This lets them detect the probe and take a fast path.
 export const PROBE_MARKER_ENV_VAR = 'ORCA_SHELL_PATH_PROBE'
 let launchPathOverride: { key: string; value: string } | null = null
-let configuredWindowsShell = 'powershell.exe'
-let configuredWindowsGitBashPath: string | null = null
-let configuredWindowsFallbackShell: string | null = null
-let windowsShellConfigurationVersion = 0
-const windowsPathOwnership = new WindowsShellPathOwnership()
 
 /** @internal - tests need a clean hydration cache between cases. */
 export function _resetHydrateShellPathCache(): void {
   cached = null
   probeQueue = Promise.resolve()
   launchPathOverride = null
-  configuredWindowsShell = 'powershell.exe'
-  configuredWindowsGitBashPath = null
-  configuredWindowsFallbackShell = null
-  windowsShellConfigurationVersion = 0
-  windowsPathOwnership.reset()
 }
 
 export function resolveProfileLoadingShell(): string | null {
-  if (process.platform === 'win32') {
-    const family = resolveWindowsShellStartupFamily(configuredWindowsShell)
-    if (family === 'cmd') {
-      return null
-    }
-    if (family === 'posix') {
-      return configuredWindowsGitBashPath
-    }
-    const basename = pathWin32.basename(configuredWindowsShell).toLowerCase()
-    return basename === 'powershell.exe' || basename === 'pwsh.exe' ? configuredWindowsShell : null
-  }
   const shell = process.env.SHELL
   return shell?.length ? shell : process.platform === 'darwin' ? '/bin/zsh' : '/bin/bash'
 }
 
-export const resolveProfileLoadingFallbackShell = (): string | null =>
-  configuredWindowsFallbackShell
+export const resolveProfileLoadingFallbackShell = (): string | null => null
 
 function parseCapturedPath(stdout: string, pathDelimiter: string = delimiter): string[] {
   const cleaned = stdout.replace(ANSI_RE, '')
@@ -279,8 +254,6 @@ export function hydrateShellPath(options: HydrateOptions = {}): Promise<Hydratio
   if (cached && !options.force) {
     return cached
   }
-  const platform = process.platform
-  const configurationVersion = windowsShellConfigurationVersion
   const shell =
     options.shellOverride !== undefined ? options.shellOverride : resolveProfileLoadingShell()
   if (!shell) {
@@ -288,71 +261,37 @@ export function hydrateShellPath(options: HydrateOptions = {}): Promise<Hydratio
     return cached
   }
   const spawner = options.spawner ?? spawnShellAndReadPath
-  const fallbackShell = options.shellOverride === undefined ? configuredWindowsFallbackShell : null
   const probe = probeQueue.then(async () => {
-    if (platform === 'win32') {
-      windowsPathOwnership.restore(process.env)
-    }
-    const result = await spawner(shell)
-    if (!result.ok && result.failureReason === 'spawn_error' && fallbackShell) {
-      return spawner(fallbackShell)
-    }
-    return result
+    return spawner(shell)
   })
   // Why: one rejected profile must not block later refreshes or shell changes.
   probeQueue = probe.then(
     () => undefined,
     () => undefined
   )
-  const hydration = probe.then((result) => {
-    if (
-      platform === 'win32' &&
-      options.shellOverride === undefined &&
-      configurationVersion !== windowsShellConfigurationVersion
-    ) {
-      return hydrateShellPath()
-    }
-    return result
-  })
-  cached = hydration
+  cached = probe
   // Why: a cached rejection would fail every later caller without re-probing.
-  hydration.catch(() => {
-    if (cached === hydration) {
+  probe.catch(() => {
+    if (cached === probe) {
       cached = null
     }
   })
-  return hydration
+  return probe
 }
 
 export function configureWindowsShellPathHydration(
-  shell: string | null | undefined,
-  gitBashPath: string | null = null,
-  fallbackShell: string | null = null
-): void {
-  const next = shell?.trim() || 'powershell.exe'
-  if (
-    next === configuredWindowsShell &&
-    gitBashPath === configuredWindowsGitBashPath &&
-    fallbackShell === configuredWindowsFallbackShell
-  ) {
-    return
-  }
-  windowsPathOwnership.restore(process.env)
-  configuredWindowsShell = next
-  configuredWindowsGitBashPath = gitBashPath
-  configuredWindowsFallbackShell = fallbackShell
-  windowsShellConfigurationVersion += 1
-  cached = null
-}
+  _shell?: string | null,
+  _gitBashPath?: string | null,
+  _fallbackShell?: string | null
+): void {}
 
-function uniquePathSegments(segments: string[], pathKey: (segment: string) => string): string[] {
+function uniquePathSegments(segments: string[]): string[] {
   const seen = new Set<string>()
   return segments.filter((segment) => {
-    const key = pathKey(segment)
-    if (seen.has(key)) {
+    if (seen.has(segment)) {
       return false
     }
-    seen.add(key)
+    seen.add(segment)
     return true
   })
 }
@@ -366,33 +305,20 @@ export function mergePathSegments(segments: string[]): string[] {
   if (segments.length === 0) {
     return []
   }
-  if (process.platform === 'win32') {
-    windowsPathOwnership.restore(process.env)
-  }
-  const current = process.env.PATH ?? process.env.Path ?? ''
-  const pathDelimiter = process.platform === 'win32' ? pathWin32.delimiter : delimiter
-  const currentSegments = current.split(pathDelimiter).filter(Boolean)
-  const pathKey =
-    process.platform === 'win32' ? createWindowsPathKey() : (segment: string): string => segment
-  const shellSegments = uniquePathSegments(segments, pathKey)
-  const shellSegmentSet = new Set(shellSegments.map(pathKey))
-  const existing = new Set(currentSegments.map(pathKey))
-  const added = shellSegments.filter((segment) => !existing.has(pathKey(segment)))
+  const current = process.env.PATH ?? ''
+  const currentSegments = current.split(delimiter).filter(Boolean)
+  const shellSegments = uniquePathSegments(segments)
+  const shellSegmentSet = new Set(shellSegments)
+  const existing = new Set(currentSegments)
+  const added = shellSegments.filter((segment) => !existing.has(segment))
   const merged = [
     ...shellSegments,
-    ...currentSegments.filter((segment) => !shellSegmentSet.has(pathKey(segment)))
+    ...currentSegments.filter((segment) => !shellSegmentSet.has(segment))
   ]
-  const next = merged.join(pathDelimiter)
+  const next = merged.join(delimiter)
   if (next === current) {
     return []
   }
-  // Why: shell-provided entries must win over hardcoded packaged-app fallbacks.
-  // A seeded fallback can point at a stale CLI while the user's shell resolves
-  // a healthy one from the same directory list in a different order.
-  if (process.platform === 'win32') {
-    windowsPathOwnership.apply(process.env, next)
-  } else {
-    process.env.PATH = next
-  }
+  process.env.PATH = next
   return added
 }

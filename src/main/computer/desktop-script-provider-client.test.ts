@@ -17,7 +17,7 @@ describe('DesktopScriptProviderClient snapshots', () => {
       apps: [{ name: 'Notepad', bundleIdentifier: 'notepad', pid: 42 }]
     })
 
-    const client = await createDesktopScriptProviderClient('windows', '/tmp/runtime.ps1')
+    const client = await createDesktopScriptProviderClient('linux', '/tmp/runtime.py')
 
     await expect(client.listApps()).resolves.toEqual({
       apps: [

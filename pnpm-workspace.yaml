@@ -8,8 +8,6 @@
 # virtual-store churn raced node-gyp reading the same tree, which lost @vscode/windows-process-tree's
 # binding.gyp mid-rebuild on Windows CI. A workspace link is resolved once instead.
 packages:
-  - native/windows-registry
-  - native/windows-security
   - src/packages/*
 
 minimumReleaseAge: 4320
@@ -117,8 +115,6 @@ allowBuilds:
   msw: false
   node-pty: true
   ssh2: false
-  '@orca/windows-registry': false
-  '@orca/windows-security': false
 
 # Links the project's @types/<peer> next to every package that peer-depends on <peer> (e.g.
 # @types/react beside lucide-react), so peer types resolve under the global virtual store.

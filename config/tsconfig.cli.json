@@ -87,7 +87,6 @@
     "../src/main/persistence/profile-state/profile-state-access-owner.ts",
     "../src/main/persistence/profile-state/profile-state-access-identity.ts",
     "../src/main/windows-native-registry.ts",
-    "../src/main/windows/windows-command-line-recovery-health.ts",
     "../src/main/windows/windows-process-table.ts",
     "../src/main/windows/windows-pty-job.ts",
     "../src/main/crash-reporting/crash-breadcrumb-store.ts",
@@ -104,8 +103,6 @@
     "../src/main/pty-process-table-parser.ts",
     "../src/main/windows-process-tree-kill.ts",
     "../src/main/windows-pty-root-identity.ts",
-    "../src/main/windows/windows-process-table-cim-scan.ts",
-    "../src/main/windows/windows-process-table-timeout-error.ts",
     "../src/main/daemon/daemon-process-start-time.ts",
     "../src/main/daemon/daemon-process-identity-query.ts",
     "../src/main/startup/startup-diagnostics.ts",
@@ -283,7 +280,6 @@
     "../src/main/rolling-file-backup.ts",
     "../src/main/startup/hydrate-shell-path.ts",
     "../src/main/startup/shell-path-probe.ts",
-    "../src/main/startup/windows-shell-path-ownership.ts",
     // Why: serve-electron-flag-parity.test.ts checks the Electron-side serve argv rewrite against this
     // project's serve spec; the module has no imports, so listing it pulls in nothing else.
     "../src/main/startup/serve-mode-argv.ts",

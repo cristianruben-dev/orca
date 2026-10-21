@@ -1,6 +1,10 @@
 import type { MessageBoxOptions, MessageBoxReturnValue } from 'electron'
 import { translateMain } from '../i18n/main-i18n'
-import type { InstallDirAclPoisonDiagnosis } from '../startup/windows-install-dir-acl-recovery'
+export type InstallDirAclPoisonDiagnosis = {
+  commands: readonly string[]
+  reason?: string
+  detail?: string
+}
 import type { RecoveryExhaustionCause } from './renderer-recovery-reload-watchdog'
 import type { RendererLaunchProbeResult } from './renderer-launch-failure-probe'
 

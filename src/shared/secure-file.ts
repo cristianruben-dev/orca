@@ -18,14 +18,8 @@ import {
 } from './secure-path-hardening-cache'
 import {
   configureHardeningRetryBudget,
-  mayAttemptHardening,
   recordHardeningOutcome
 } from './secure-path-hardening-retry-budget'
-import {
-  restrictWindowsDirectory,
-  restrictWindowsPathSync,
-  writeRestrictedWindowsFile
-} from './secure-path-windows-acl'
 import {
   getHardenedPathCacheEntry,
   hardenedPathCacheEntriesMatch,
@@ -45,28 +39,7 @@ let hardenedDirectoryPathsThisProcess = new SecurePathHardeningCache<true>(
   DEFAULT_HARDENING_CACHE_BOUNDS
 )
 
-function hardenWindowsDirectoryOnce(dirPath: string): void {
-  // Why the floor: read paths poll at ~2/s (#4901); retrying every failure there would storm.
-  if (hardenedDirectoryPathsThisProcess.get(dirPath) || !mayAttemptHardening(dirPath)) {
-    return
-  }
-  // Cache before the ACL lands so concurrent writes don't restorm; a failure drops it, under the retry budget.
-  hardenedDirectoryPathsThisProcess.set(dirPath, true)
-  // Why async: a directory rewrite propagates to every descendant, ~2 s on a 29k-entry userData.
-  void restrictWindowsDirectory(dirPath).then((restricted) => {
-    recordHardeningOutcome(dirPath, restricted)
-    if (!restricted) {
-      hardenedDirectoryPathsThisProcess.delete(dirPath)
-    }
-  })
-}
-
 function hardenSecurePathOnce(targetPath: string, isDirectory: boolean): boolean {
-  if (isDirectory && process.platform === 'win32') {
-    hardenWindowsDirectoryOnce(targetPath)
-    return true
-  }
-
   const currentEntry = getHardenedPathCacheEntry(targetPath, isDirectory)
   if (!currentEntry) {
     hardenedPathsThisProcess.delete(targetPath)
@@ -75,27 +48,9 @@ function hardenSecurePathOnce(targetPath: string, isDirectory: boolean): boolean
   if (currentEntry && cachedEntry && hardenedPathCacheEntriesMatch(currentEntry, cachedEntry)) {
     return true
   }
-  if (process.platform === 'win32') {
-    return hardenExistingWindowsFile(targetPath)
-  }
   chmodSync(targetPath, isDirectory ? 0o700 : 0o600)
   rememberHardenedPath(targetPath, isDirectory)
   return true
-}
-
-/** A file has no descendants, so verifying and fixing it in-process costs microseconds. */
-function hardenExistingWindowsFile(targetPath: string): boolean {
-  // Why the floor: this is the read path, polled at ~2/s; a host that can never restrict
-  // (FAT32, some shares) would otherwise log on every poll.
-  if (!mayAttemptHardening(targetPath)) {
-    return false
-  }
-  const restricted = restrictWindowsPathSync(targetPath, false)
-  recordHardeningOutcome(targetPath, restricted)
-  if (restricted) {
-    rememberHardenedPath(targetPath, false)
-  }
-  return restricted
 }
 
 /** Returns false when the file was written but its permissions could not be restricted. */
@@ -137,12 +92,7 @@ export function writeSecureFile(
 
   const tmpFile = `${targetPath}.${process.pid}.${Date.now()}.${randomBytes(4).toString('hex')}.tmp`
   try {
-    // Why born restricted on Windows: writeFileSync's mode is a no-op there, and a file created
-    // plainly would hold the credential under the directory's inherited DACL until a later fix.
-    const restricted =
-      process.platform === 'win32'
-        ? writeRestrictedWindowsFile(tmpFile, contents)
-        : writeModeRestrictedFile(tmpFile, contents)
+    const restricted = writeModeRestrictedFile(tmpFile, contents)
     if (options.durable) {
       fsyncFileSync(tmpFile)
     }
@@ -175,7 +125,7 @@ function writeModeRestrictedFile(tmpFile: string, contents: string): boolean {
   return true
 }
 
-function fsyncPathSync(path: string, flags: 'r' | 'r+'): void {
+function fsyncPathSync(path: string, flags: 'r' | 'r+' = 'r'): void {
   const descriptor = openSync(path, flags)
   try {
     fsyncSync(descriptor)
@@ -185,14 +135,10 @@ function fsyncPathSync(path: string, flags: 'r' | 'r+'): void {
 }
 
 export function fsyncFileSync(path: string): void {
-  // FlushFileBuffers requires a write-capable handle on Windows.
-  fsyncPathSync(path, process.platform === 'win32' ? 'r+' : 'r')
+  fsyncPathSync(path, 'r')
 }
 
 export function bestEffortFsyncDirectorySync(directory: string): void {
-  if (process.platform === 'win32') {
-    return
-  }
   try {
     fsyncPathSync(directory, 'r')
   } catch (error) {
