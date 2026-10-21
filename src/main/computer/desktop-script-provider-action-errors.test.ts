@@ -36,7 +36,7 @@ describe('DesktopScriptProviderClient action errors', () => {
     mockBridgeResponse({ ok: false, error: 'click_count must be a positive integer' })
     mockBridgeResponse({ ok: false, error: 'Unsupported key: Nope' })
 
-    const client = await createDesktopScriptProviderClient('windows', '/tmp/runtime.ps1')
+    const client = await createDesktopScriptProviderClient('linux', '/tmp/runtime.py')
 
     await expect(client.snapshot({ app: 'Text Editor' })).rejects.toMatchObject({
       code: 'invalid_argument'

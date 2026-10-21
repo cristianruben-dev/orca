@@ -2,6 +2,7 @@
    outside the *.test / *.spec / tests glob set. The stubs replace node builtins (child_process, fs/promises) for a provider
    that shells out; inlining them would duplicate the vi.hoisted fixture into all 8 specs. */
 import { expect, vi } from 'vitest'
+import type { DesktopScriptPlatform } from './desktop-script-provider-paths'
 import type { DesktopScriptRuntimeHost } from './desktop-script-runtime-host'
 
 const { execFileMock, operationFiles, mkdtempMock, rmMock, writeFileMock } = vi.hoisted(() => {
@@ -29,7 +30,7 @@ vi.mock('fs/promises', () => ({
 
 /** Builds a client on the one-shot bridge; pass a host to exercise serve mode. */
 export async function createDesktopScriptProviderClient(
-  platform: 'linux' | 'windows',
+  platform: DesktopScriptPlatform,
   executablePath: string,
   runtimeHost: DesktopScriptRuntimeHost | null = null
 ) {

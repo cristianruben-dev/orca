@@ -110,7 +110,7 @@ describe('DesktopScriptProviderClient errors and capabilities', () => {
   it('maps blocked app bridge errors to a policy error', async () => {
     mockBridgeResponse({ ok: false, error: 'appBlocked("1Password")' })
 
-    const client = await createDesktopScriptProviderClient('windows', '/tmp/runtime.ps1')
+    const client = await createDesktopScriptProviderClient('linux', '/tmp/runtime.py')
 
     await expect(client.snapshot({ app: '1Password' })).rejects.toMatchObject({
       code: 'app_blocked'

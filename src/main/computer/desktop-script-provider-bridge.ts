@@ -1,46 +1,16 @@
 import { execFile } from 'node:child_process'
-import { windowsPowerShellPath } from '@orca/process-host/windows-system-binary'
-import { reportComputerDiagnostic } from './computer-sidecar-diagnostics'
 import { RuntimeClientError } from './runtime-client-error'
 import type { DesktopScriptPlatform } from './desktop-script-provider-paths'
-import {
-  FALLBACK_WINDOWS_EXECUTION_POLICY,
-  PREFERRED_WINDOWS_EXECUTION_POLICY,
-  isExecutionPolicyBlocked,
-  windowsPowerShellRuntimeArgs
-} from './windows-powershell-execution-policy'
 
 const REQUEST_TIMEOUT_MS = 30_000
 const FORCE_KILL_GRACE_MS = 1_000
 
 export async function execBridge(
-  platform: DesktopScriptPlatform,
+  _platform: DesktopScriptPlatform,
   scriptPath: string,
   operationPath: string
 ): Promise<{ stdout: string; stderr: string }> {
-  if (platform !== 'windows') {
-    return await mapped(runBridgeProcess('python3', [scriptPath, operationPath]))
-  }
-  const command = windowsPowerShellPath()
-  try {
-    return await runBridgeProcess(
-      command,
-      windowsPowerShellRuntimeArgs(scriptPath, PREFERRED_WINDOWS_EXECUTION_POLICY, [operationPath])
-    )
-  } catch (error) {
-    if (!isPolicyBlockedStart(error)) {
-      throw error instanceof BridgeProcessFailure ? error.mapped : error
-    }
-    reportComputerDiagnostic(
-      `bridge start blocked at ${PREFERRED_WINDOWS_EXECUTION_POLICY}; retrying once with ${FALLBACK_WINDOWS_EXECUTION_POLICY}`
-    )
-    return await mapped(
-      runBridgeProcess(
-        command,
-        windowsPowerShellRuntimeArgs(scriptPath, FALLBACK_WINDOWS_EXECUTION_POLICY, [operationPath])
-      )
-    )
-  }
+  return await mapped(runBridgeProcess('python3', [scriptPath, operationPath]))
 }
 
 /** Unwrap the raw-stream carrier back into the error callers expect. */
@@ -52,29 +22,6 @@ async function mapped(
   } catch (error) {
     throw error instanceof BridgeProcessFailure ? error.mapped : error
   }
-}
-
-/**
- * Only a run that produced no stdout at all may be replayed.
- *
- * What the stdout guard covers: operations are not idempotent, and the response
- * embeds window titles and element names, so a snapshot that merely contains
- * the word "SecurityError" must not be read as a policy block and replayed as a
- * second click, keystroke or paste. It closes that injection route only.
- *
- * What it does not cover: one-shot mode runs the operation to completion and
- * writes stdout only afterwards, so stdout is empty for the whole action, not
- * just before it starts. A crash after the click but before the write looks
- * identical to a helper that never started. Nothing here can tell those apart —
- * only a policy pattern that cannot match a non-policy failure keeps the replay
- * off, which is why its `\b` is load-bearing rather than cosmetic.
- */
-function isPolicyBlockedStart(error: unknown): error is BridgeProcessFailure {
-  return (
-    error instanceof BridgeProcessFailure &&
-    !error.stdout.trim() &&
-    isExecutionPolicyBlocked(error.stderr)
-  )
 }
 
 /** Carries the raw streams so the retry decision does not read a mapped message. */

@@ -35,7 +35,10 @@ import type {
   BridgeResponse,
   NativeActionMethod
 } from './desktop-script-provider-types'
-import { DesktopScriptRuntimeHost, isRuntimeHostUnavailable } from './desktop-script-runtime-host'
+import {
+  type DesktopScriptRuntimeHost,
+  isRuntimeHostUnavailable
+} from './desktop-script-runtime-host'
 import { DesktopScriptSnapshotStore } from './desktop-script-snapshot-store'
 import { normalizeBridgeApp, renderSnapshot } from './desktop-script-snapshot-rendering'
 import { normalizeComputerActionResult } from './computer-action-verification-normalization'
@@ -284,10 +287,10 @@ function checkedBridgeResponse(response: BridgeResponse, stderr: string): Bridge
 
 // Why Windows only: the Linux provider is a python3 one-shot with no serve mode.
 function defaultRuntimeHost(
-  platform: DesktopScriptPlatform,
-  scriptPath: string
+  _platform: DesktopScriptPlatform,
+  _scriptPath: string
 ): DesktopScriptRuntimeHost | null {
-  return platform === 'windows' ? new DesktopScriptRuntimeHost(scriptPath) : null
+  return null
 }
 
 function requiredPlatform(): DesktopScriptPlatform {
