@@ -16,9 +16,12 @@ export function openWindowsConsoleInput(): WindowsConsoleInput | 'inherit' {
   return 'inherit'
 }
 
-export function stdioForWindowsInteractiveChild(
-  consoleInput: WindowsConsoleInput | 'inherit',
-  stream: typeof process.stderr = process.stderr
-): WindowsInteractiveChildStdio {
-  return [consoleInput === 'inherit' ? 'inherit' : consoleInput.fd, stream, 'inherit']
+export function stdioForWindowsInteractiveChild(json: boolean = false): {
+  stdio: WindowsInteractiveChildStdio
+  dispose: () => void
+} {
+  return {
+    stdio: ['inherit', json ? process.stderr : 'inherit', 'inherit'],
+    dispose: () => {}
+  }
 }

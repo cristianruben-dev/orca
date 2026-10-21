@@ -10,9 +10,9 @@ export type PreflightMocks = {
   runWslProcessMock?: Mock
   hydrateShellPathMock: Mock
   mergePathSegmentsMock: Mock
-  getBitbucketAuthStatusMock: Mock
-  getAzureDevOpsAuthStatusMock: Mock
-  getGiteaAuthStatusMock: Mock
+  getBitbucketAuthStatusMock?: Mock
+  getAzureDevOpsAuthStatusMock?: Mock
+  getGiteaAuthStatusMock?: Mock
   resolveCliCommandsMock: Mock
   isCommandOnLocalPathMock: Mock
   listLocalCommandPathsMock: Mock
@@ -67,9 +67,9 @@ export function resetPreflightMocks(mocks: PreflightMocks, handlers: HandlerMap)
   // still assert on the command names they were written against.
   listLocalCommandPathsMock.mockReset()
   listLocalCommandPathsMock.mockResolvedValue([])
-  getBitbucketAuthStatusMock.mockReset()
-  getAzureDevOpsAuthStatusMock.mockReset()
-  getGiteaAuthStatusMock.mockReset()
+  getBitbucketAuthStatusMock?.mockReset()
+  getAzureDevOpsAuthStatusMock?.mockReset()
+  getGiteaAuthStatusMock?.mockReset()
   mergePersistedWindowsPathAsyncMock.mockReset()
   mergePersistedWindowsPathAsyncMock.mockResolvedValue(undefined)
   mergePersistedWindowsPathMock.mockReset()
@@ -95,9 +95,9 @@ export function resetPreflightMocks(mocks: PreflightMocks, handlers: HandlerMap)
       return false
     }
   })
-  getBitbucketAuthStatusMock.mockResolvedValue(defaultBitbucketStatus)
-  getAzureDevOpsAuthStatusMock.mockResolvedValue(defaultAzureDevOpsStatus)
-  getGiteaAuthStatusMock.mockResolvedValue(defaultGiteaStatus)
+  getBitbucketAuthStatusMock?.mockResolvedValue(defaultBitbucketStatus)
+  getAzureDevOpsAuthStatusMock?.mockResolvedValue(defaultAzureDevOpsStatus)
+  getGiteaAuthStatusMock?.mockResolvedValue(defaultGiteaStatus)
   _resetPreflightCache()
   Object.defineProperty(process, 'platform', {
     configurable: true,

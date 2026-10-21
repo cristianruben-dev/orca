@@ -9,9 +9,6 @@ const {
   runWslProcessMock,
   hydrateShellPathMock,
   mergePathSegmentsMock,
-  getBitbucketAuthStatusMock,
-  getAzureDevOpsAuthStatusMock,
-  getGiteaAuthStatusMock,
   resolveCliCommandsMock,
   isCommandOnLocalPathMock,
   listLocalCommandPathsMock,
@@ -24,9 +21,6 @@ const {
   runWslProcessMock: vi.fn(),
   hydrateShellPathMock: vi.fn(),
   mergePathSegmentsMock: vi.fn(),
-  getBitbucketAuthStatusMock: vi.fn(),
-  getAzureDevOpsAuthStatusMock: vi.fn(),
-  getGiteaAuthStatusMock: vi.fn(),
   resolveCliCommandsMock: vi.fn(),
   isCommandOnLocalPathMock: vi.fn(),
   listLocalCommandPathsMock: vi.fn(),
@@ -89,27 +83,9 @@ vi.mock('../pty/windows-environment-path', () => ({
   mergePersistedWindowsPath: mergePersistedWindowsPathMock
 }))
 
-vi.mock('../bitbucket/client', () => ({
-  getBitbucketAuthStatus: getBitbucketAuthStatusMock
-}))
-
-vi.mock('../azure-devops/client', () => ({
-  getAzureDevOpsAuthStatus: getAzureDevOpsAuthStatusMock
-}))
-
-vi.mock('../gitea/client', () => ({
-  getGiteaAuthStatus: getGiteaAuthStatusMock
-}))
-
 import { _resetPreflightCache, runPreflightCheck } from '../preflight/agent-detection'
 import { registerPreflightHandlers } from './preflight'
-import {
-  defaultAzureDevOpsStatus,
-  defaultBitbucketStatus,
-  defaultGiteaStatus,
-  resetPreflightMocks,
-  type HandlerMap
-} from './preflight-test-harness'
+import { resetPreflightMocks, type HandlerMap } from './preflight-test-harness'
 
 describe('preflight', () => {
   const originalPlatform = process.platform
@@ -123,9 +99,6 @@ describe('preflight', () => {
         runWslProcessMock,
         hydrateShellPathMock,
         mergePathSegmentsMock,
-        getBitbucketAuthStatusMock,
-        getAzureDevOpsAuthStatusMock,
-        getGiteaAuthStatusMock,
         resolveCliCommandsMock,
         isCommandOnLocalPathMock,
         listLocalCommandPathsMock,
@@ -160,10 +133,7 @@ describe('preflight', () => {
     expect(status).toEqual({
       git: { installed: true },
       gh: { installed: true, authenticated: true },
-      glab: { installed: true, authenticated: true },
-      bitbucket: defaultBitbucketStatus,
-      azureDevOps: defaultAzureDevOpsStatus,
-      gitea: defaultGiteaStatus
+      glab: { installed: true, authenticated: true }
     })
     expect(execFileAsyncMock).toHaveBeenNthCalledWith(4, 'gh', ['auth', 'status'], {
       encoding: 'utf-8',
@@ -836,10 +806,7 @@ describe('preflight', () => {
     expect(status).toEqual({
       git: { installed: true },
       gh: { installed: true, authenticated: true },
-      glab: { installed: true, authenticated: true },
-      bitbucket: defaultBitbucketStatus,
-      azureDevOps: defaultAzureDevOpsStatus,
-      gitea: defaultGiteaStatus
+      glab: { installed: true, authenticated: true }
     })
   })
 
@@ -864,18 +831,12 @@ describe('preflight', () => {
     expect(firstStatus).toEqual({
       git: { installed: true },
       gh: { installed: true, authenticated: false },
-      glab: { installed: true, authenticated: true },
-      bitbucket: defaultBitbucketStatus,
-      azureDevOps: defaultAzureDevOpsStatus,
-      gitea: defaultGiteaStatus
+      glab: { installed: true, authenticated: true }
     })
     expect(refreshedStatus).toEqual({
       git: { installed: true },
       gh: { installed: true, authenticated: true },
-      glab: { installed: true, authenticated: true },
-      bitbucket: defaultBitbucketStatus,
-      azureDevOps: defaultAzureDevOpsStatus,
-      gitea: defaultGiteaStatus
+      glab: { installed: true, authenticated: true }
     })
   })
 
