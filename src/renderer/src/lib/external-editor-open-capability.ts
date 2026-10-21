@@ -1,6 +1,4 @@
 import { isVsCodeRemoteSshCommand } from '../../../shared/vscode-remote-ssh-launcher'
-import { toRuntimeExecutionHostId } from '../../../shared/execution-host'
-import { getWindowsPathAccess } from './windows-path-access'
 import type { WorkspaceEditorSshHost } from './workspace-editor-ssh-target'
 
 export type ExternalEditorOpenCapability =
@@ -27,10 +25,6 @@ export function getExternalEditorOpenCapability(context: {
     return { allowed: false, reason: 'remote-runtime' }
   }
   if (runtimeEnvironmentId) {
-    // Why: a WSL host's files open from Windows; main sends VS Code and Cursor `--remote wsl+`.
-    if (getWindowsPathAccess(toRuntimeExecutionHostId(runtimeEnvironmentId))) {
-      return { allowed: true, remote: false, wsl: true }
-    }
     const sshHost = context.runtimeSshHost
     if (sshHost?.environmentId !== runtimeEnvironmentId) {
       return { allowed: false, reason: 'remote-runtime' }

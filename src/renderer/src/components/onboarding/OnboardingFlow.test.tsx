@@ -103,63 +103,17 @@ describe('OnboardingFlow', () => {
     [3, 'Set up notifications'],
     [4, 'Set up notifications'],
     [9, 'Set up notifications']
-  ])(
-    'resumes versioned four-step onboarding progress %i without showing Windows setup on Mac',
-    (legacyStep, title) => {
-      const html = renderOnboardingFlow({
-        onboarding: {
-          ...getDefaultOnboardingState(),
-          flowVersion: 3,
-          lastCompletedStep: legacyStep
-        },
-        onOnboardingChange: vi.fn()
-      })
-
-      expect(html).toContain(title)
-      expect(html).not.toContain('Set Windows terminal defaults')
-    }
-  )
-
-  it('shows the Windows terminal defaults page for Windows users after integrations', () => {
-    vi.stubGlobal('navigator', { userAgent: 'Windows' })
-
+  ])('resumes versioned four-step onboarding progress %i', (legacyStep, title) => {
     const html = renderOnboardingFlow({
       onboarding: {
         ...getDefaultOnboardingState(),
-        lastCompletedStep: 3
+        flowVersion: 3,
+        lastCompletedStep: legacyStep
       },
       onOnboardingChange: vi.fn()
     })
 
-    expect(html).toContain('Set Windows terminal defaults')
-    expect(html).toContain('4 of 5')
-  })
-
-  it('drops the skipped integrations step from the stepper on Windows', () => {
-    vi.stubGlobal('navigator', { userAgent: 'Windows' })
-    useAppStore.setState({
-      preflightStatus: {
-        git: { installed: true },
-        gh: { installed: true, authenticated: false }
-      },
-      preflightStatusChecked: true
-    })
-
-    const html = renderOnboardingFlow({
-      onboarding: {
-        ...getDefaultOnboardingState(),
-        lastCompletedStep: 2
-      },
-      onOnboardingChange: vi.fn()
-    })
-
-    expect(html).toContain('Set Windows terminal defaults')
-    // Why: integrations is skipped (gh already installed), so it is not a
-    // stepper dot at all — the four real steps are agent, theme, Windows
-    // terminal, notifications, and Windows terminal is the third of four.
-    expect(html).toContain('3 of 4')
-    expect(html).not.toContain('Set up GitHub tasks')
-    expect(html).not.toContain('Integrations')
+    expect(html).toContain(title)
   })
 
   it('skips GitHub task setup when the GitHub CLI is already detected', () => {

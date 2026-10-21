@@ -49,7 +49,7 @@ export function renderSetupGuideSettingsSection(context: SettingsRenderContext):
 }
 
 export function renderGeneralSettingsSection(context: SettingsRenderContext): React.JSX.Element {
-  const { model, interactions, navigation, terminal, view } = context
+  const { model, interactions, navigation, view } = context
   return (
     <SettingsSection
       id="general"
@@ -67,10 +67,6 @@ export function renderGeneralSettingsSection(context: SettingsRenderContext): Re
           updateSettingsOrThrow={model.updateSettingsOrThrow}
           fontSuggestions={model.terminalFontSuggestions}
           onRequestFontSuggestions={interactions.requestFontSuggestions}
-          wslSupportedPlatform={terminal.localWslSupportedPlatform}
-          wslAvailable={terminal.localWindowsRuntimeCapabilities.wslAvailable}
-          wslDistros={terminal.localWindowsRuntimeCapabilities.wslDistros}
-          wslCapabilitiesLoading={terminal.localWindowsRuntimeCapabilities.isLoading}
         />
       ) : null}
     </SettingsSection>

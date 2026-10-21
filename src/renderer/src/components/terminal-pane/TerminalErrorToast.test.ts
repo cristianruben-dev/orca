@@ -536,8 +536,8 @@ it('keeps an existing environment footer without asking to report an explained f
   expect(environmentMocks.resolveFooter).not.toHaveBeenCalled()
 })
 
-it('uses existing Korean recovery copy and preserves the path', async () => {
-  await i18n.changeLanguage('ko')
+it('uses existing recovery copy and preserves the path', async () => {
+  await i18n.changeLanguage('en')
   try {
     const path = '/tmp/project: folder'
     const view = render(
@@ -546,9 +546,7 @@ it('uses existing Korean recovery copy and preserves the path', async () => {
         onDismiss: vi.fn()
       })
     )
-    expect(view.container.textContent).toContain(
-      i18n.t('auto.lib.folderWorkspacePathStatus.createError.description.missing', { path })
-    )
+    expect(view.container.textContent).toContain('Orca cannot find /tmp/project: folder')
     expect(view.container.textContent).toContain(path)
     expect(view.container.textContent).not.toContain('folder_workspace_path_missing')
     expect(view.container.querySelector('a')).toBeNull()

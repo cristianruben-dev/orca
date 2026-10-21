@@ -15,14 +15,12 @@ import {
   getGeneralUpdateSearchEntries,
   getGeneralWorkspaceSearchEntries
 } from './general-search'
-import { getGeneralProjectRuntimeSearchEntries } from './general-project-runtime-search'
 import { RecentTabOrderControl } from './RecentTabOrderControl'
 import { SettingsSectionStack } from './SettingsSectionStack'
-import { matchesSettingsSearch, type SettingsSearchEntry } from './settings-search'
+import { matchesSettingsSearch } from './settings-search'
 import { SearchableSetting } from './SearchableSetting'
 import { SettingsSubsectionHeader, SettingsSwitchRow } from './SettingsFormControls'
 import { translate } from '@/i18n/i18n'
-import { DefaultWindowsProjectRuntimeSetting } from './DefaultWindowsProjectRuntimeSetting'
 import { defaultScopeHost } from '@/lib/default-creation-host'
 
 export {
@@ -46,22 +44,6 @@ export function getDesktopPlatformFromUserAgent(userAgent: string): 'darwin' | '
 
 export { getGeneralPaneSearchEntries }
 
-/**
- * The Project Runtime section is Windows-only. Gate on the platform directly:
- * an empty search query makes matchesSettingsSearch return true even for an
- * empty entries array, which would otherwise render an orphaned header (the
- * inner control self-hides) on non-Windows hosts.
- */
-export function shouldShowProjectRuntimeSection(
-  wslSupportedPlatform: boolean | undefined,
-  searchQuery: string,
-  projectRuntimeSearchEntries: SettingsSearchEntry[]
-): boolean {
-  return (
-    Boolean(wslSupportedPlatform) && matchesSettingsSearch(searchQuery, projectRuntimeSearchEntries)
-  )
-}
-
 export function getTabOrderControlSearchKeywords(
   navigationEntries: GeneralSearchEntry[] = getGeneralNavigationSearchEntries()
 ): string[] {
@@ -75,18 +57,12 @@ export function getTabOrderControlSearchKeywords(
     : []
 }
 
-const EMPTY_WSL_DISTROS: string[] = []
-
 type GeneralPaneProps = {
   settings: GlobalSettings
   updateSettings: (updates: Partial<GlobalSettings>) => void
   updateSettingsOrThrow?: (updates: Partial<GlobalSettings>) => void | Promise<void>
   fontSuggestions: string[]
   onRequestFontSuggestions?: () => void
-  wslSupportedPlatform?: boolean
-  wslAvailable?: boolean
-  wslDistros?: string[]
-  wslCapabilitiesLoading?: boolean
 }
 
 export function GeneralPane({
@@ -94,11 +70,7 @@ export function GeneralPane({
   updateSettings,
   updateSettingsOrThrow,
   fontSuggestions,
-  onRequestFontSuggestions,
-  wslSupportedPlatform,
-  wslAvailable,
-  wslDistros = EMPTY_WSL_DISTROS,
-  wslCapabilitiesLoading
+  onRequestFontSuggestions
 }: GeneralPaneProps): React.JSX.Element {
   const searchQuery = useAppStore((s) => s.settingsSearchQuery)
   const sourceDefaultsSupportedRuntimeEnvironmentId = useAppStore(
@@ -118,9 +90,6 @@ export function GeneralPane({
       activeRuntimeTarget.environmentId === sourceDefaultsSupportedRuntimeEnvironmentId)
   const generalNavigationSearchEntries = getGeneralNavigationSearchEntries()
   const tabOrderKeywords = getTabOrderControlSearchKeywords(generalNavigationSearchEntries)
-  const projectRuntimeSearchEntries = wslSupportedPlatform
-    ? getGeneralProjectRuntimeSearchEntries()
-    : []
 
   const visibleSections = [
     matchesSettingsSearch(searchQuery, generalNavigationSearchEntries) ? (
@@ -228,32 +197,6 @@ export function GeneralPane({
         sourceDefaultsSupported={sourceDefaultsSupported}
       />
     ) : null,
-    shouldShowProjectRuntimeSection(
-      wslSupportedPlatform,
-      searchQuery,
-      projectRuntimeSearchEntries
-    ) ? (
-      <section key="project-runtime" className="space-y-4">
-        <SettingsSubsectionHeader
-          title={translate(
-            'auto.components.settings.GeneralPane.projectRuntime',
-            'Project Runtime'
-          )}
-          description={translate(
-            'auto.components.settings.GeneralPane.projectRuntimeDescription',
-            'Default runtime for local Windows projects that do not override it.'
-          )}
-        />
-        <DefaultWindowsProjectRuntimeSetting
-          settings={settings}
-          updateSettings={updateSettings}
-          wslSupportedPlatform={Boolean(wslSupportedPlatform)}
-          wslAvailable={Boolean(wslAvailable)}
-          wslDistros={wslDistros}
-          wslCapabilitiesLoading={Boolean(wslCapabilitiesLoading)}
-        />
-      </section>
-    ) : null,
     matchesSettingsSearch(searchQuery, getGeneralEditorSearchEntries()) ? (
       <GeneralEditorSettingsSection
         key="editor"
@@ -268,9 +211,6 @@ export function GeneralPane({
         key="cli"
         currentPlatform={getDesktopPlatformFromUserAgent(navigator.userAgent)}
         settings={settings}
-        wslSupportedPlatform={wslSupportedPlatform}
-        wslAvailable={wslAvailable}
-        wslCapabilitiesLoading={wslCapabilitiesLoading}
       />
     ) : null,
     matchesSettingsSearch(searchQuery, getGeneralUpdateSearchEntries()) ? (

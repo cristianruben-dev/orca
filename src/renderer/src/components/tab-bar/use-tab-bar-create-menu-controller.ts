@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { focusTerminalTabSurface } from '@/lib/focus-terminal-tab-surface'
-import type { WindowsTerminalCapabilities } from '@/lib/windows-terminal-capabilities'
 import { useAppStore } from '../../store'
 import type { TabAgentLaunchOption } from './tab-agent-launch-options'
 import { useTabAgentMenuLaunch } from './QuickLaunchButton'
@@ -9,15 +8,6 @@ import { useNewTabAgentMenuRows, type NewTabAgentMenuModel } from './use-new-tab
 import type { AgentDetectionTarget } from '@/hooks/useDetectedAgents'
 import { buildTabAgentLaunchOptionsFromRows } from './tab-agent-launch-options'
 import { buildTabCreateMenuOptions, type TabCreateMenuOption } from './tab-create-menu-options'
-import { resolveWindowsShellLaunchTarget } from './windows-shell-launch'
-import {
-  buildWindowsShellMenuEntries,
-  type WindowsShellMenuEntry
-} from './tab-bar-windows-shell-options'
-import type {
-  getProjectRuntimeShellMenuMode,
-  resolveWindowsPowerShellImplementationSetting
-} from './use-tab-bar-runtime-model'
 const NEW_TAB_MENU_TERMINAL_FOCUS_RETRY_MS = 50
 const NEW_TAB_MENU_TERMINAL_FOCUS_TIMEOUT_MS = 5000
 export type TabBarCreateMenuController = {
@@ -28,7 +18,6 @@ export type TabBarCreateMenuController = {
   setNewTabMenuOpen: (open: boolean) => void
   setCreateMenuQuery: (query: string) => void
   createMenuOptions: TabCreateMenuOption[]
-  windowsShellEntries: WindowsShellMenuEntry[] | undefined
   handleSelectCreateMenuOption: (option: TabCreateMenuOption) => void
   launchAgentFromNewTabEntry: (option: TabAgentLaunchOption) => void
   runPendingNewTabMenuFocusAfterClose: () => void
@@ -47,14 +36,8 @@ export function useTabBarCreateMenuController({
   managedBrowserCreationEnabled,
   mobileEmulatorCreationEnabled,
   workspaceHasSimulatorTab,
-  showWindowsShellMenu,
-  projectRuntimeShellMenuMode,
-  defaultWindowsShell,
-  defaultWindowsPowerShellImplementation,
   agentDetectionTarget,
-  windowsTerminalCapabilities,
   onNewTerminalTab,
-  onNewTerminalWithShell,
   onNewBrowserTab,
   onNewSimulatorTab,
   onNewFileTab,
@@ -68,16 +51,8 @@ export function useTabBarCreateMenuController({
   managedBrowserCreationEnabled: boolean
   mobileEmulatorCreationEnabled: boolean
   workspaceHasSimulatorTab: boolean
-  showWindowsShellMenu: boolean
-  projectRuntimeShellMenuMode: ReturnType<typeof getProjectRuntimeShellMenuMode>
-  defaultWindowsShell: string
-  defaultWindowsPowerShellImplementation: ReturnType<
-    typeof resolveWindowsPowerShellImplementationSetting
-  >
   agentDetectionTarget: AgentDetectionTarget | undefined
-  windowsTerminalCapabilities: WindowsTerminalCapabilities
   onNewTerminalTab: () => void
-  onNewTerminalWithShell?: (shell: string) => void
   onNewBrowserTab: () => void
   onNewSimulatorTab?: () => void
   onNewFileTab?: () => void
@@ -151,28 +126,10 @@ export function useTabBarCreateMenuController({
     clearPendingNewTabMenuFocusRetry()
     pendingNewTabMenuFocusRef.current = { focus, synchronous }
   }
-  const windowsShellEntries = useMemo(() => {
-    return buildWindowsShellMenuEntries({
-      showWindowsShellMenu,
-      hasShellLauncher: Boolean(onNewTerminalWithShell),
-      projectRuntimeShellMenuMode,
-      defaultWindowsShell,
-      gitBashAvailable: windowsTerminalCapabilities.gitBashAvailable,
-      wslAvailable: windowsTerminalCapabilities.wslAvailable
-    })
-  }, [
-    defaultWindowsShell,
-    onNewTerminalWithShell,
-    projectRuntimeShellMenuMode,
-    showWindowsShellMenu,
-    windowsTerminalCapabilities.gitBashAvailable,
-    windowsTerminalCapabilities.wslAvailable
-  ])
   const createMenuOptions = useMemo(
     () =>
       buildTabCreateMenuOptions({
         terminalOnly,
-        windowsShellEntries,
         hasNewBrowser: !terminalOnly && managedBrowserCreationEnabled,
         hasNewMarkdown: !terminalOnly && Boolean(onNewFileTab),
         hasOpenMarkdown: !terminalOnly && Boolean(onOpenFileTab),
@@ -191,7 +148,6 @@ export function useTabBarCreateMenuController({
       onNewSimulatorTab,
       onOpenFileTab,
       terminalOnly,
-      windowsShellEntries,
       workspaceHasSimulatorTab
     ]
   )
@@ -200,19 +156,6 @@ export function useTabBarCreateMenuController({
       case 'new-terminal':
         queueNewActiveTerminalFocusAfterNewTabMenuClose()
         onNewTerminalTab()
-        break
-      case 'new-terminal-shell':
-        if (!onNewTerminalWithShell || !option.shell) {
-          break
-        }
-        queueNewActiveTerminalFocusAfterNewTabMenuClose()
-        onNewTerminalWithShell(
-          resolveWindowsShellLaunchTarget(
-            option.shell,
-            defaultWindowsPowerShellImplementation,
-            windowsTerminalCapabilities.pwshAvailable
-          )
-        )
         break
       case 'new-browser':
         onNewBrowserTab()
@@ -289,7 +232,6 @@ export function useTabBarCreateMenuController({
     setNewTabMenuOpen,
     setCreateMenuQuery,
     createMenuOptions,
-    windowsShellEntries,
     handleSelectCreateMenuOption,
     launchAgentFromNewTabEntry,
     runPendingNewTabMenuFocusAfterClose,

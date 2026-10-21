@@ -1,4 +1,3 @@
-import { getRepoExecutionHostId, LOCAL_EXECUTION_HOST_ID } from '../../../../shared/execution-host'
 import { getRepoHostIdentity } from '../../store/slices/repo-host-identity'
 import { RepositoryPane } from './RepositoryPane'
 import { SettingsSection } from './SettingsSection'
@@ -11,7 +10,7 @@ import { translate } from '@/i18n/i18n'
 import type { SettingsRenderContext } from './settings-render-context'
 
 export function renderProjectSettingsSections(context: SettingsRenderContext): React.ReactNode {
-  const { model, navigation, terminal, view } = context
+  const { model, navigation, view } = context
   return model.settingsProjectList.map((settingsProject) => {
     const repoSectionId = `repo-${settingsProject.representativeRepoId}`
     // Why: use the switcher-selected host's repo so identity/host-specific edits follow "Available Hosts".
@@ -56,7 +55,6 @@ export function renderProjectSettingsSections(context: SettingsRenderContext): R
             mayNeedUpdate={repoHooksState?.mayNeedUpdate ?? false}
             updateRepo={model.updateRepo}
             removeProject={() => void model.removeProjectAllHosts(settingsProject.setups)}
-            project={project}
             selectedProjectSetupId={hostSelection.setupId}
             settingsSelectionKey={settingsProject.selectionKey}
             settingsEntryRepoIds={
@@ -65,16 +63,6 @@ export function renderProjectSettingsSections(context: SettingsRenderContext): R
                 : undefined
             }
             removalScope={getSettingsProjectRemovalScope(settingsProject)}
-            isLocalWindowsProject={
-              getRepoExecutionHostId(repo) === LOCAL_EXECUTION_HOST_ID &&
-              terminal.isWindowsTerminalHost
-            }
-            wslAvailable={terminal.windowsTerminalCapabilities.wslAvailable}
-            wslDistros={terminal.windowsTerminalCapabilities.wslDistros}
-            wslCapabilitiesLoading={terminal.windowsTerminalCapabilities.isLoading}
-            updateProject={(projectId, updates) =>
-              model.updateProject(projectId, updates, getRepoExecutionHostId(repo))
-            }
           />
         ) : null}
       </SettingsSection>

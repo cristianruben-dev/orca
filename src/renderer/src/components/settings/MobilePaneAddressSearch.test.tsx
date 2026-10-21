@@ -43,7 +43,6 @@ vi.mock('./MobilePairingConnectionOptions', () => ({
 vi.mock('./MobilePairingQrSection', () => ({ MobilePairingQrSection: () => <div /> }))
 vi.mock('./MobilePairedDevicesSection', () => ({ MobilePairedDevicesSection: () => <div /> }))
 vi.mock('./MobileAutoRestoreFitSection', () => ({ MobileAutoRestoreFitSection: () => <div /> }))
-vi.mock('../mobile/WindowsFirewallNotice', () => ({ WindowsFirewallNotice: () => <div /> }))
 
 import { MobilePane } from './MobilePane'
 

@@ -20,21 +20,13 @@ export function shouldSkipIntegrationsStep(status: AppState['preflightStatus']):
   return status?.gh.installed === true
 }
 
-export function shouldSkipWindowsTerminalStep(isWindows: boolean): boolean {
-  return !isWindows
-}
-
 export type OnboardingStepSkipOptions = {
   skipIntegrations: boolean
-  skipWindowsTerminal: boolean
 }
 
 export function isSkippedStepIndex(index: number, options: OnboardingStepSkipOptions): boolean {
   const step = STEPS[index]
-  return (
-    (options.skipIntegrations && step?.id === 'integrations') ||
-    (options.skipWindowsTerminal && step?.id === 'windows_terminal')
-  )
+  return options.skipIntegrations && step?.id === 'integrations'
 }
 
 export function resolveStepIndex(

@@ -138,44 +138,6 @@ describe('buildDefaultTerminalOptions', () => {
     expect(buildDefaultTerminalOptions().vtExtensions?.kittyKeyboard).toBe(true)
   })
 
-  it('lets a local Windows ConPTY pane override the default and withhold kitty keyboard', () => {
-    // Regression for #2434: per-pane options merge over the default the same way
-    // createPaneDOM merges them, so a local Windows ConPTY override must win and
-    // turn the advertised kittyKeyboard off (CSI-u-blind local CLIs ignore nav keys).
-    const merged = {
-      ...buildDefaultTerminalOptions(),
-      ...buildTerminalKeyboardProtocolOptions({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        osRelease: '10.0.26100',
-        connectionId: null,
-        cwd: 'C:\\repo',
-        shellOverride: 'powershell.exe',
-        executionHostId: 'local'
-      })
-    }
-
-    expect(merged.vtExtensions?.kittyKeyboard).toBe(false)
-  })
-
-  it('keeps kitty keyboard when a local Windows ConPTY pane is launching Grok', () => {
-    // Why: Grok needs KKP for Ctrl+Enter interject / Shift+Enter newline; the
-    // ConPTY withhold must not win when launchAgent (or tuiAgent) is grok.
-    const merged = {
-      ...buildDefaultTerminalOptions(),
-      ...buildTerminalKeyboardProtocolOptions({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        osRelease: '10.0.26100',
-        connectionId: null,
-        cwd: 'C:\\repo',
-        shellOverride: 'powershell.exe',
-        executionHostId: 'local',
-        tuiAgent: 'grok'
-      })
-    }
-
-    expect(merged.vtExtensions?.kittyKeyboard).toBe(true)
-  })
-
   it('keeps the advertised kitty keyboard default for SSH and macOS/Linux panes', () => {
     for (const context of [
       {

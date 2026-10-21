@@ -8,7 +8,7 @@ import { translate } from '@/i18n/i18n'
 import type { SettingsRenderContext } from './settings-render-context'
 
 export function renderTerminalSettingsSection(context: SettingsRenderContext): React.JSX.Element {
-  const { model, navigation, terminal, view } = context
+  const { model, navigation, view } = context
   return (
     <SettingsSection
       id="terminal"
@@ -25,12 +25,6 @@ export function renderTerminalSettingsSection(context: SettingsRenderContext): R
           updateSettings={model.updateSettings}
           scrollbackMode={model.scrollbackMode}
           setScrollbackMode={model.setScrollbackMode}
-          wslAvailable={terminal.windowsTerminalCapabilities.wslAvailable}
-          wslDistros={terminal.windowsTerminalCapabilities.wslDistros}
-          wslCapabilitiesLoading={terminal.windowsTerminalCapabilities.isLoading}
-          pwshAvailable={terminal.windowsTerminalCapabilities.pwshAvailable}
-          gitBashAvailable={terminal.windowsTerminalCapabilities.gitBashAvailable}
-          isWindowsTerminalHost={terminal.isWindowsTerminalHost}
         />
       ) : null}
     </SettingsSection>

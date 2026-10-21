@@ -223,12 +223,6 @@ export function usePersistCurrentStep({
         onOnboardingChange(await persistStep(ONBOARDING_FINAL_STEP))
         return { ok: true }
       }
-      if (currentStepId === 'windows_terminal') {
-        // Why: the Windows terminal controls persist on selection. Continuing
-        // only marks the preference page complete for resume/telemetry state.
-        onOnboardingChange(await persistStep(4))
-        return { ok: true }
-      }
       if (currentStepId === 'integrations') {
         // Why: GitHub and Linear connections persist through their own
         // store slices when the user actually wires them up. The step itself

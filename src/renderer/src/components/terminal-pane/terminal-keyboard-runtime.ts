@@ -29,7 +29,6 @@ import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { resolveWindowsShiftEnterEncodingForPane } from './terminal-windows-shift-enter'
 import { hasCtrlEnterCsiUAuthorityForPane } from './terminal-ctrl-enter'
 import { resolveTerminalInputHostPlatform } from './terminal-input-host-platform'
-import { isLocalWindowsConptyPaneForCtrlArrow } from './terminal-ctrl-arrow-conpty'
 import { keyboardEventBelongsToScope } from './terminal-keyboard-scope'
 import {
   isEditableTarget,
@@ -47,8 +46,8 @@ type RuntimeOptions = {
   managerRef: React.RefObject<PaneManager | null>
   paneTransportsRef: React.RefObject<Map<number, PtyTransport>>
   panePtyBindingsRef: React.RefObject<Map<number, IDisposable>>
-  paneCwdRef: React.RefObject<PaneCwdMap>
-  fallbackCwd: string
+  paneCwdRef?: React.RefObject<PaneCwdMap>
+  fallbackCwd?: string
   macOptionAsAltRef: React.RefObject<MacOptionAsAlt>
   paneKittyKeyboardModesRef?: React.RefObject<Map<number, TerminalKittyKeyboardModeTracker>>
   keybindings?: KeybindingOverrides
@@ -66,8 +65,6 @@ export function createTerminalKeyboardRuntime(options: RuntimeOptions) {
     managerRef,
     paneTransportsRef,
     panePtyBindingsRef,
-    paneCwdRef,
-    fallbackCwd,
     macOptionAsAltRef,
     paneKittyKeyboardModesRef,
     keybindings,
@@ -127,24 +124,7 @@ export function createTerminalKeyboardRuntime(options: RuntimeOptions) {
       }
     }
   }
-  const isLocalWindowsConptyPane = (): boolean => {
-    const manager = managerRef.current
-    const pane = manager?.getActivePane() ?? manager?.getPanes()[0]
-    if (!pane) {
-      return false
-    }
-    return isLocalWindowsConptyPaneForCtrlArrow({
-      isWindows,
-      userAgent: navigator.userAgent,
-      state: useAppStore.getState(),
-      worktreeId,
-      tabId,
-      paneId: pane.id,
-      paneCwd: paneCwdRef.current,
-      fallbackCwd,
-      transport: paneTransportsRef.current.get(pane.id) ?? null
-    })
-  }
+  const isLocalWindowsConptyPane = (): boolean => false
   const getActivePaneWindowsShiftEnterEncoding = () => {
     const manager = managerRef.current
     const pane = manager?.getActivePane() ?? manager?.getPanes()[0]

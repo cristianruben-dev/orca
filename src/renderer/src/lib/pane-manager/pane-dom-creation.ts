@@ -12,7 +12,6 @@ import { buildDefaultTerminalOptions } from './pane-terminal-options'
 import { shouldFocusTerminalFromPanePointerDown } from './pane-pointer-focus'
 import { ENABLE_WEBGL_RENDERER } from './pane-webgl-renderer'
 import { installGuardedLinkProviderRegistration } from './terminal-link-provider-guard'
-import { installWindowsCtrlAltChordRepair } from './terminal-windows-ctrl-alt-chord-classification'
 import { installTerminalMouseEncodingTracker } from './terminal-mouse-encoding-tracker'
 import { StableCellFitAddon } from './terminal-stable-cell-fit-addon'
 
@@ -51,7 +50,6 @@ export function createPaneDOM(
   // line) escapes to window.onerror and gets the renderer killed. Guard every
   // provider registered after this point — addon-internal and Orca's own.
   installGuardedLinkProviderRegistration(terminal)
-  installWindowsCtrlAltChordRepair(terminal)
   // Why here: the tracker must see every byte, including the first snapshot replay.
   const mouseEncodingTrackerDisposable = installTerminalMouseEncodingTracker(terminal)
   const fitAddon = new StableCellFitAddon()

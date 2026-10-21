@@ -13,13 +13,11 @@ import { persistStep, useCloseWith, usePersistCurrentStep } from './use-onboardi
 import { resolveOnboardingSettingsHydration } from './onboarding-settings-hydration'
 import { translate } from '@/i18n/i18n'
 import { useOnboardingYoloPermissions } from './use-onboarding-yolo-permissions'
-import { isWindowsUserAgent } from '@/components/terminal-pane/pane-helpers'
 import {
   isSkippedStepIndex,
   remapOpenOnboardingLastCompletedStep,
   resolveStepIndex,
-  shouldSkipIntegrationsStep,
-  shouldSkipWindowsTerminalStep
+  shouldSkipIntegrationsStep
 } from './onboarding-flow-state'
 
 import { useOnboardingFlowActions } from './use-onboarding-flow-actions'
@@ -49,11 +47,7 @@ export function useOnboardingFlow(
   const effectivePreflightStatus = preflightStatus ?? useAppStore.getState().preflightStatus
 
   const skipIntegrations = shouldSkipIntegrationsStep(effectivePreflightStatus)
-  const skipWindowsTerminal = shouldSkipWindowsTerminalStep(isWindowsUserAgent())
-  const skipOptions = useMemo(
-    () => ({ skipIntegrations, skipWindowsTerminal }),
-    [skipIntegrations, skipWindowsTerminal]
-  )
+  const skipOptions = useMemo(() => ({ skipIntegrations }), [skipIntegrations])
   const remappedLastCompletedStep = remapOpenOnboardingLastCompletedStep(onboarding)
   const initialStep = resolveStepIndex(
     Math.min(Math.max(remappedLastCompletedStep, 0), STEPS.length - 1),

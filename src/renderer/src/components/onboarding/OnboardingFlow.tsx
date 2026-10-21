@@ -8,7 +8,6 @@ import { AgentStep } from './AgentStep'
 import { ThemeStep } from './ThemeStep'
 import { NotificationStep } from './NotificationStep'
 import { IntegrationsStep } from './IntegrationsStep'
-import { WindowsTerminalStep } from './WindowsTerminalStep'
 import { useOnboardingFlow } from './use-onboarding-flow'
 import { OnboardingSkipConfirmationDialog } from './OnboardingSkipConfirmationDialog'
 import { OnboardingFooter } from './OnboardingFooter'
@@ -72,20 +71,6 @@ const stepCopy = {
         'Install the GitHub CLI to:'
       )
     }
-  },
-  windows_terminal: {
-    get title() {
-      return translate(
-        'auto.components.onboarding.OnboardingFlow.windowsTerminalTitle',
-        'Set Windows terminal defaults'
-      )
-    },
-    get subtitle() {
-      return translate(
-        'auto.components.onboarding.OnboardingFlow.windowsTerminalSubtitle',
-        'Choose the DEFAULT Shell for new panes and how right-click behaves in the terminal.'
-      )
-    }
   }
 } as const
 
@@ -98,11 +83,6 @@ const stepTooltipLabels = {
   theme: {
     get value() {
       return translate('components.onboarding.flow.stepTooltip.theme', 'Appearance')
-    }
-  },
-  windows_terminal: {
-    get value() {
-      return translate('components.onboarding.flow.stepTooltip.windowsTerminal', 'Windows Terminal')
     }
   },
   notifications: {
@@ -330,12 +310,6 @@ export default function OnboardingFlow({
                 <NotificationStep settings={flow.settings} updateSettings={flow.updateSettings} />
               )}
               {currentStep.id === 'integrations' && <IntegrationsStep />}
-              {currentStep.id === 'windows_terminal' && (
-                <WindowsTerminalStep
-                  settings={flow.settings}
-                  updateSettings={flow.updateSettings}
-                />
-              )}
             </div>
 
             <OnboardingFooter
