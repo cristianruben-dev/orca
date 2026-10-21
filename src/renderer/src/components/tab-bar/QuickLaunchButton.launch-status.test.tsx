@@ -90,19 +90,7 @@ it('gives static/search no agent actions while loading, retaining settings and g
       managedBrowserCreationEnabled: false,
       mobileEmulatorCreationEnabled: false,
       workspaceHasSimulatorTab: false,
-      showWindowsShellMenu: false,
-      projectRuntimeShellMenuMode: null,
-      defaultWindowsShell: 'powershell',
-      defaultWindowsPowerShellImplementation: 'auto',
       agentDetectionTarget: { kind: 'local' },
-      windowsTerminalCapabilities: {
-        wslAvailable: false,
-        wslDistros: [],
-        pwshAvailable: false,
-        gitBashAvailable: false,
-        hostPlatform: null,
-        isLoading: false
-      },
       onNewTerminalTab: vi.fn(),
       onNewBrowserTab: vi.fn()
     })

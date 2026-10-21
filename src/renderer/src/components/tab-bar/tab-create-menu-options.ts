@@ -1,6 +1,5 @@
 import { translate } from '@/i18n/i18n'
 import { normalizeMatchQuery, scoreQueryTokens } from './query-token-match'
-import type { BuiltInWindowsTerminalShell } from '../../../../shared/windows-terminal-shell'
 import { isClipboardTextByteLengthOverLimit } from '../../../../shared/clipboard-text'
 
 export type TabCreateMenuOptionKind =
@@ -9,7 +8,6 @@ export type TabCreateMenuOptionKind =
   | 'new-markdown'
   | 'new-simulator'
   | 'new-terminal'
-  | 'new-terminal-shell'
   | 'open-markdown'
 
 export type TabCreateMenuOption = {
@@ -17,7 +15,6 @@ export type TabCreateMenuOption = {
   kind: TabCreateMenuOptionKind
   keywords: readonly string[]
   label: string
-  shell?: BuiltInWindowsTerminalShell
 }
 
 export type TabCreateMenuOptionsContext = {
@@ -27,7 +24,6 @@ export type TabCreateMenuOptionsContext = {
   hasSimulator: boolean
   simulatorIsGoTo: boolean
   terminalOnly: boolean
-  windowsShellEntries?: readonly { label: string; shell: BuiltInWindowsTerminalShell }[]
 }
 
 export const TAB_CREATE_MENU_QUERY_MAX_BYTES = 2 * 1024
@@ -67,37 +63,18 @@ export function buildTabCreateMenuOptions(
 
   const options: TabCreateMenuOption[] = []
 
-  if (context.windowsShellEntries && context.windowsShellEntries.length > 0) {
-    for (const entry of context.windowsShellEntries) {
-      const label = `${translate('auto.components.tab.bar.TabBar.7c1313d237', 'New Terminal:')} ${entry.label}`
-      options.push({
-        id: `new-terminal-shell:${entry.shell}`,
-        kind: 'new-terminal-shell',
-        label,
-        shell: entry.shell,
-        keywords: [
-          translate('auto.components.tab.bar.tab.create.menu.options.5501c2fb7a', 'terminal'),
-          translate('auto.components.tab.bar.tab.create.menu.options.9630dd5494', 'shell'),
-          translate('auto.components.tab.bar.tab.create.menu.options.a094576900', 'new terminal'),
-          entry.label,
-          label
-        ]
-      })
-    }
-  } else {
-    const label = translate('auto.components.tab.bar.TabBar.d364f3c8d4', 'New Terminal')
-    options.push({
-      id: 'new-terminal',
-      kind: 'new-terminal',
-      label,
-      keywords: [
-        translate('auto.components.tab.bar.tab.create.menu.options.5501c2fb7a', 'terminal'),
-        translate('auto.components.tab.bar.tab.create.menu.options.9630dd5494', 'shell'),
-        translate('auto.components.tab.bar.tab.create.menu.options.a094576900', 'new terminal'),
-        translate('auto.components.tab.bar.tab.create.menu.options.4f23f4d01d', 'new shell')
-      ]
-    })
-  }
+  const label = translate('auto.components.tab.bar.TabBar.d364f3c8d4', 'New Terminal')
+  options.push({
+    id: 'new-terminal',
+    kind: 'new-terminal',
+    label,
+    keywords: [
+      translate('auto.components.tab.bar.tab.create.menu.options.5501c2fb7a', 'terminal'),
+      translate('auto.components.tab.bar.tab.create.menu.options.9630dd5494', 'shell'),
+      translate('auto.components.tab.bar.tab.create.menu.options.a094576900', 'new terminal'),
+      translate('auto.components.tab.bar.tab.create.menu.options.4f23f4d01d', 'new shell')
+    ]
+  })
 
   if (context.hasNewBrowser) {
     const label = translate('auto.components.tab.bar.TabBar.4833fb2cbe', 'New Browser Tab')

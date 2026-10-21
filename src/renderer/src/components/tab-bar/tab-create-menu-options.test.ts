@@ -72,25 +72,6 @@ describe('tab create menu options', () => {
     expect(findMatchingTabCreateMenuOptions('mobile emulator', options)).toEqual([])
   })
 
-  it('preserves default Windows shell order for tied terminal matches', () => {
-    const options = buildTabCreateMenuOptions({
-      terminalOnly: false,
-      hasNewBrowser: false,
-      hasNewMarkdown: false,
-      hasOpenMarkdown: false,
-      hasSimulator: false,
-      simulatorIsGoTo: false,
-      windowsShellEntries: [
-        { label: 'PowerShell', shell: 'powershell.exe' },
-        { label: 'CMD Prompt', shell: 'cmd.exe' }
-      ]
-    })
-
-    expect(
-      findMatchingTabCreateMenuOptions('new terminal', options).map((option) => option.shell)
-    ).toEqual(['powershell.exe', 'cmd.exe'])
-  })
-
   it('returns no matches for an empty query', () => {
     expect(findMatchingTabCreateMenuOptions('', defaultOptions)).toEqual([])
     expect(findMatchingTabCreateMenuOptions('   ', defaultOptions)).toEqual([])

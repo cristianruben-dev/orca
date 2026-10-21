@@ -4,14 +4,8 @@ import { translate } from '@/i18n/i18n'
 import { DropdownMenuItem, DropdownMenuShortcut } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { MobileEmulatorTabIntroCallout } from '../emulator-pane/MobileEmulatorTabIntroCallout'
-import { ShellIcon } from './shell-icons'
-import type { WindowsShellMenuEntry } from './tab-bar-windows-shell-options'
-import {
-  isMacOs,
-  type resolveWindowsPowerShellImplementationSetting
-} from './use-tab-bar-runtime-model'
+import { isMacOs } from './use-tab-bar-runtime-model'
 import type { TabBarProps } from './tab-bar-props'
-import { resolveWindowsShellLaunchTarget } from './windows-shell-launch'
 
 export function TabBarStaticCreateMenu({
   terminalOnly,
@@ -21,9 +15,6 @@ export function TabBarStaticCreateMenu({
   workspaceHasSimulatorTab,
   showMobileEmulatorIntroCallout,
   props,
-  windowsShellEntries,
-  defaultWindowsPowerShellImplementation,
-  pwshAvailable,
   newTerminalShortcut,
   newBrowserShortcut,
   newSimulatorShortcut,
@@ -38,11 +29,6 @@ export function TabBarStaticCreateMenu({
   mobileEmulatorCreationEnabled: boolean
   workspaceHasSimulatorTab: boolean
   showMobileEmulatorIntroCallout: boolean
-  windowsShellEntries: WindowsShellMenuEntry[] | undefined
-  defaultWindowsPowerShellImplementation: ReturnType<
-    typeof resolveWindowsPowerShellImplementationSetting
-  >
-  pwshAvailable: boolean
   newTerminalShortcut: string
   newBrowserShortcut: string
   newSimulatorShortcut: string
@@ -53,54 +39,24 @@ export function TabBarStaticCreateMenu({
   const {
     newTabMenuOrder = 'default',
     onNewTerminalTab,
-    onNewTerminalWithShell,
     onNewBrowserTab,
     onNewSimulatorTab,
     onNewFileTab,
     onOpenFileTab
   } = props
-  const defaultTerminalMenuItems =
-    windowsShellEntries && onNewTerminalWithShell ? (
-      windowsShellEntries.map((entry, index) => {
-        const isDefault = index === 0
-        return (
-          <DropdownMenuItem
-            key={entry.shell}
-            onSelect={() => {
-              // Why: menu models shell categories not executables; preserve the user's chosen PowerShell 7+ over inbox powershell.exe.
-              queueNewActiveTerminalFocusAfterNewTabMenuClose()
-              onNewTerminalWithShell(
-                resolveWindowsShellLaunchTarget(
-                  entry.shell,
-                  defaultWindowsPowerShellImplementation,
-                  pwshAvailable
-                )
-              )
-            }}
-            className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium"
-          >
-            <ShellIcon shell={entry.shell} size={14} />
-            <span className="flex-1">
-              {translate('auto.components.tab.bar.TabBar.7c1313d237', 'New Terminal:')}{' '}
-              {entry.label}
-            </span>
-            {isDefault ? <DropdownMenuShortcut>{newTerminalShortcut}</DropdownMenuShortcut> : null}
-          </DropdownMenuItem>
-        )
-      })
-    ) : (
-      <DropdownMenuItem
-        onSelect={() => {
-          queueNewActiveTerminalFocusAfterNewTabMenuClose()
-          onNewTerminalTab()
-        }}
-        className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium"
-      >
-        <TerminalSquare className="size-4 text-muted-foreground" />
-        {translate('auto.components.tab.bar.TabBar.d364f3c8d4', 'New Terminal')}
-        <DropdownMenuShortcut>{newTerminalShortcut}</DropdownMenuShortcut>
-      </DropdownMenuItem>
-    )
+  const defaultTerminalMenuItems = (
+    <DropdownMenuItem
+      onSelect={() => {
+        queueNewActiveTerminalFocusAfterNewTabMenuClose()
+        onNewTerminalTab()
+      }}
+      className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium"
+    >
+      <TerminalSquare className="size-4 text-muted-foreground" />
+      {translate('auto.components.tab.bar.TabBar.d364f3c8d4', 'New Terminal')}
+      <DropdownMenuShortcut>{newTerminalShortcut}</DropdownMenuShortcut>
+    </DropdownMenuItem>
+  )
   const newBrowserMenuItem =
     !terminalOnly && managedBrowserCreationEnabled ? (
       <DropdownMenuItem

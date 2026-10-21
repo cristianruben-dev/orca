@@ -65,8 +65,6 @@ export function renderTabBarSurface({
     mobileEmulatorCreationEnabled,
     workspaceHasSimulatorTab,
     showMobileEmulatorIntroCallout,
-    windowsTerminalCapabilities,
-    defaultWindowsPowerShellImplementation,
     newTerminalShortcut,
     newBrowserShortcut,
     newSimulatorShortcut,
@@ -81,7 +79,6 @@ export function renderTabBarSurface({
     setNewTabMenuOpen,
     setCreateMenuQuery,
     createMenuOptions,
-    windowsShellEntries,
     handleSelectCreateMenuOption,
     launchAgentFromNewTabEntry,
     runPendingNewTabMenuFocusAfterClose,
@@ -262,9 +259,6 @@ export function renderTabBarSurface({
               mobileEmulatorCreationEnabled={mobileEmulatorCreationEnabled}
               workspaceHasSimulatorTab={workspaceHasSimulatorTab}
               showMobileEmulatorIntroCallout={showMobileEmulatorIntroCallout}
-              windowsShellEntries={windowsShellEntries}
-              defaultWindowsPowerShellImplementation={defaultWindowsPowerShellImplementation}
-              pwshAvailable={windowsTerminalCapabilities.pwshAvailable}
               newTerminalShortcut={newTerminalShortcut}
               newBrowserShortcut={newBrowserShortcut}
               newSimulatorShortcut={newSimulatorShortcut}

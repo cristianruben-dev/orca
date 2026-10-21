@@ -93,18 +93,4 @@ describe('TabBar worktree-write gate (non-Windows client)', () => {
     expect(tabBarSurfaceRenders.count).toBe(rendersAtMount)
     expect(localProjectRuntimeSpy).not.toHaveBeenCalled()
   })
-
-  it('still tracks worktree writes when the Windows shell menu is on', async () => {
-    const store = await createTabBarProbeStore()
-    probeWindowsCapabilities.hostPlatform = 'win32'
-    await renderTabBar()
-    const rendersAtMount = tabBarSurfaceRenders.count
-    const runtimeCallsAtMount = localProjectRuntimeSpy.mock.calls.length
-    expect(runtimeCallsAtMount).toBeGreaterThan(0)
-
-    await pushWorktreeWrites(store)
-
-    expect(tabBarSurfaceRenders.count).toBe(rendersAtMount + WORKTREE_WRITES)
-    expect(localProjectRuntimeSpy.mock.calls.length).toBe(runtimeCallsAtMount + WORKTREE_WRITES)
-  })
 })
