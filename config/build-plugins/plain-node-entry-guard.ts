@@ -152,11 +152,7 @@ function assertNoElectronRequire(
 // these packages (src/main/daemon/daemon-host-manifest.ts). Any other bare require in its graph
 // resolves in the install dir but throws MODULE_NOT_FOUND in the copy, and the desktop silently
 // falls back to an unrelocated daemon that the next update kills.
-const DAEMON_HOST_MIRRORED_PACKAGES = [
-  '@orca/process-host',
-  'node-pty',
-  '@vscode/windows-process-tree'
-]
+const DAEMON_HOST_MIRRORED_PACKAGES = ['@orca/process-host', 'node-pty']
 const BARE_REQUIRE_RE = /require\(\s*["'`]([^"'`./][^"'`]*)["'`]\s*\)/g
 
 function packageOfSpecifier(specifier: string): string {

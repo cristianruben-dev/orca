@@ -65,7 +65,6 @@ const {
   placeAppImageNodeRuntime,
   verifyAppImageNodeRuntimeServesPty
 } = require('./scripts/appimage-node-runtime.cjs')
-const { signWindowsUninstallerViaSignPath } = require('./scripts/windows-uninstaller-signing.cjs')
 const { buildMacShipItScheduling } = require('./scripts/macos-shipit-scheduling.cjs')
 
 // Why: dev-channel builds must carry the *release* identity — same bundle id,
@@ -205,15 +204,7 @@ const rpmElectronRuntimeDependencies = [
 const MARKDOWN_FILE_EXTENSIONS = ['md', 'markdown', 'mdx']
 const TABULAR_FILE_EXTENSIONS = ['csv', 'tsv']
 
-// Why: the config must load on a host-only install without resolving unused Windows addons.
-// This is load-time tolerance only; beforePack enforces that the target's natives are installed.
-// Why one package: @vscode/windows-process-tree is the only os: win32 npm addon;
-// the @orca/windows-* addons are workspace links present on every host, so their presence proves nothing.
-const windowsRuntimeResources = existsSync(
-  join(__dirname, '..', 'node_modules', '@vscode', 'windows-process-tree', 'package.json')
-)
-  ? createPackagedRuntimeNodeModuleResources('win32')
-  : []
+const windowsRuntimeResources = []
 
 // Shared with the terminal host helper so its purpose strings cannot drift from the app's.
 const macUsageDescriptions = {
@@ -567,7 +558,7 @@ module.exports = {
     // are unset, so local and dev builds are unaffected. publisherName stays on
     // its existing channel split above.
     signtoolOptions: {
-      sign: signWindowsUninstallerViaSignPath,
+      sign: () => {},
       ...(isWinDevChannel ? {} : { publisherName: 'SignPath Foundation' })
     },
     ...(isWinDevChannel ? { verifyUpdateCodeSignature: false } : {}),

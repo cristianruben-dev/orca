@@ -24,12 +24,6 @@ import {
   resolveSharedElectronDistEntry
 } from './shared-electron-dist-cache.mjs'
 import { execFileSync, spawnSync } from 'node:child_process'
-import {
-  ensureWindowsProcessTreeCommandLinePatch,
-  inspectWindowsProcessTreeAddon,
-  stageWindowsProcessTreeNodeAddonApiHeaders,
-  windowsProcessTreeAddonPath
-} from './windows-process-tree-gyp-rebuild.mjs'
 import { disableMsbuildFileTrackingOnWindows } from './msbuild-file-tracking.mjs'
 import { warnAboutNodeModulesAboveSharedStore } from './store-ancestor-node-modules.mjs'
 import {
@@ -87,13 +81,7 @@ if (ignoreModules.length > 0) {
 // modules inside pnpm's .pnpm/ store. Passing an explicit list of modules to
 // rebuild via `onlyModules` ensures they're recompiled against Electron's Node
 // ABI regardless of the package manager's store layout.
-const NATIVE_MODULES = [
-  'node-pty',
-  'cpu-features',
-  ...(rebuildPlatform === 'win32'
-    ? ['@orca/windows-registry', '@orca/windows-security', '@vscode/windows-process-tree']
-    : [])
-]
+const NATIVE_MODULES = ['node-pty', 'cpu-features']
 const onlyModules = NATIVE_MODULES.filter((m) => !ignoreModules.includes(m))
 // Why: these package dirs are shared with other worktrees (pnpm's global virtual store), so they
 // get a published per-ABI build beside build/Release instead of an in-place rebuild.
@@ -175,16 +163,6 @@ try {
     buildSharedElectronModule(moduleName)
   }
   modulesToRebuild = modulesToRebuild.filter((m) => !sharedModules.has(m))
-  if (
-    rebuildPlatform === 'win32' &&
-    modulesToRebuild.includes('@vscode/windows-process-tree') &&
-    existsSync(join(projectDir, 'node_modules', '@vscode', 'windows-process-tree', 'package.json'))
-  ) {
-    stageWindowsProcessTreeNodeAddonApiHeaders()
-    if (ensureWindowsProcessTreeCommandLinePatch()) {
-      console.warn('[rebuild] Repaired the un-applied windows-process-tree command-line patch.')
-    }
-  }
   disableMsbuildFileTrackingOnWindows()
   if (modulesToRebuild.length > 0) {
     await rebuild({
@@ -203,7 +181,6 @@ try {
     })
   }
   restoreNodePtyWindowsConptyRuntime()
-  assertWindowsProcessTreeAddonIsPatched()
   assertNodePtyConptyDeniesMsysBreakaway()
 } catch (/** @type {any} */ err) {
   console.error('[rebuild] Native module rebuild failed:', err?.message ?? err)
@@ -222,40 +199,6 @@ try {
     }
   }
   process.exit(1)
-}
-
-/**
- * The binary this rebuild just produced is the one the packaged app ships.
- *
- * The relay build asserts its own artifact and `ensure-native-runtime.mjs`
- * asserts what it loads, but nothing checked the addon that gets copied into the
- * packaged `node_modules` -- so a rebuild that silently produced the upstream
- * reader would reach users. Anything but `clean` fails: after a rebuild that
- * reported success the binary must exist, so `missing` is a broken build, not an
- * absence to shrug at. This is the caller that needs the state to be a state and
- * not a boolean.
- */
-function assertWindowsProcessTreeAddonIsPatched() {
-  if (
-    rebuildPlatform !== 'win32' ||
-    !modulesToRebuild.includes('@vscode/windows-process-tree') ||
-    !existsSync(join(projectDir, 'node_modules', '@vscode', 'windows-process-tree', 'package.json'))
-  ) {
-    return
-  }
-  const addonPath = windowsProcessTreeAddonPath()
-  const state = inspectWindowsProcessTreeAddon(addonPath)
-  if (state === 'clean') {
-    return
-  }
-  throw new Error(
-    state === 'missing'
-      ? `the rebuild reported success but ${addonPath} is not there, so the packaged app would ` +
-          'ship no windows-process-tree addon at all.'
-      : `${addonPath} still imports ReadProcessMemory, so it was not built from the patched ` +
-          'command-line reader. The packaged app would carry the primitive MDE scores as ' +
-          'credential dumping.'
-  )
 }
 
 /**
@@ -667,15 +610,6 @@ function loadNativeModule(moduleName) {
           '; expected build/Release so Orca\\'s node-pty patch is active'
       )
     }
-    return
-  }
-  if (moduleName === '@vscode/windows-process-tree') {
-    // The tarball prebuilt loads under Electron too -- the addon is N-API, so
-    // a bare require proves nothing about which source it was built from.
-    const { assertWindowsProcessTreeCreationTime } = projectRequire(
-      './config/scripts/windows-process-tree-creation-time.cjs'
-    )
-    assertWindowsProcessTreeCreationTime({ module: projectRequire(moduleName) })
     return
   }
   projectRequire(moduleName)

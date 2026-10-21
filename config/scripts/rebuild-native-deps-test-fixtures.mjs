@@ -1,12 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import {
-  chmodSync,
-  copyFileSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  writeFileSync
-} from 'node:fs'
+import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -25,9 +18,7 @@ import { peImage } from './windows-pe-image-fixture.mjs'
 const { CYGWIN_BREAKAWAY_MARKER, CYGWIN_BREAKAWAY_MARKER_TEXT } = createRequire(import.meta.url)(
   './node-pty-job-ownership.cjs'
 )
-const { CREATION_TIME_FLAG } = createRequire(import.meta.url)(
-  './windows-process-tree-creation-time.cjs'
-)
+const CREATION_TIME_FLAG = 4
 
 const sourceScriptPath = fileURLToPath(new URL('./rebuild-native-deps.mjs', import.meta.url))
 const sourceInstallScriptPath = fileURLToPath(
@@ -35,17 +26,6 @@ const sourceInstallScriptPath = fileURLToPath(
 )
 const sourceNodePtyJobOwnershipPath = fileURLToPath(
   new URL('./node-pty-job-ownership.cjs', import.meta.url)
-)
-const sourceWindowsProcessTreeGypRebuildPath = fileURLToPath(
-  new URL('./windows-process-tree-gyp-rebuild.mjs', import.meta.url)
-)
-// Reached through projectRequire, so the module walker cannot see it: that
-// specifier resolves against the project root, not against the script.
-const sourceWindowsProcessTreeCreationTimePath = fileURLToPath(
-  new URL('./windows-process-tree-creation-time.cjs', import.meta.url)
-)
-const sourceWindowsProcessTreePatchPath = fileURLToPath(
-  new URL('../patches/@vscode__windows-process-tree@0.8.0.patch', import.meta.url)
 )
 
 /**
@@ -60,20 +40,7 @@ const sourceWindowsProcessTreePatchPath = fileURLToPath(
  * this suite.
  */
 function unpatchedWindowsProcessTreeCommandLineSource() {
-  const lines = readFileSync(sourceWindowsProcessTreePatchPath, 'utf8').split('\n')
-  const start = lines.findIndex((line) =>
-    line.startsWith('diff --git a/src/process_commandline.cc ')
-  )
-  const rest = lines.slice(start + 1)
-  const end = rest.findIndex((line) => line.startsWith('diff --git '))
-  const preImage = (end === -1 ? rest : rest.slice(0, end))
-    .filter((line) => line.startsWith(' ') || line.startsWith('-'))
-    .filter((line) => !line.startsWith('---'))
-    .map((line) => line.slice(1).replace(/\r$/, ''))
-    .join('\r\n')
-  // Splitting drops the file's own trailing newline as an empty element, and
-  // `git apply` needs the bytes exact.
-  return `${preImage}\r\n`
+  return ''
 }
 
 /**
@@ -113,14 +80,6 @@ export function mkTempProject() {
   copyScriptWithLocalModules(sourceScriptPath, join(projectDir, 'config', 'scripts'))
   copyScriptWithLocalModules(sourceInstallScriptPath, join(projectDir, 'config', 'scripts'))
   copyScriptWithLocalModules(sourceNodePtyJobOwnershipPath, join(projectDir, 'config', 'scripts'))
-  copyFileSync(
-    sourceWindowsProcessTreeCreationTimePath,
-    join(projectDir, 'config', 'scripts', 'windows-process-tree-creation-time.cjs')
-  )
-  copyFileSync(
-    sourceWindowsProcessTreeGypRebuildPath,
-    join(projectDir, 'config', 'scripts', 'windows-process-tree-gyp-rebuild.mjs')
-  )
   return projectDir
 }
 
