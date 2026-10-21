@@ -477,11 +477,6 @@ export type GlobalSettings = GlobalSettingsBase & {
   mobilePairingCustomAddresses?: string[]
   /** Name this runtime reports to paired clients; empty uses the host's detected name. */
   machineName: string
-  /** Experimental: floating animated pet in the bottom-right corner. Opt-in cosmetic;
-   *  off never mounts the overlay, and toggling takes effect instantly (renderer-side). */
-  experimentalPet: boolean
-  /** Legacy persisted key from before the sidekick -> pet rename; read only during migration, new writes use experimentalPet. */
-  experimentalSidekick?: boolean
   /** Experimental: left-sidebar Agents view — threaded feed of agent completions, blocking/unread state, worktree creation. */
   experimentalActivity: boolean
   /** Experimental: pop-out Kanban dashboard for monitoring and opening agent terminals across worktrees. */

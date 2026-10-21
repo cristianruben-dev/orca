@@ -180,24 +180,6 @@
       "worktreeFixed": "9f27af54d2f5409dc0f15ceed63cb673101d30f22c9f3ee5c29d8bc74fb20975",
       "mainFixed": "9f27af54d2f5409dc0f15ceed63cb673101d30f22c9f3ee5c29d8bc74fb20975"
     },
-    "src/renderer/src/components/pet/pet-blob-cache.ts": {
-      "worktreeBefore": "1e67b111cef647a0176920714091f6c385b112dc31cea923accc131881b23b46",
-      "mainBefore": "1e67b111cef647a0176920714091f6c385b112dc31cea923accc131881b23b46",
-      "worktreeFixed": "1e67b111cef647a0176920714091f6c385b112dc31cea923accc131881b23b46",
-      "mainFixed": "1e67b111cef647a0176920714091f6c385b112dc31cea923accc131881b23b46"
-    },
-    "src/renderer/src/components/pet/pet-models.ts": {
-      "worktreeBefore": "72be3ed31ca00604802425747191595093dcd40a904cba57f6ed75d9f5c653c5",
-      "mainBefore": "72be3ed31ca00604802425747191595093dcd40a904cba57f6ed75d9f5c653c5",
-      "worktreeFixed": "72be3ed31ca00604802425747191595093dcd40a904cba57f6ed75d9f5c653c5",
-      "mainFixed": "72be3ed31ca00604802425747191595093dcd40a904cba57f6ed75d9f5c653c5"
-    },
-    "src/renderer/src/components/pet/sprite-frame-detection.ts": {
-      "worktreeBefore": "b7c8ef4b9f3f28452f219c259b1e532f7558994b5179899ac51492fdf1b9567e",
-      "mainBefore": "b7c8ef4b9f3f28452f219c259b1e532f7558994b5179899ac51492fdf1b9567e",
-      "worktreeFixed": "b7c8ef4b9f3f28452f219c259b1e532f7558994b5179899ac51492fdf1b9567e",
-      "mainFixed": "b7c8ef4b9f3f28452f219c259b1e532f7558994b5179899ac51492fdf1b9567e"
-    },
     "src/renderer/src/components/right-sidebar/coalesced-poll-runner.ts": {
       "worktreeBefore": "e7161198a2f1322e77262525f3c6700c919b5c4e9f0a23a7a61006425d3d069d",
       "mainBefore": "e7161198a2f1322e77262525f3c6700c919b5c4e9f0a23a7a61006425d3d069d",
@@ -5363,12 +5345,6 @@
       "mainBefore": "2676a8197f0c260e62d697ff8998f57ccdaf2f2d422aee94042047ef9aed6fd4",
       "worktreeFixed": "2676a8197f0c260e62d697ff8998f57ccdaf2f2d422aee94042047ef9aed6fd4",
       "mainFixed": "2676a8197f0c260e62d697ff8998f57ccdaf2f2d422aee94042047ef9aed6fd4"
-    },
-    "src/shared/pet-types.ts": {
-      "worktreeBefore": "e14c9cd9f6cce7c19c1860f89e21b10a91c3c1b66ed0e0a429617ea7d6a1f811",
-      "mainBefore": "e14c9cd9f6cce7c19c1860f89e21b10a91c3c1b66ed0e0a429617ea7d6a1f811",
-      "worktreeFixed": "e14c9cd9f6cce7c19c1860f89e21b10a91c3c1b66ed0e0a429617ea7d6a1f811",
-      "mainFixed": "e14c9cd9f6cce7c19c1860f89e21b10a91c3c1b66ed0e0a429617ea7d6a1f811"
     },
     "src/shared/pi-agent-kind.ts": {
       "worktreeBefore": "2bc1fe3de0463cef57001a99614944de014e0bef85b97920188e986d29012dfa",
