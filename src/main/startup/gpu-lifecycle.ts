@@ -17,12 +17,6 @@ import { engageGpuFallbackAfterCrashBurst } from '../crash-reporting/gpu-fallbac
 import { recordCrashBreadcrumb } from '../crash-reporting/crash-breadcrumb-store'
 import { recordDurableCrashBreadcrumb } from '../crash-reporting/durable-crash-breadcrumb'
 import { GpuCrashDiagnosticsRecorder } from '../crash-reporting/gpu-crash-diagnostics'
-import {
-  isInstallDirAclRepairExhausted,
-  isInstallDirAclRepairPending,
-  isInstallDirAclSuspect,
-  waitForInstallDirAclVerdict
-} from './windows-install-dir-acl-recovery'
 import { mainProcessState as state, gpuFallbackEnvironment } from './main-process-state'
 import { createGpuAccelerationAboutPanelOptions } from '../menu/gpu-acceleration-about-panel'
 
@@ -110,13 +104,6 @@ export async function presentGpuFallbackRecoveredLaunchPrompt(
   if (!readActiveGpuFallbackMarker(userDataPath, gpuFallbackEnvironment())) {
     return
   }
-  // The symmetric case: while the tree, not the driver, is on trial (a failed gate leaves it
-  // a live suspect), a "keep it" answer would pin a userConfirmed marker no later repair may
-  // clear — on the window the poison keeps blank. Staying silent leaves the marker
-  // unconfirmed, which a successful repair still retires.
-  if (isInstallDirAclSuspect()) {
-    return
-  }
   await handleGpuFallbackRecoveredLaunch({
     isQuitting: () => state.isQuitting,
     prompt: () => promptForGpuFallbackRecoveredLaunch(window),
@@ -146,64 +133,11 @@ export async function presentGpuFallbackRecoveredLaunchPrompt(
   })
 }
 
-/**
- * Why withholding ends with the repair budget: withholding only buys the ACL repair the
- * chance to land first. Once its attempts are spent no repair is coming on this launch or
- * any later one, so holding safe graphics back forever would deny the only recovery left —
- * on a genuinely poisoned tree Orca has already told the user the admin commands, and the
- * probe's flag-blind ACE match also over-matches healthy installs whose driver really is
- * the fault. It is a bounded delay, not a permanent suppression.
- */
-function installDirAclWithholdsGpuFallback(): boolean {
-  return isInstallDirAclSuspect() && !isInstallDirAclRepairExhausted()
-}
-
-/**
- * Why: a poisoned install DACL kills the GPU child exactly like a bad driver, but safe
- * graphics does not rescue it and --in-process-gpu removes the GPU child, erasing the
- * sibling deaths that identify the real cause.
- *
- * Why the marker is written before the wait rather than after: Chromium aborts the whole
- * browser process on the 6th GPU crash, ~1.3s after the 3rd — less than the probe takes
- * to answer — so a machine that dies waiting must still come back software-rendered.
- * The withdrawal below, and the repair's own clear of an unconfirmed marker, undo it.
- */
 async function installDirAclClearsGpuFallback(
-  userDataPath: string,
-  crashesInWindow: number
+  _userDataPath: string,
+  _crashesInWindow: number
 ): Promise<boolean> {
-  if (!installDirAclWithholdsGpuFallback()) {
-    return true
-  }
-  const persisted = persistGpuFallbackMarker(userDataPath, {
-    engagedAt: Date.now(),
-    crashesInWindow,
-    userConfirmed: false
-  })
-  await waitForInstallDirAclVerdict()
-  if (!installDirAclWithholdsGpuFallback()) {
-    return true
-  }
-  // Why the marker survives a pending repair: withdrawing it here left a machine that
-  // Chromium FATALs mid-repair (crash 6 lands ~1.3s after crash 3, well inside the gate)
-  // relaunching hardware accelerated into the same 20s gate, spawning the same GPU children,
-  // FATALing again — with no attempt spent, so the loop never advances. Keeping it costs a
-  // healthy machine nothing: a successful repair clears an unconfirmed marker itself, and a
-  // clean probe reading means we never reach here. It is still not *engaged* this launch, so
-  // --in-process-gpu does not erase the sibling-death evidence on the launch that is running.
-  const repairPending = isInstallDirAclRepairPending()
-  if (persisted && !repairPending) {
-    clearGpuFallbackMarker(userDataPath)
-  }
-  // Why re-arm: recordGpuCrash reports the threshold crossing once and latches. Withholding
-  // consumed that one report, so without this a later burst — including one after the repair
-  // succeeds and the tree is no longer the suspect — could never engage safe graphics again.
-  state.gpuCrashFallbackTracker.disengage()
-  recordDurableCrashBreadcrumb('gpu_fallback_withheld_install_dir_acl', {
-    crashesInWindow,
-    markerHeldForPendingRepair: repairPending
-  })
-  return false
+  return true
 }
 
 // Why: a burst of GPU child crashes means HW acceleration is unusable — persist a build-scoped marker and offer software rendering.

@@ -19,10 +19,6 @@ vi.mock('../window/dashboard-popout-window', () => ({
   getDashboardPopoutWindow: () => popout.window
 }))
 vi.mock('../window/createMainWindow', () => ({ loadMainWindow: vi.fn() }))
-vi.mock('./windows-install-dir-acl-recovery', () => ({
-  describeInstallDirAclPoison: vi.fn(),
-  isBlockingInstallDirAclRepairInFlight: vi.fn()
-}))
 vi.mock('../window/renderer-recovery-prompt', () => ({ presentRendererRecoveryPrompt: vi.fn() }))
 vi.mock('../window/renderer-launch-failure-probe', () => ({ probeRendererLaunchCapacity: vi.fn() }))
 

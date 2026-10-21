@@ -26,8 +26,6 @@ import {
 } from './main-process-pty-startup'
 import { prepareCodexRuntimeHomeForLaunch } from './codex-launch-preparation'
 import { prepareCodexSessionResumeForLaunch } from './codex-session-resume-launch'
-import { startWindowsDesktopBeforeShellPathReady } from './windows-desktop-shell-path-startup'
-import { repairKnownPoisonedInstallDirBeforeWindow } from './windows-install-dir-acl-recovery'
 import { installServeQuitHandling } from './serve-quit-handling'
 import { installCloudSessionShutdownFlush } from './cloud-session-shutdown-flush'
 import { registerHeadlessServeSshHandlers } from './headless-serve-ssh-registration'
@@ -277,39 +275,15 @@ export async function initializeMainProcessRuntimeLaunch(
   // Why published: the renderer's git-environment barrier must fence on the same
   // generation the terminal startup services wait for, not a later re-read.
   state.shellPathReady = shellPathReady
-  // Why before any window: the poisoned install DACL kills the renderer at init, and
-  // the probe that detects it cannot finish before createMainWindow. Bounded, and a
-  // no-op (one absent-file read) unless a previous launch already recorded the verdict.
-  const aclGate = await repairKnownPoisonedInstallDirBeforeWindow({
-    isServeMode: state.isServeMode || serveOptions !== null,
-    userDataPath: app.getPath('userData'),
-    appVersion: app.getVersion()
-  })
-  if (aclGate !== 'not-marked' && aclGate !== 'skipped') {
-    logStartupMilestone('install-dir-acl-repair-blocking-done', { mode: aclGate })
+  if (!serveOptions) {
+    void startAppImageCopyPreExtraction()
   }
-  let desktopWindow: BrowserWindow | null = null
-  if (process.platform === 'win32' && app.isPackaged && !serveOptions) {
-    const desktopStartup = startWindowsDesktopBeforeShellPathReady({
-      bindServices: bindTerminalRuntimeStartupServices,
-      openWindow: () => options.openMainWindow({ revealOnDidFinishLoad: true }),
-      shellPathReady,
-      startServices: startTerminalRuntimeStartupServices
-    })
-    desktopWindow = desktopStartup.window
-  } else {
-    // Why before the daemon starts: its host choice waits briefly for a copy unpacking here.
-    // Serve unpacks for itself, with a deadline and progress on its own output.
-    if (!serveOptions) {
-      void startAppImageCopyPreExtraction()
-    }
-    await shellPathReady
-    bindTerminalRuntimeStartupServices(Promise.resolve(startTerminalRuntimeStartupServices()))
-  }
+  await shellPathReady
+  bindTerminalRuntimeStartupServices(Promise.resolve(startTerminalRuntimeStartupServices()))
   app.on('activate', options.handleMacAppActivation)
   if (serveOptions) {
     await launchServeMode(runtime, runtimeRpc, serveOptions)
     return
   }
-  await launchDesktopMode(runtimeRpc, shellPathReady, desktopWindow, options.openMainWindow)
+  await launchDesktopMode(runtimeRpc, shellPathReady, null, options.openMainWindow)
 }

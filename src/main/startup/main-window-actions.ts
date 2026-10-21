@@ -16,10 +16,6 @@ import { getDashboardPopoutWindow } from '../window/dashboard-popout-window'
 import { markUserQuitWindowClose } from '../window/user-quit-window-close'
 import { loadMainWindow } from '../window/createMainWindow'
 import {
-  describeInstallDirAclPoison,
-  isBlockingInstallDirAclRepairInFlight
-} from './windows-install-dir-acl-recovery'
-import {
   presentRendererRecoveryPrompt,
   type RendererRecoveryPromptFailure
 } from '../window/renderer-recovery-prompt'
@@ -38,9 +34,7 @@ export function focusExistingWindow(): void {
     app,
     getWindow: () => state.mainWindow,
     openWindow,
-    // Why: a 20s blank launch invites a second double-click, and the repair is rewriting
-    // the per-file DACLs a fresh renderer would read. The gated launch opens the window.
-    canOpenWindow: () => !isBlockingInstallDirAclRepairInFlight(),
+    canOpenWindow: () => true,
     warn: console.warn
   })
 }
@@ -181,7 +175,7 @@ export async function showRendererRecoveryPrompt(
     ...(failure ? { failure } : {}),
     ...(availableCommitMB === undefined ? {} : { availableCommitMB }),
     isQuitting: () => state.isQuitting,
-    diagnose: describeInstallDirAclPoison,
+    diagnose: () => null,
     probeLaunchCapacity: () => probeRendererLaunchCapacity(),
     showMessageBox: (options) => {
       const window =

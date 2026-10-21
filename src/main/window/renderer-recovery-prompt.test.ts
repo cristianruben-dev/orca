@@ -1,9 +1,9 @@
 import type { MessageBoxOptions, MessageBoxReturnValue } from 'electron'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import { ensureMainI18n, mainI18n } from '../i18n/main-i18n'
-import type { InstallDirAclPoisonDiagnosis } from '../startup/windows-install-dir-acl-recovery'
 import {
   presentRendererRecoveryPrompt,
+  type InstallDirAclPoisonDiagnosis,
   type RendererRecoveryPromptDeps
 } from './renderer-recovery-prompt'
 
